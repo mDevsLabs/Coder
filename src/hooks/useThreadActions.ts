@@ -11,6 +11,8 @@ import {
 import { clearPersistedAgentFileChanges } from './../agentFileChangesPersist';
 import { voidShellDebugLog } from '../tabCloseDebug';
 import { normWorkspaceRootKey } from '../workspaceRootKey';
+import { snapshotInflightStoreIntoDraft, type OffThreadStreamDraft } from '../streamInflightSnapshot';
+import { shouldSkipReloadForSameThread } from '../threadReloadSkip';
 import type { ChatMessage, ThreadInfo } from '../threadTypes';
 import type { ComposerSegment } from '../composerSegments';
 import type { AgentFilePreviewState } from './useAgentFileReview';
@@ -102,6 +104,10 @@ export type UseThreadActionsParams = {
 	// session clears
 	clearTeamSession: (id: string) => void;
 	clearAgentSession: (id: string) => void;
+
+	/** 后台仍在跑的 chat 流线程；切走时快照 streamingStore 用 */
+	ipcInFlightChatThreadIdRef: MutableRefObject<string | null>;
+	offThreadStreamDraftsRef: MutableRefObject<Record<string, OffThreadStreamDraft>>;
 
 	// editor menu
 	setEditorThreadHistoryOpen: Dispatch<SetStateAction<boolean>>;
@@ -197,6 +203,8 @@ export function useThreadActions(params: UseThreadActionsParams): UseThreadActio
 		confirmDeleteTimerRef,
 		clearTeamSession,
 		clearAgentSession,
+		ipcInFlightChatThreadIdRef,
+		offThreadStreamDraftsRef,
 		setEditorThreadHistoryOpen,
 		onNewThreadRef,
 	} = params;
@@ -315,6 +323,12 @@ export function useThreadActions(params: UseThreadActionsParams): UseThreadActio
 			if (dev) {
 				console.log(`[perf] onSelectThread: pre-select Δ=${(tSelectIpcStart - t0).toFixed(1)}ms`);
 			}
+			snapshotInflightStoreIntoDraft({
+				leavingThreadId: currentIdRef.current,
+				selectedThreadId: id,
+				ipcInflightThreadId: ipcInFlightChatThreadIdRef.current,
+				draftsRef: offThreadStreamDraftsRef,
+			});
 			const alreadyCurrentThread = currentIdRef.current === id;
 			if (!alreadyCurrentThread) {
 				await shell.invoke('threads:select', id);
@@ -333,9 +347,11 @@ export function useThreadActions(params: UseThreadActionsParams): UseThreadActio
 			}
 
 			// 已展示该线程则跳过 IPC（须在 reset 之前读 ref，且勿用会被 reset 破坏的依赖）
-			const skipReloadSameThread =
-				messagesThreadIdRef.current === id ||
-				(currentIdRef.current === id && messagesRef.current.length > 0);
+			const skipReloadSameThread = shouldSkipReloadForSameThread(
+				id,
+				currentIdRef.current,
+				messagesThreadIdRef.current
+			);
 
 			if (dev) {
 				console.log(`[perf] onSelectThread: setting states for ${id}`);
@@ -423,6 +439,8 @@ export function useThreadActions(params: UseThreadActionsParams): UseThreadActio
 			setAgentFilePreview,
 			restoreInFlightThreadUiIfNeeded,
 			currentIdRef,
+			ipcInFlightChatThreadIdRef,
+			offThreadStreamDraftsRef,
 			messagesRef,
 			messagesThreadIdRef,
 			setEditorThreadHistoryOpen,

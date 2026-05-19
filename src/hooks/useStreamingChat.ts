@@ -9,11 +9,19 @@ import {
 	type SetStateAction,
 } from 'react';
 import { streamingStore } from '../streamingStore';
+import {
+	type OffThreadStreamDraft,
+	ensureDraftHasLiveBlocks,
+} from '../streamInflightSnapshot';
 import type { ComposerMode } from '../ComposerPlusMenu';
 import type { TeamSettings } from '../agentSettingsTypes';
 import { userMessageToSegments, type ComposerSegment } from '../composerSegments';
 import { segmentsToParts, type UserMessagePart } from '../messageParts';
-import { applyLiveAgentChatPayload, type LiveAgentBlocksState } from '../liveAgentBlocks';
+import {
+	applyLiveAgentChatPayload,
+	createEmptyLiveAgentBlocks,
+	type LiveAgentBlocksState,
+} from '../liveAgentBlocks';
 import type { UserModelEntry } from '../modelCatalog';
 import {
 	type AgentPendingPatch,
@@ -76,7 +84,7 @@ type StreamingSendRuntime = {
 	resetStreamingSession: (options?: { clearThread?: boolean }) => void;
 	clearInFlightIpcRouting: (threadId?: string | null) => void;
 	ipcInFlightChatThreadIdRef: MutableRefObject<string | null>;
-	offThreadStreamDraftsRef: MutableRefObject<Record<string, { streaming: string; streamingThinking: string }>>;
+	offThreadStreamDraftsRef: MutableRefObject<Record<string, OffThreadStreamDraft>>;
 	flashComposerAttachErr: (msg: string) => void;
 	t: TFunction;
 	clearAgentReviewForThread: (threadId: string) => void;
@@ -96,7 +104,7 @@ type StreamingSubscriptionRuntime = {
 	streamThreadRef: MutableRefObject<string | null>;
 	ipcInFlightChatThreadIdRef: MutableRefObject<string | null>;
 	ipcStreamNonceRef: MutableRefObject<number>;
-	offThreadStreamDraftsRef: MutableRefObject<Record<string, { streaming: string; streamingThinking: string }>>;
+	offThreadStreamDraftsRef: MutableRefObject<Record<string, OffThreadStreamDraft>>;
 	streamingToolPreviewClearTimerRef: MutableRefObject<number | null>;
 	setStreamingToolPreview: Dispatch<
 		SetStateAction<{ name: string; partialJson: string; index: number } | null>
@@ -184,7 +192,7 @@ export function useStreamingChat() {
 	const ipcInFlightChatThreadIdRef = useRef<string | null>(null);
 	/** 每次 beginStream 递增，与主进程回包 streamNonce 对齐，丢弃上一轮迟到的 done/error */
 	const ipcStreamNonceRef = useRef(0);
-	const offThreadStreamDraftsRef = useRef<Record<string, { streaming: string; streamingThinking: string }>>({});
+	const offThreadStreamDraftsRef = useRef<Record<string, OffThreadStreamDraft>>({});
 	const streamStartedAtRef = useRef<number | null>(null);
 	const firstTokenAtRef = useRef<number | null>(null);
 
@@ -580,18 +588,28 @@ export function useStreamingChatSubscription(runtime: StreamingSubscriptionRunti
 				rt.applyTeamPayload(payload);
 				return;
 			}
-			const draftRow = () => {
+			const ensureDraft = (): OffThreadStreamDraft => {
 				const m = rt.offThreadStreamDraftsRef.current;
-				if (!m[payload.threadId]) {
-					m[payload.threadId] = { streaming: '', streamingThinking: '' };
+				const tid = payload.threadId;
+				let row = m[tid];
+				if (!row) {
+					row = {
+						streaming: '',
+						streamingThinking: '',
+						liveAssistantBlocks: createEmptyLiveAgentBlocks(),
+					};
+					m[tid] = row;
+					return row;
 				}
-				return m[payload.threadId]!;
+				const normalized = ensureDraftHasLiveBlocks(row);
+				m[tid] = normalized;
+				return normalized;
 			};
 			const patchStream = (updater: (s: string) => string) => {
 				if (visible) {
 					rt.setStreaming(updater);
 				} else {
-					const d = draftRow();
+					const d = ensureDraft();
 					d.streaming = updater(d.streaming);
 				}
 			};
@@ -599,36 +617,46 @@ export function useStreamingChatSubscription(runtime: StreamingSubscriptionRunti
 				if (visible) {
 					rt.setStreamingThinking(updater);
 				} else {
-					const d = draftRow();
+					const d = ensureDraft();
 					d.streamingThinking = updater(d.streamingThinking);
 				}
 			};
 
-			const trackLiveBlocks =
-				(rt.composerMode === 'agent' || rt.composerMode === 'plan' || rt.composerMode === 'team') && visible;
-			const applyToolInputDeltaUi = (p: { name: string; partialJson: string; index: number }) => {
-				if (!visible) {
+			const upsertLiveBlocks = (
+				fragment: Parameters<typeof applyLiveAgentChatPayload>[1]
+			) => {
+				const agentLike =
+					rt.composerMode === 'agent' ||
+					rt.composerMode === 'plan' ||
+					rt.composerMode === 'team';
+				if (!agentLike) {
 					return;
 				}
-				if (rt.streamingToolPreviewClearTimerRef.current !== null) {
-					window.clearTimeout(rt.streamingToolPreviewClearTimerRef.current);
-					rt.streamingToolPreviewClearTimerRef.current = null;
+				if (visible) {
+					rt.setLiveAssistantBlocks((st) => applyLiveAgentChatPayload(st, fragment));
+				} else {
+					const d = ensureDraft();
+					d.liveAssistantBlocks = applyLiveAgentChatPayload(d.liveAssistantBlocks, fragment);
 				}
-				rt.setStreamingToolPreview({
+			};
+			const applyToolInputDeltaUi = (p: { name: string; partialJson: string; index: number }) => {
+				if (visible) {
+					if (rt.streamingToolPreviewClearTimerRef.current !== null) {
+						window.clearTimeout(rt.streamingToolPreviewClearTimerRef.current);
+						rt.streamingToolPreviewClearTimerRef.current = null;
+					}
+					rt.setStreamingToolPreview({
+						name: p.name,
+						partialJson: p.partialJson,
+						index: p.index,
+					});
+				}
+				upsertLiveBlocks({
+					type: 'tool_input_delta',
 					name: p.name,
 					partialJson: p.partialJson,
 					index: p.index,
 				});
-				if (trackLiveBlocks) {
-					rt.setLiveAssistantBlocks((st) =>
-						applyLiveAgentChatPayload(st, {
-							type: 'tool_input_delta',
-							name: p.name,
-							partialJson: p.partialJson,
-							index: p.index,
-						})
-					);
-				}
 			};
 
 			if (payload.type === 'delta') {
@@ -640,14 +668,10 @@ export function useStreamingChatSubscription(runtime: StreamingSubscriptionRunti
 						rt.markFirstToken();
 					}
 					patchStream((s) => s + payload.text);
-					if (trackLiveBlocks) {
-						rt.setLiveAssistantBlocks((st) =>
-							applyLiveAgentChatPayload(st, {
-								type: 'delta',
-								text: payload.text,
-							})
-						);
-					}
+					upsertLiveBlocks({
+						type: 'delta',
+						text: payload.text,
+					});
 				}
 			} else if (payload.type === 'tool_input_delta') {
 				if (!payload.parentToolCallId) {
@@ -663,14 +687,10 @@ export function useStreamingChatSubscription(runtime: StreamingSubscriptionRunti
 					return;
 				} else {
 					patchThinking((s) => s + payload.text);
-					if (trackLiveBlocks) {
-						rt.setLiveAssistantBlocks((st) =>
-							applyLiveAgentChatPayload(st, {
-								type: 'thinking_delta',
-								text: payload.text,
-							})
-						);
-					}
+					upsertLiveBlocks({
+						type: 'thinking_delta',
+						text: payload.text,
+					});
 				}
 			} else if (payload.type === 'tool_call') {
 				if (
@@ -720,16 +740,12 @@ export function useStreamingChatSubscription(runtime: StreamingSubscriptionRunti
 				}
 				const marker = `\n<tool_call tool="${payload.name}">${payload.args}</tool_call>\n`;
 				patchStream((s) => s + marker);
-				if (trackLiveBlocks) {
-					rt.setLiveAssistantBlocks((st) =>
-						applyLiveAgentChatPayload(st, {
-							type: 'tool_call',
-							name: payload.name,
-							args: payload.args,
-							toolCallId: payload.toolCallId,
-						})
-					);
-				}
+				upsertLiveBlocks({
+					type: 'tool_call',
+					name: payload.name,
+					args: payload.args,
+					toolCallId: payload.toolCallId,
+				});
 			} else if (payload.type === 'tool_result') {
 				if (!payload.parentToolCallId && visible) {
 					rt.setStreamingToolPreview(null);
@@ -742,27 +758,21 @@ export function useStreamingChatSubscription(runtime: StreamingSubscriptionRunti
 				const safe = truncated.split('</tool_result>').join('</tool\u200c_result>');
 				const marker = `<tool_result tool="${payload.name}" success="${payload.success}">${safe}</tool_result>\n`;
 				patchStream((s) => s + marker);
-				if (trackLiveBlocks) {
-					rt.setLiveAssistantBlocks((st) =>
-						applyLiveAgentChatPayload(st, {
-							type: 'tool_result',
-							name: payload.name,
-							result: truncated,
-							success: payload.success,
-							toolCallId: payload.toolCallId,
-						})
-					);
-				}
+				upsertLiveBlocks({
+					type: 'tool_result',
+					name: payload.name,
+					result: truncated,
+					success: payload.success,
+					toolCallId: payload.toolCallId,
+				});
 			} else if (payload.type === 'tool_progress') {
-				if (trackLiveBlocks && !payload.parentToolCallId) {
-					rt.setLiveAssistantBlocks((st) =>
-						applyLiveAgentChatPayload(st, {
-							type: 'tool_progress',
-							name: payload.name,
-							phase: payload.phase,
-							detail: payload.detail,
-						})
-					);
+				if (!payload.parentToolCallId) {
+					upsertLiveBlocks({
+						type: 'tool_progress',
+						name: payload.name,
+						phase: payload.phase,
+						detail: payload.detail,
+					});
 				}
 			} else if (payload.type === 'tool_approval_request') {
 				if (visible) {
