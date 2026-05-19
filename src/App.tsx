@@ -97,7 +97,8 @@ import { type ChatMessage, type ThreadInfo } from './threadTypes';
 import { normWorkspaceRootKey } from './workspaceRootKey';
 import { useAgentFileReview } from './hooks/useAgentFileReview';
 import { useComposer } from './hooks/useComposer';
-import { useStreaming } from './streamingStore';
+import { streamingStore, useStreaming } from './streamingStore';
+import { ensureDraftHasLiveBlocks } from './streamInflightSnapshot';
 import { DevProfiler } from './devProfiler';
 import { useEditorTabs, type EditorInlineDiffState, clampEditorTerminalHeight } from './hooks/useEditorTabs';
 import { useResizeRails } from './hooks/useResizeRails';
@@ -800,14 +801,17 @@ function AppMainWorkspaceInner() {
 			}
 			const draft = offThreadStreamDraftsRef.current[threadId];
 			if (draft) {
+				streamingStore.flush();
 				setStreaming(draft.streaming);
 				setStreamingThinking(draft.streamingThinking);
+				const normalized = ensureDraftHasLiveBlocks(draft);
+				setLiveAssistantBlocks(() => structuredClone(normalized.liveAssistantBlocks));
 				delete offThreadStreamDraftsRef.current[threadId];
 			}
 			setAwaitingReply(true);
 			setStreamingThreadId(threadId);
 		},
-		[setStreaming, setStreamingThinking, setAwaitingReply, setStreamingThreadId]
+		[setStreaming, setStreamingThinking, setLiveAssistantBlocks, setAwaitingReply, setStreamingThreadId]
 	);
 
 	const clearPlanQuestion = useCallback(() => {
@@ -1994,6 +1998,8 @@ function AppMainWorkspaceInner() {
 		confirmDeleteTimerRef,
 		clearTeamSession,
 		clearAgentSession,
+		ipcInFlightChatThreadIdRef,
+		offThreadStreamDraftsRef,
 		setEditorThreadHistoryOpen,
 		onNewThreadRef,
 	});

@@ -82,6 +82,10 @@ import {
 import type { SendableMessage } from '../llm/sendResolved.js';
 import { userMessageTextForSend } from '../llm/sendResolved.js';
 import { repairAgentThreadMessagesForApi } from './agentToolProtocolRepair.js';
+import {
+	createLegacyToolCallStreamFilter,
+	extractLegacyToolCallsFromAssistantText,
+} from './legacyToolCallFromText.js';
 import { StructuredAssistantBuilder } from './structuredAssistantBuilder.js';
 import { parseAgentAssistantPayload } from '../../src/agentStructuredMessage.js';
 import { repairAnthropicToolPairing, repairOpenAIToolPairing } from './apiConversationRepair.js';
@@ -1075,6 +1079,7 @@ async function runOpenAILoop(
 		const tools = toOpenAITools(resolveVisibleToolPool());
 		let turnText = '';
 		const turnToolCalls: TurnTc[] = [];
+		const legacyToolStream = createLegacyToolCallStreamFilter(`legacy_r${round}_`);
 		let turnFinishReason: string | null = null;
 
 		// 每轮创建独立 AbortController，叠加在外部 signal 之上，用于超时自动中止
@@ -1141,8 +1146,11 @@ async function runOpenAILoop(
 				if (!delta) continue;
 
 				if (delta.content) {
-					turnText += delta.content;
-					handlers.onTextDelta(delta.content);
+					const visible = legacyToolStream.feed(delta.content);
+					if (visible) {
+						turnText += visible;
+						handlers.onTextDelta(visible);
+					}
 				}
 
 				// OpenAI 兼容：部分网关提供 reasoning_content（如 DeepSeek）
@@ -1211,7 +1219,28 @@ async function runOpenAILoop(
 			break;
 		}
 
+		const legacyTail = legacyToolStream.finish();
+		if (legacyTail) {
+			turnText += legacyTail;
+			handlers.onTextDelta(legacyTail);
+		}
+
 		turnText = unwrapAssistantContentEnvelope(turnText);
+		const hasNativeToolCalls = turnToolCalls.some((tc) => tc.name);
+		if (!hasNativeToolCalls) {
+			let legacyCalls = legacyToolStream.toolCalls;
+			if (legacyCalls.length === 0) {
+				const legacyParsed = extractLegacyToolCallsFromAssistantText(
+					turnText,
+					`legacy_r${round}_`
+				);
+				turnText = legacyParsed.text;
+				legacyCalls = legacyParsed.toolCalls;
+			}
+			for (const tc of legacyCalls) {
+				turnToolCalls.push(tc);
+			}
+		}
 		structured.appendText(turnText);
 
 		if (turnToolCalls.length === 0 || turnToolCalls.every((tc) => !tc.name)) {

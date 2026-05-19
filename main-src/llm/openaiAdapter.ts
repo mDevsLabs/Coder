@@ -20,6 +20,7 @@ import type { SendableMessage } from './sendResolved.js';
 import { userMessageTextForSend } from './sendResolved.js';
 import { buildOpenAIUserContent } from './resolvedUserSerialize.js';
 import { streamCodexOAuth } from './codexOAuthAdapter.js';
+import { stripLegacyToolCallMarkup } from '../agent/legacyToolCallFromText.js';
 
 export async function streamOpenAICompatible(
 	settings: ShellSettings,
@@ -232,7 +233,8 @@ export async function streamOpenAICompatible(
 		}
 
 		timeoutMgr.stop();
-		handlers.onDone(full, usage);
+		const cleaned = stripLegacyToolCallMarkup(full);
+		handlers.onDone(cleaned, usage);
 	} catch (e: unknown) {
 		timeoutMgr.stop();
 		if (options.signal.aborted) {
