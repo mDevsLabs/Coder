@@ -27,6 +27,8 @@ export function isAiBrowserEnabledForThisLaunch(): boolean {
  * 必须在 `app.whenReady` 之前调用。
  */
 export function applyAiBrowserStartupSwitches(): boolean {
+	// 降低 AutomationControlled / webdriver 信号（对所有 Chromium 会话生效）。
+	app.commandLine.appendSwitch('disable-blink-features', 'AutomationControlled');
 	if (!isAiBrowserEnabledForThisLaunch()) {
 		return false;
 	}

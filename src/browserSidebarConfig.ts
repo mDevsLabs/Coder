@@ -2,6 +2,7 @@ import {
 	normalizeBrowserFingerprintSpoof as normalizeBrowserFingerprintSpoofImpl,
 	type BrowserFingerprintSpoofSettings,
 } from '../main-src/browser/browserFingerprintNormalize.js';
+import { getDefaultBrowserFingerprintForPlatform } from '../main-src/browser/browserStealthDefaults.js';
 
 export function normalizeBrowserFingerprintSpoof(raw?: unknown): BrowserFingerprintSpoofSettings {
 	return normalizeBrowserFingerprintSpoofImpl(raw);
@@ -71,7 +72,7 @@ export const DEFAULT_BROWSER_SIDEBAR_CONFIG: BrowserSidebarSettingsConfig = {
 	proxyMode: 'system',
 	proxyRules: '',
 	proxyBypassRules: '',
-	fingerprint: {},
+	fingerprint: getDefaultBrowserFingerprintForPlatform(),
 };
 
 export function normalizeBrowserSidebarConfig(

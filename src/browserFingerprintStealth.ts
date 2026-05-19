@@ -55,6 +55,39 @@ if(__patch.maskWebdriver){
 try{
 Object.defineProperty(navigator,'webdriver',{get:makeNative(function(){return false;},'get webdriver'),configurable:true});
 }catch(e){}
+try{
+var cdcKeys=Object.keys(window).filter(function(k){
+return k.indexOf('cdc_')===0||k.indexOf('__webdriver')===0||k.indexOf('__selenium')===0||k.indexOf('__fxdriver')===0;
+});
+for(var ci=0;ci<cdcKeys.length;ci++){
+try{delete window[cdcKeys[ci]];}catch(e2){}
+}
+}catch(e){}
+try{
+if(!navigator.plugins||navigator.plugins.length<5){
+var pluginNames=[
+{name:'Chrome PDF Plugin',filename:'internal-pdf-viewer',description:'Portable Document Format'},
+{name:'Chrome PDF Viewer',filename:'mhjfbmdgcfjbbpaeojofohoefgiehjai',description:''},
+{name:'Native Client',filename:'internal-nacl-plugin',description:''},
+{name:'Chromium PDF Plugin',filename:'internal-pdf-viewer',description:'Portable Document Format'},
+{name:'Chromium PDF Viewer',filename:'mhjfbmdgcfjbbpaeojofohoefgiehjai',description:''}
+];
+var fakePlugins=[];
+for(var pi=0;pi<pluginNames.length;pi++){
+var meta=pluginNames[pi];
+var item={name:meta.name,filename:meta.filename,description:meta.description,length:1,item:makeNative(function(){return null;},'item'),namedItem:makeNative(function(){return null;},'namedItem')};
+fakePlugins.push(item);
+}
+var pluginArray=fakePlugins;
+pluginArray.item=makeNative(function(i){return fakePlugins[i]||null;},'item');
+pluginArray.namedItem=makeNative(function(name){
+for(var ni=0;ni<fakePlugins.length;ni++){if(fakePlugins[ni].name===name)return fakePlugins[ni];}
+return null;
+},'namedItem');
+Object.defineProperty(pluginArray,'length',{value:fakePlugins.length,configurable:true});
+Object.defineProperty(navigator,'plugins',{get:makeNative(function(){return pluginArray;},'get plugins'),configurable:true});
+}
+}catch(e){}
 }
 
 if(__patch.platform!=null)overrideGetter(navigator,'platform',__patch.platform);
@@ -88,11 +121,26 @@ if(__patch.devicePixelRatio!=null)overrideGetter(window,'devicePixelRatio',__pat
 
 try{
 if(!window.chrome)window.chrome={};
+if(!window.chrome.app){
+window.chrome.app={
+isInstalled:false,
+getDetails:makeNative(function(){return null;},'getDetails'),
+getIsInstalled:makeNative(function(){return false;},'getIsInstalled'),
+runningState:makeNative(function(){return 'cannot_run';},'runningState')
+};
+}
 if(!window.chrome.runtime){
 window.chrome.runtime={
-connect:makeNative(function(){},'connect'),
-sendMessage:makeNative(function(){},'sendMessage')
+connect:makeNative(function(){return {onMessage:{addListener:makeNative(function(){},'addListener')},postMessage:makeNative(function(){},'postMessage')};},'connect'),
+sendMessage:makeNative(function(){},'sendMessage'),
+id:undefined
 };
+}
+if(!window.chrome.csi){
+window.chrome.csi=makeNative(function(){return {startE:Date.now(),onloadT:Date.now(),pageT:Date.now(),tran:15};},'csi');
+}
+if(!window.chrome.loadTimes){
+window.chrome.loadTimes=makeNative(function(){return {requestTime:Date.now()/1000,startLoadTime:Date.now()/1000,commitLoadTime:Date.now()/1000,finishDocumentLoadTime:Date.now()/1000,finishLoadTime:Date.now()/1000,firstPaintTime:Date.now()/1000,firstPaintAfterLoadTime:0,navigationType:'Other',wasFetchedViaSpdy:false,wasNpnNegotiated:true,npnNegotiatedProtocol:'h2',wasAlternateProtocolAvailable:false,connectionInfo:'h2'};},'loadTimes');
 }
 }catch(e){}
 

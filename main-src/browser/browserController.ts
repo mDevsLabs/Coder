@@ -4,6 +4,10 @@ import {
 	normalizeBrowserFingerprintSpoof,
 	type BrowserFingerprintSpoofSettings,
 } from './browserFingerprintNormalize.js';
+import {
+	buildChromeLikeUserAgent,
+	getDefaultBrowserFingerprintForPlatform,
+} from './browserStealthDefaults.js';
 
 export type BrowserSidebarConfig = {
 	userAgent: string;
@@ -129,8 +133,18 @@ const DEFAULT_BROWSER_SIDEBAR_CONFIG: BrowserSidebarConfig = {
 	proxyMode: 'system',
 	proxyRules: '',
 	proxyBypassRules: '',
-	fingerprint: {},
+	fingerprint: getDefaultBrowserFingerprintForPlatform(),
 };
+
+function resolveBrowserDefaultUserAgent(partition: string): string {
+	const cached = browserDefaultUserAgentByPartition.get(partition);
+	if (cached) {
+		return cached;
+	}
+	const next = buildChromeLikeUserAgent();
+	browserDefaultUserAgentByPartition.set(partition, next);
+	return next;
+}
 
 const TRACKER_BLOCKED_DOMAIN_SUFFIXES = [
 	'2mdn.net',
@@ -559,7 +573,7 @@ function ensureBrowserSidebarSessionHook(partition: string) {
 export async function applyBrowserSidebarConfigToPartition(partition: string, config: BrowserSidebarConfig): Promise<string> {
 	const ses = ensureBrowserSidebarSessionHook(partition);
 	browserSidebarConfigsByPartition.set(partition, cloneBrowserSidebarConfig(config));
-	const defaultUserAgent = browserDefaultUserAgentByPartition.get(partition) ?? ses.getUserAgent();
+	const defaultUserAgent = resolveBrowserDefaultUserAgent(partition);
 	ses.setUserAgent(config.userAgent || defaultUserAgent);
 	if (config.proxyMode === 'direct') {
 		await ses.setProxy({ mode: 'direct' });

@@ -327,8 +327,21 @@ ipcRenderer.on('auto-update:status', (_event, payload) => {
 const browserNewWindowHandlers = new Map();
 let browserNewWindowSeq = 0;
 
+const googleLoginExternalHandlers = new Map();
+let googleLoginExternalSeq = 0;
+
 ipcRenderer.on('async-shell:browserNewWindow', (_event, payload) => {
 	for (const fn of browserNewWindowHandlers.values()) {
+		try {
+			fn(payload);
+		} catch (e) {
+			console.error(e);
+		}
+	}
+});
+
+ipcRenderer.on('async-shell:googleLoginExternal', (_event, payload) => {
+	for (const fn of googleLoginExternalHandlers.values()) {
 		try {
 			fn(payload);
 		} catch (e) {
@@ -473,6 +486,11 @@ contextBridge.exposeInMainWorld('asyncShell', {
 		const id = ++browserNewWindowSeq;
 		browserNewWindowHandlers.set(id, callback);
 		return () => browserNewWindowHandlers.delete(id);
+	},
+	subscribeGoogleLoginExternal(callback) {
+		const id = ++googleLoginExternalSeq;
+		googleLoginExternalHandlers.set(id, callback);
+		return () => googleLoginExternalHandlers.delete(id);
 	},
 	subscribeBrowserControl(callback) {
 		const id = ++browserControlSeq;

@@ -641,6 +641,10 @@ export const messagesEn: Record<string, string> = {
 	'app.browserAddressPlaceholder': 'Enter a URL or search the web',
 	'app.browserGo': 'Go',
 	'app.browserLoadFailed': 'Could not open this page',
+	'app.browserGoogleLoginExternalTitle': 'Google sign-in opened in your system browser',
+	'app.browserGoogleLoginExternalBody':
+		'The built-in browser cannot complete Google account sign-in. We opened this page in your default browser instead.',
+	'app.browserGoogleLoginExternalFailed': 'Could not open Google sign-in in your system browser. Check your default browser settings.',
 	'app.browserNewTab': 'New tab',
 	'app.browserCloseTab': 'Close tab',
 	'app.browserUntitled': 'New tab',

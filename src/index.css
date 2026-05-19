@@ -9985,6 +9985,16 @@ body.is-resizing-browser-capture-dock {
 	flex-shrink: 0;
 }
 
+.ref-browser-capture-banner--info {
+	background: color-mix(in srgb, var(--void-status-info-soft, var(--void-accent-soft)) 70%, transparent);
+	border: 1px solid color-mix(in srgb, var(--void-status-info, var(--void-accent)) 28%, var(--void-border-soft));
+	color: var(--void-status-info, var(--void-accent));
+}
+
+.ref-browser-google-login-notice {
+	margin: 0 12px 8px;
+}
+
 .ref-browser-capture-banner span {
 	min-width: 0;
 	overflow: hidden;

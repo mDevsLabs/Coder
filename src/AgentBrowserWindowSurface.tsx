@@ -1,6 +1,7 @@
 import { buildBrowserFingerprintStealthScript } from './browserFingerprintStealth.js';
 import { getBrowserHookScript } from './browserHookScript.js';
 import { fingerprintSettingsToInjectPatch } from '../main-src/browser/browserFingerprintNormalize.js';
+import { isGoogleLoginUrl } from '../main-src/browser/googleLoginHosts.js';
 import { humanCursorInitScript } from '../main-src/browser/humanCursor.js';
 import {
 	memo,
@@ -1259,6 +1260,11 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 	const [captureState, setCaptureState] = useState<BrowserCaptureUiState | null>(null);
 	const [captureBusy, setCaptureBusy] = useState<'start' | 'stop' | 'clear' | null>(null);
 	const [captureError, setCaptureError] = useState<string | null>(null);
+	const [googleLoginNotice, setGoogleLoginNotice] = useState<
+		| { kind: 'info'; url: string }
+		| { kind: 'error'; message: string }
+		| null
+	>(null);
 	const [capturePanelExpanded, setCapturePanelExpanded] = useState(() => {
 		try {
 			const stored = window.localStorage.getItem(BROWSER_CAPTURE_DOCK_EXPANDED_KEY);
@@ -3123,43 +3129,120 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 		);
 	}, []);
 
-	const openInNewTab = useCallback((url: string) => {
-		const trimmed = String(url ?? '').trim();
-		if (!trimmed) {
-			return;
-		}
-		const tab = createBrowserTab(trimmed);
-		setTabs((prev) => [...prev, tab]);
-		setActiveTabId(tab.id);
-	}, []);
+	const showGoogleLoginExternalNotice = useCallback(
+		(payload: { url?: string; error?: string | null }) => {
+			const error = String(payload.error ?? '').trim();
+			if (error) {
+				setGoogleLoginNotice({ kind: 'error', message: error });
+				return;
+			}
+			const url = String(payload.url ?? '').trim();
+			if (url) {
+				setGoogleLoginNotice({ kind: 'info', url });
+			}
+		},
+		[]
+	);
 
-	const navigateTab = useCallback((tabId: string, rawTarget: string) => {
-		const nextUrl = normalizeBrowserTarget(rawTarget);
-		const prevTab = tabsRef.current.find((tab) => tab.id === tabId) ?? null;
-		const sameAsRequested = prevTab?.requestedUrl === nextUrl;
-		setActiveTabId(tabId);
-		setTabs((prev) =>
-			prev.map((tab) => {
-				if (tab.id !== tabId) {
-					return tab;
+	const redirectGoogleLoginToSystemBrowser = useCallback(
+		async (rawUrl: string): Promise<boolean> => {
+			const url = normalizeBrowserTarget(String(rawUrl ?? '').trim());
+			if (!isGoogleLoginUrl(url)) {
+				return false;
+			}
+			if (!shell?.invoke) {
+				setGoogleLoginNotice({ kind: 'error', message: t('app.browserGoogleLoginExternalFailed') });
+				return true;
+			}
+			try {
+				const payload = (await shell.invoke('shell:openExternalUrl', url)) as
+					| { ok?: boolean; error?: string }
+					| undefined;
+				if (!payload || payload.ok === false) {
+					setGoogleLoginNotice({
+						kind: 'error',
+						message: String(payload?.error ?? t('app.browserGoogleLoginExternalFailed')),
+					});
+					return true;
 				}
-				return {
-					...tab,
-					requestedUrl: nextUrl,
-					currentUrl: nextUrl,
-					draftUrl: nextUrl,
-					pageTitle: '',
-					isLoading: true,
-					canGoBack: false,
-					canGoForward: false,
-					loadError: null,
-				};
-			})
-		);
-		if (sameAsRequested) {
-			webviewsRef.current.get(tabId)?.reload();
-		}
-	}, []);
+				setGoogleLoginNotice({ kind: 'info', url });
+				return true;
+			} catch (error) {
+				setGoogleLoginNotice({
+					kind: 'error',
+					message: error instanceof Error ? error.message : t('app.browserGoogleLoginExternalFailed'),
+				});
+				return true;
+			}
+		},
+		[shell, t]
+	);
+
+	const openInNewTab = useCallback(
+		(url: string) => {
+			const trimmed = String(url ?? '').trim();
+			if (!trimmed) {
+				return;
+			}
+			void (async () => {
+				if (await redirectGoogleLoginToSystemBrowser(trimmed)) {
+					return;
+				}
+				const tab = createBrowserTab(trimmed);
+				setTabs((prev) => [...prev, tab]);
+				setActiveTabId(tab.id);
+			})();
+		},
+		[redirectGoogleLoginToSystemBrowser]
+	);
+
+	const navigateTab = useCallback(
+		(tabId: string, rawTarget: string) => {
+			void (async () => {
+				const nextUrl = normalizeBrowserTarget(rawTarget);
+				if (await redirectGoogleLoginToSystemBrowser(nextUrl)) {
+					setTabs((prev) =>
+						prev.map((tab) =>
+							tab.id === tabId
+								? {
+										...tab,
+										isLoading: false,
+										loadError: null,
+										draftUrl: tab.currentUrl || tab.draftUrl,
+									}
+								: tab
+						)
+					);
+					return;
+				}
+				const prevTab = tabsRef.current.find((tab) => tab.id === tabId) ?? null;
+				const sameAsRequested = prevTab?.requestedUrl === nextUrl;
+				setActiveTabId(tabId);
+				setTabs((prev) =>
+					prev.map((tab) => {
+						if (tab.id !== tabId) {
+							return tab;
+						}
+						return {
+							...tab,
+							requestedUrl: nextUrl,
+							currentUrl: nextUrl,
+							draftUrl: nextUrl,
+							pageTitle: '',
+							isLoading: true,
+							canGoBack: false,
+							canGoForward: false,
+							loadError: null,
+						};
+					})
+				);
+				if (sameAsRequested) {
+					webviewsRef.current.get(tabId)?.reload();
+				}
+			})();
+		},
+		[redirectGoogleLoginToSystemBrowser]
+	);
 
 	// Subscribe to main-process forwarded new-window events for webview contents.
 	// Electron 12+ deprecated the 'new-window' event; the host (this webContents)
@@ -3176,6 +3259,22 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 			unsubscribe?.();
 		};
 	}, [shell, openInNewTab]);
+
+	useEffect(() => {
+		const subscribe = shell?.subscribeGoogleLoginExternal;
+		if (!subscribe) {
+			return;
+		}
+		const unsubscribe = subscribe((payload) => {
+			showGoogleLoginExternalNotice({
+				url: String(payload?.url ?? ''),
+				error: payload?.error ?? null,
+			});
+		});
+		return () => {
+			unsubscribe?.();
+		};
+	}, [shell, showGoogleLoginExternalNotice]);
 
 	const addNewTab = useCallback(() => {
 		const tab = createBrowserTab();
@@ -3966,6 +4065,29 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 							</button>
 						</form>
 					</div>
+					{googleLoginNotice ? (
+						<div
+							className={`ref-browser-capture-banner ref-browser-google-login-notice${
+								googleLoginNotice.kind === 'info' ? ' ref-browser-capture-banner--info' : ''
+							}`}
+							role={googleLoginNotice.kind === 'error' ? 'alert' : 'status'}
+						>
+							<span>
+								{googleLoginNotice.kind === 'error'
+									? googleLoginNotice.message
+									: `${t('app.browserGoogleLoginExternalTitle')} — ${t('app.browserGoogleLoginExternalBody')}`}
+							</span>
+							<button
+								type="button"
+								className="ref-browser-capture-banner-dismiss"
+								aria-label={t('common.close')}
+								title={t('common.close')}
+								onClick={() => setGoogleLoginNotice(null)}
+							>
+								<IconCloseSmall />
+							</button>
+						</div>
+					) : null}
 					<div className="ref-browser-webview-wrap">
 						{browserConfigReady && browserPartition ? (
 							tabs.map((tab) => (
@@ -3976,7 +4098,10 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 										userAgent={userAgentProp}
 										fingerprintScript={fingerprintScript}
 										active={tab.id === activeTabId}
-										hookEnabled={captureIsActive}
+										hookEnabled={
+											captureIsActive &&
+											!isGoogleLoginUrl(tab.currentUrl || tab.requestedUrl)
+										}
 										hookScript={browserHookScript}
 										onHookEvents={handleHookEventsForTab}
 										onStorageSnapshot={handleStorageSnapshotForTab}

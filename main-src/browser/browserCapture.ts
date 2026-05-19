@@ -1,4 +1,5 @@
 import { webContents, type WebContents } from 'electron';
+import { isGoogleLoginUrl } from './googleLoginHosts.js';
 
 const MAX_CAPTURE_TEXT_CHARS = 200_000;
 const MAX_CAPTURED_REQUESTS = 500;
@@ -805,6 +806,19 @@ async function attachCaptureToGuest(
 		touchCaptureSession(session);
 		return;
 	}
+	const guestUrl = contents.getURL();
+	if (isGoogleLoginUrl(guestUrl)) {
+		const existing = session.attachmentsByGuestId.get(guestId);
+		if (existing) {
+			releaseCaptureAttachment(session, existing);
+		}
+		session.bindingErrorsByTabId.set(
+			tabId,
+			'Capture is disabled on Google sign-in pages to avoid extra debugger signals.'
+		);
+		touchCaptureSession(session);
+		return;
+	}
 	if (contents.debugger.isAttached()) {
 		session.bindingErrorsByTabId.set(tabId, 'Debugger is already attached to this browser tab.');
 		session.retryAfterByGuestId.set(guestId, Date.now() + ATTACH_RETRY_MS);
@@ -872,6 +886,13 @@ async function reconcileCaptureAttachmentsForHostId(hostId: number): Promise<voi
 		const boundGuestId = session.bindingsByTabId.get(attachment.tabId);
 		if (boundGuestId !== attachment.guestId) {
 			releaseCaptureAttachment(session, attachment);
+			continue;
+		}
+		if (isGoogleLoginUrl(attachment.contents.getURL())) {
+			releaseCaptureAttachment(session, attachment, {
+				lastError: 'Capture detached on Google sign-in page.',
+				retryAfterMs: 0,
+			});
 		}
 	}
 	if (!session.capturing) {

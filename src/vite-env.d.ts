@@ -18,6 +18,7 @@ export interface AsyncShellAPI {
 	/** PTY 缂佸牏顏潏鎾冲毉閿涘牊瀵?session id 閸栧搫鍨庨敍?*/
 	/** webview 鐠囬攱鐪伴幍鎾崇磻閺傛壆鐛ラ崣锝忕礄閻㈠彉瀵屾潻娑氣柤 web-contents-created 闁解晛鐡欐潪顒€褰傞敍?*/
 	subscribeBrowserNewWindow?(callback: (payload: { url: string; disposition?: string }) => void): () => void;
+	subscribeGoogleLoginExternal?(callback: (payload: { url: string; error?: string | null }) => void): () => void;
 	/** 娑撴槒绻樼粙瀣祮閸欐垹绮伴崘鍛枂濞村繗顫嶉崳銊╂桨閺夎法娈戦幒褍鍩楅崨鎴掓姢 */
 	subscribeBrowserControl?(callback: (payload: unknown) => void): () => void;
 	/** 閸忋劏鍏樼紒鍫㈩伂娴兼俺鐦芥潏鎾冲毉閿涘牐娉曠粣妤€褰涢崗鍙橀煩閿涙稖顓归梼鍛倵閹靛秳绱伴獮鎸庢尡閿?*/

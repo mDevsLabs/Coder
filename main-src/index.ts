@@ -21,6 +21,10 @@ import { disposeAppTray, initAppTray } from './appTray.js';
 import { disposeBrowserCaptureProxy } from './browser/browserMitmProxy.js';
 import { SystemProxy as BrowserSystemProxy } from './browser/browserSystemProxy.js';
 import { applyAiBrowserStartupSwitches } from './browser/aiBrowserFlag.js';
+import {
+	handleGoogleLoginWindowOpen,
+	installGoogleLoginWebviewPolicy,
+} from './browser/googleLoginPolicy.js';
 import { disposePlaywrightBridge } from './browser/playwrightBridge.js';
 
 function resolveAppIconPath(): string | undefined {
@@ -53,6 +57,7 @@ initWindowsConsoleUtf8();
 
 // 必须在 app.whenReady 之前调用 —— Chromium 命令行开关只在初始化前生效。
 applyAiBrowserStartupSwitches();
+installGoogleLoginWebviewPolicy();
 
 // Intercept webview new-window requests and forward to host renderer
 // (Electron 12+ deprecated the new-window event; use setWindowOpenHandler instead)
@@ -61,6 +66,9 @@ app.on('web-contents-created', (_event, contents) => {
 		return;
 	}
 	contents.setWindowOpenHandler(({ url, disposition }) => {
+		if (handleGoogleLoginWindowOpen(contents, url).handled) {
+			return { action: 'deny' };
+		}
 		const host = contents.hostWebContents;
 		if (host && !host.isDestroyed()) {
 			host.send('async-shell:browserNewWindow', { url, disposition });

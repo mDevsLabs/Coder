@@ -628,6 +628,10 @@ export const messagesZhCN: Record<string, string> = {
 	'app.browserAddressPlaceholder': '输入网址或搜索内容',
 	'app.browserGo': '前往',
 	'app.browserLoadFailed': '页面打开失败',
+	'app.browserGoogleLoginExternalTitle': 'Google 账号登录已在系统浏览器中打开',
+	'app.browserGoogleLoginExternalBody':
+		'内置浏览器无法完成 Google 账号登录。我们已在您的默认浏览器中打开该页面，请在那里完成登录。',
+	'app.browserGoogleLoginExternalFailed': '无法在系统浏览器中打开 Google 登录页，请检查默认浏览器设置。',
 	'app.browserNewTab': '新建标签页',
 	'app.browserCloseTab': '关闭标签页',
 	'app.browserUntitled': '新标签页',
