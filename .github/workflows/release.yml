@@ -80,9 +80,13 @@ jobs:
         shell: pwsh
         run: npm ci --ignore-scripts
 
-      - name: Rebuild native modules
+      - name: Remove cpu-features (optional dep of ssh2, fails to build on Windows CI)
         shell: pwsh
-        run: npm run rebuild:native
+        run: |
+          if (Test-Path "node_modules/cpu-features") {
+            Remove-Item -Recurse -Force "node_modules/cpu-features"
+            Write-Host "✅ cpu-features removed (optional, not needed for Electron)"
+          }
 
       - name: Run tests
         run: npm test

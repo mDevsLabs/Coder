@@ -35,9 +35,6 @@
     "productName": "Async IDE",
     "artifactName": "Async-IDE-${version}-${arch}.${ext}",
     "npmRebuild": false,
-    "electronRebuild": {
-      "onlyModules": ["node-pty", "better-sqlite3"]
-    },
     "directories": {
       "output": "release"
     },
