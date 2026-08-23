@@ -216,7 +216,7 @@ describe('AutoUpdate Settings Configuration', () => {
 					publish: {
 						provider: 'github',
 						owner: 'ZYKJShadow',
-						repo: 'Async',
+						repo: 'mAI-Coder',
 						releaseType: 'release',
 					},
 				},

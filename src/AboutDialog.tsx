@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { BrandLogo } from './BrandLogo';
 import type { TFunction } from './i18n';
 
-const REPO_URL = 'https://github.com/ZYKJShadow/Async';
+const REPO_URL = 'https://github.com/ZYKJShadow/mAI-Coder';
 
 type VersionInfo = {
 	version: string;
@@ -78,7 +78,7 @@ export function AboutDialog({ open, t, shell, onClose }: Props) {
 
 	const copyInfo = () => {
 		const lines = [
-			'Async IDE',
+			'mAI Coder',
 			versionLabel,
 			info?.electron ? `Electron ${info.electron}` : '',
 			info?.chrome ? `Chromium ${info.chrome}` : '',
@@ -111,9 +111,9 @@ export function AboutDialog({ open, t, shell, onClose }: Props) {
 			>
 				<div className="ws-about-hero">
 					<div className="ws-about-hero-glow" aria-hidden />
-					<BrandLogo className="ws-about-logo" size={56} aria-label="Async IDE" />
+					<BrandLogo className="ws-about-logo" size={56} aria-label="mAI Coder" />
 					<h2 id="ws-about-title" className="ws-about-title">
-						Async IDE
+						mAI Coder
 					</h2>
 					<p className="ws-about-tagline">{t('app.help.aboutTagline')}</p>
 					<div className="ws-about-version-pill">{versionLabel}</div>

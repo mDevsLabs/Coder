@@ -118,7 +118,7 @@ app.on('browser-window-created', (_event, win) => {
 	});
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
 	// Recover from a previous run that did not get to restore the system proxy.
 	if (BrowserSystemProxy.hasSavedState()) {
 		void BrowserSystemProxy.disable().catch(() => {
@@ -154,6 +154,14 @@ app.whenReady().then(() => {
 	const userData = app.getPath('userData');
 	initSettingsStore(userData);
 	lap('settingsStore init');
+	// Q1 : au lancement, si compte mAI déjà connecté, rafraîchir modèles via https://mai.val.run/v1/models (clé au hasard)
+	try {
+		const s0 = getSettings();
+		if (s0.maiAccount?.jwtToken) {
+			const { syncMaiAccountWithToken } = await import('./maiAccountStore.js');
+			void syncMaiAccountWithToken(s0.maiAccount.jwtToken).catch((e) => console.warn('[mAI] auto-sync failed', e));
+		}
+	} catch (_) {}
 	initBotSessionStore(userData);
 	lap('botSessionStore init');
 	initBotController(getSettings);

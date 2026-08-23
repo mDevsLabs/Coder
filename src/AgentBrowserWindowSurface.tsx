@@ -742,7 +742,7 @@ function browserCaptureBuildJsonExport(
 	return JSON.stringify(
 		{
 			version: 1,
-			source: 'Async browser capture',
+			source: 'mAI Coder browser capture',
 			exportedAt: new Date().toISOString(),
 			requestCount: requests.length,
 			scope,
@@ -759,7 +759,7 @@ function browserCaptureBuildHarExport(requests: BrowserCaptureRequestDetailUi[])
 			log: {
 				version: '1.2',
 				creator: {
-					name: 'Async browser capture',
+					name: 'mAI Coder browser capture',
 					version: '1.0',
 				},
 				pages: [],
@@ -1540,10 +1540,10 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 					? 'app.browserCaptureCaInstallMachineConfirm'
 					: 'app.browserCaptureCaInstallConfirm';
 			const fallbackMsg = uninstall
-				? 'Remove the Async capture root certificate from the trust store?'
+				? 'Remove the mAI Coder capture root certificate from the trust store?'
 				: scope === 'machine'
-					? 'Install the Async capture root CA system-wide? This requires administrator rights.'
-					: 'Install the Async capture root CA into your user trust store? Windows/macOS will ask you to confirm.';
+					? 'Install the mAI Coder capture root CA system-wide? This requires administrator rights.'
+					: 'Install the mAI Coder capture root CA into your user trust store? Windows/macOS will ask you to confirm.';
 			const message = (() => {
 				const localized = t(confirmKey);
 				return localized && localized !== confirmKey ? localized : fallbackMsg;
@@ -1621,7 +1621,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 				throw new Error(t('app.browserCaptureProxyCaFailed'));
 			}
 			browserCaptureDownloadTextFile(
-				typeof ca.fileName === 'string' && ca.fileName ? ca.fileName : 'async-capture-ca.pem',
+				typeof ca.fileName === 'string' && ca.fileName ? ca.fileName : 'mai-coder-capture-ca.pem',
 				typeof ca.mimeType === 'string' && ca.mimeType ? ca.mimeType : 'application/x-pem-file',
 				pem
 			);

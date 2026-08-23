@@ -1,4 +1,4 @@
-﻿/* structure tokens (independent of light/dark mode) */
+/* structure tokens (independent of light/dark mode) */
 :root {
 	--void-ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
 	--void-ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
@@ -15533,7 +15533,7 @@ body.is-resizing-browser-capture-dock {
 	color: #b0492a;
 }
 
-/* About Async IDE dialog ---------------------------------------------------- */
+/* About mAI Coder dialog ---------------------------------------------------- */
 .ws-about-backdrop {
 	align-items: center;
 	padding: 24px;

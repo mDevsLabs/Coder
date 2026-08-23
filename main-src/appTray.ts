@@ -47,11 +47,11 @@ export function initAppTray(iconPath: string | undefined, quitApp: () => void): 
 		return;
 	}
 	tray = new Tray(iconPath);
-	tray.setToolTip('Async IDE');
+	tray.setToolTip('mAI Coder');
 	tray.setContextMenu(
 		Menu.buildFromTemplate([
 			{
-				label: '打开 Async IDE',
+				label: '打开 mAI Coder',
 				click: () => showMainWindow(),
 			},
 			{

@@ -6,8 +6,8 @@ import { platform } from 'node:os';
 export type CaInstallResult = { ok: true } | { ok: false; error: string };
 export type CaInstallScope = 'user' | 'machine';
 
-const ASYNC_CA_FRIENDLY_NAME = 'Async IDE Local Capture Root';
-const ASYNC_LINUX_DEST = '/usr/local/share/ca-certificates/async-ide-capture-ca.crt';
+const ASYNC_CA_FRIENDLY_NAME = 'mAI Coder Local Capture Root';
+const ASYNC_LINUX_DEST = '/usr/local/share/ca-certificates/mai-coder-capture-ca.crt';
 
 type ExecResult = { stdout: string; stderr: string; code: number | null };
 
@@ -65,7 +65,7 @@ function readPemSha1(certPath: string | undefined): string | null {
 async function sudoExec(cmd: string): Promise<void> {
 	const sudo = (await import('@vscode/sudo-prompt')) as typeof import('@vscode/sudo-prompt');
 	await new Promise<void>((resolve, reject) => {
-		sudo.exec(cmd, { name: 'Async IDE' }, (err?: Error, _stdout?: string | Buffer, stderr?: string | Buffer) => {
+		sudo.exec(cmd, { name: 'mAI Coder' }, (err?: Error, _stdout?: string | Buffer, stderr?: string | Buffer) => {
 			if (err) {
 				const message = (stderr ? stderr.toString().trim() : '') || err.message;
 				reject(new Error(message));

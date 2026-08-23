@@ -107,6 +107,12 @@ const PROVIDER_GROUPS: {
 	{ id: 'antigravity', labelKey: 'settings.providerGroup.antigravity', oauthProvider: 'antigravity' },
 ];
 
+// Q5 : provider système mAI masqué dans les paramètres (non désactivable, non modifiable)
+const SYSTEM_PROVIDER_IDS = new Set<string>(["mai"]);
+function isSystemProvider(provider: UserLlmProvider): boolean {
+	return SYSTEM_PROVIDER_IDS.has(provider.id);
+}
+
 function providerGroupId(provider: UserLlmProvider): ProviderGroupId {
 	const oauthProvider = provider.oauthAuth?.provider;
 	if (oauthProvider === 'codex' || oauthProvider === 'claude' || oauthProvider === 'antigravity') {
@@ -689,6 +695,13 @@ export function SettingsPage({
 	}, []);
 
 	useEffect(() => {
+		// Q6 : à chaque visite de la page Compte (nav==='general'), rafraîchir l'usage mAI via API
+		if (nav === 'general' && shell) {
+			void shell.invoke('mai:refreshUsage').catch(() => {});
+		}
+	}, [nav, shell]);
+
+	useEffect(() => {
 		return () => {
 			oauthLoginRequestIdRef.current += 1;
 			if (oauthLoginTimeoutRef.current !== undefined) {
@@ -700,11 +713,13 @@ export function SettingsPage({
 	}, [shell]);
 
 	const filteredProviders = useMemo(() => {
+		// Q5 : masquer le provider système mAI dans les paramètres
+		const visible = modelProviders.filter((p) => !isSystemProvider(p));
 		const q = deferredSearch.trim().toLowerCase();
 		if (!q) {
-			return modelProviders;
+			return visible;
 		}
-		return modelProviders.filter((p) => {
+		return visible.filter((p) => {
 			const pn = p.displayName.toLowerCase();
 			const pl = t(`settings.paradigm.${p.paradigm}`).toLowerCase();
 			if (pn.includes(q) || pl.includes(q)) {
@@ -752,6 +767,7 @@ export function SettingsPage({
 
 	const patchProvider = useCallback(
 		(id: string, patch: Partial<UserLlmProvider>) => {
+			if (SYSTEM_PROVIDER_IDS.has(id)) return;
 			onChangeModelProviders(modelProviders.map((p) => (p.id === id ? { ...p, ...patch } : p)));
 		},
 		[modelProviders, onChangeModelProviders]
@@ -759,6 +775,7 @@ export function SettingsPage({
 
 	const removeProvider = useCallback(
 		(pid: string) => {
+			if (SYSTEM_PROVIDER_IDS.has(pid)) return;
 			const removedIds = new Set(modelEntries.filter((m) => m.providerId === pid).map((m) => m.id));
 			onChangeModelProviders(modelProviders.filter((p) => p.id !== pid));
 			onChangeModelEntries(modelEntries.filter((m) => m.providerId !== pid));
@@ -783,6 +800,7 @@ export function SettingsPage({
 
 	const addModelToProvider = useCallback(
 		(providerId: string) => {
+			if (SYSTEM_PROVIDER_IDS.has(providerId)) return;
 			onChangeModelEntries([...modelEntries, createEmptyUserModel(providerId)]);
 		},
 		[modelEntries, onChangeModelEntries]
@@ -790,6 +808,8 @@ export function SettingsPage({
 
 	const patchEntry = useCallback(
 		(id: string, patch: Partial<UserModelEntry>) => {
+			const target = modelEntries.find((e) => e.id === id);
+			if (target && SYSTEM_PROVIDER_IDS.has(target.providerId)) return;
 			onChangeModelEntries(modelEntries.map((e) => (e.id === id ? { ...e, ...patch } : e)));
 		},
 		[modelEntries, onChangeModelEntries]
@@ -827,6 +847,8 @@ export function SettingsPage({
 
 	const removeEntry = useCallback(
 		(id: string) => {
+			const target = modelEntries.find((e) => e.id === id);
+			if (target && SYSTEM_PROVIDER_IDS.has(target.providerId)) return;
 			onChangeModelEntries(modelEntries.filter((e) => e.id !== id));
 			if (defaultModel === id) {
 				onPickDefaultModel('');
@@ -859,6 +881,7 @@ export function SettingsPage({
 
 	const discoverModelsForProvider = useCallback(
 		async (provider: UserLlmProvider) => {
+			if (isSystemProvider(provider)) return;
 			if (!shell) {
 				setProviderDiscoverStateById((prev) => ({
 					...prev,

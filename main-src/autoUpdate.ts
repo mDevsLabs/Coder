@@ -62,7 +62,7 @@ function configureUpdater(): void {
 	autoUpdater.setFeedURL({
 		provider: 'github',
 		owner: 'ZYKJShadow',
-		repo: 'Async',
+		repo: 'mAI-Coder',
 	});
 
 	autoUpdater.on('checking-for-update', () => {

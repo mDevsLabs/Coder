@@ -1336,12 +1336,12 @@ function AppMainWorkspaceInner() {
 	const editorSidebarWorkspaceLabel = workspace ? workspaceBasename.toLocaleUpperCase() : t('app.noWorkspace');
 
 	const canSendComposer = useMemo(
-		() => hasSelectedModel && !segmentsTrimmedEmpty(composerSegments),
-		[hasSelectedModel, composerSegments]
+		() => Boolean(maiAccount?.jwtToken) && hasSelectedModel && !segmentsTrimmedEmpty(composerSegments),
+		[hasSelectedModel, composerSegments, maiAccount?.jwtToken]
 	);
 	const canSendInlineResend = useMemo(
-		() => hasSelectedModel && !segmentsTrimmedEmpty(inlineResendSegments),
-		[hasSelectedModel, inlineResendSegments]
+		() => Boolean(maiAccount?.jwtToken) && hasSelectedModel && !segmentsTrimmedEmpty(inlineResendSegments),
+		[hasSelectedModel, inlineResendSegments, maiAccount?.jwtToken]
 	);
 
 	useEffect(() => {
@@ -2022,6 +2022,12 @@ function AppMainWorkspaceInner() {
 				: fromSegments;
 		const targetThreadId = opts?.threadId ?? currentId;
 		if (!shell || !targetThreadId) {
+			return;
+		}
+		// Q4 : connexion mAI obligatoire — si non connecté, ouvrir le modal et bloquer l'envoi
+		if (!maiAccount?.jwtToken) {
+			openMaiAccountModal();
+			flashComposerAttachErr(t('mai.notLoggedIn'));
 			return;
 		}
 

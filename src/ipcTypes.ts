@@ -354,6 +354,8 @@ export type MaiAccountState = {
 	jwtToken?: string;
 	user?: MaiAccountProfile;
 	apiKey?: string;
+	/** Clé aléatoire choisie dans mprojects_api_keys pour /v1/models, réutilisée jusqu'à déconnexion (Q1) */
+	chosenApiKey?: string;
 	usage?: MaiAccountUsage;
 	lastSyncedAt?: number;
 };

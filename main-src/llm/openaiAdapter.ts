@@ -21,7 +21,6 @@ import { userMessageTextForSend } from './sendResolved.js';
 import { buildOpenAIUserContent } from './resolvedUserSerialize.js';
 import { streamCodexOAuth } from './codexOAuthAdapter.js';
 import { stripLegacyToolCallMarkup } from '../agent/legacyToolCallFromText.js';
-import { maiLogUsage } from '../maiAccountStore.js';
 
 export async function streamOpenAICompatible(
 	settings: ShellSettings,
@@ -236,26 +235,13 @@ export async function streamOpenAICompatible(
 		timeoutMgr.stop();
 		const cleaned = stripLegacyToolCallMarkup(full);
 
-		// Enregistrement des tokens d'entrée et sortie dans l'usage log mAI
-		const isMai = options.requestProviderId === 'mai' || options.requestBaseURL?.includes('mai.val.run');
-		if (isMai && usage && settings.maiAccount?.jwtToken) {
-			const totalTokens = (usage.inputTokens ?? 0) + (usage.outputTokens ?? 0);
-			if (totalTokens > 0) {
-				void maiLogUsage(settings.maiAccount.jwtToken, totalTokens);
-			}
-		}
+		// Q3/Q7 : comptage des tokens confié au backend (/v1/chat/completions → weekly_usage)
+		// Le backend parse le SSE/JSON et enregistre input+output confondus ; pas de double comptage côté renderer
 
 		handlers.onDone(cleaned, usage);
 	} catch (e: unknown) {
 		timeoutMgr.stop();
 		if (options.signal.aborted) {
-			const isMai = options.requestProviderId === 'mai' || options.requestBaseURL?.includes('mai.val.run');
-			if (isMai && usage && settings.maiAccount?.jwtToken) {
-				const totalTokens = (usage.inputTokens ?? 0) + (usage.outputTokens ?? 0);
-				if (totalTokens > 0) {
-					void maiLogUsage(settings.maiAccount.jwtToken, totalTokens);
-				}
-			}
 			handlers.onDone(full, usage);
 			return;
 		}

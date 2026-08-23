@@ -31,9 +31,9 @@
     "test:watch": "vitest"
   },
   "build": {
-    "appId": "com.asyncshell.app",
-    "productName": "Async IDE",
-    "artifactName": "Async-IDE-${version}-${arch}.${ext}",
+    "appId": "com.maicoder.app",
+    "productName": "mAI Coder",
+    "artifactName": "mAI-Coder-${version}-${arch}.${ext}",
     "npmRebuild": false,
     "directories": {
       "output": "release"
@@ -115,7 +115,7 @@
     "publish": {
       "provider": "github",
       "owner": "ZYKJShadow",
-      "repo": "Async",
+      "repo": "mAI-Coder",
       "releaseType": "release"
     }
   },

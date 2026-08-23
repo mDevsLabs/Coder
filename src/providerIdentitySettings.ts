@@ -46,12 +46,12 @@ export const ANTIGRAVITY_USER_AGENT = `antigravity/${ANTIGRAVITY_EMULATED_VERSIO
 const ASYNC_DEFAULT_IDENTITY: ResolvedProviderIdentitySettings = {
 	preset: 'async-default',
 	userAgentMode: 'generic',
-	userAgentProduct: 'async-ide',
+	userAgentProduct: 'mai-coder',
 	entrypoint: 'desktop',
 	appHeaderValue: 'desktop',
-	clientAppValue: 'async-ide',
+	clientAppValue: 'mai-coder',
 	sessionHeaderName: 'X-Async-Session-Id',
-	systemPromptPrefix: 'You are Async, the AI coding assistant running inside Async IDE.',
+	systemPromptPrefix: 'You are mAI Coder, the AI coding assistant running inside mAI Coder.',
 	anthropicMetadataMode: 'async',
 };
 
@@ -227,7 +227,7 @@ export function providerIdentityPresetOptions(): Array<{
 	label: string;
 }> {
 	return [
-		{ id: 'async-default', userAgentMode: 'generic', label: 'Async' },
+		{ id: 'async-default', userAgentMode: 'generic', label: 'mAI Coder' },
 		{ id: 'claude-code', userAgentMode: 'claude-code', label: 'Claude Code' },
 		{ id: 'codex', userAgentMode: 'codex', label: 'Codex CLI' },
 		{ id: 'antigravity', userAgentMode: 'antigravity', label: 'Antigravity' },

@@ -644,7 +644,7 @@ const BOT_TOOL_DEFS: AgentToolDef[] = [
 	},
 	{
 		name: 'switch_workspace',
-		description: 'Switch the active Async workspace for this conversation. Use a value returned by get_async_session.availableWorkspaces.',
+		description: 'Switch the active mAI Coder workspace for this conversation. Use a value returned by get_async_session.availableWorkspaces.',
 		parameters: {
 			type: 'object',
 			properties: {
@@ -655,7 +655,7 @@ const BOT_TOOL_DEFS: AgentToolDef[] = [
 	},
 	{
 		name: 'switch_model',
-		description: 'Switch the active Async model for this conversation. Use a model id returned by get_async_session.availableModels.',
+		description: 'Switch the active mAI Coder model for this conversation. Use a model id returned by get_async_session.availableModels.',
 		parameters: {
 			type: 'object',
 			properties: {
@@ -666,7 +666,7 @@ const BOT_TOOL_DEFS: AgentToolDef[] = [
 	},
 	{
 		name: 'new_async_thread',
-		description: 'Start a fresh internal Async worker thread for the current workspace. Use this before run_async_task when you intentionally want a clean worker context.',
+		description: 'Start a fresh internal mAI Coder worker thread for the current workspace. Use this before run_async_task when you intentionally want a clean worker context.',
 		parameters: {
 			type: 'object',
 			properties: {
@@ -678,7 +678,7 @@ const BOT_TOOL_DEFS: AgentToolDef[] = [
 	{
 		name: 'run_async_task',
 		description:
-			'Launch an internal Async worker session when you intentionally want a detached worker or specialist workflow. Prefer using your own tools directly unless you explicitly want a worker session. Choose mode automatically: agent for direct execution, ask for lightweight Q&A, plan for planning-only work, team for delegated multi-role work.',
+			'Launch an internal mAI Coder worker session when you intentionally want a detached worker or specialist workflow. Prefer using your own tools directly unless you explicitly want a worker session. Choose mode automatically: agent for direct execution, ask for lightweight Q&A, plan for planning-only work, team for delegated multi-role work.',
 		parameters: {
 			type: 'object',
 			properties: {
@@ -720,7 +720,7 @@ const BOT_TOOL_DEFS: AgentToolDef[] = [
 				message: {
 					type: 'string',
 					description:
-						'Optional short user-facing instruction. If omitted, Async sends a default "scan the QR and reply when done" message.',
+						'Optional short user-facing instruction. If omitted, mAI Coder sends a default "scan the QR and reply when done" message.',
 				},
 				tab_id: {
 					type: 'string',
@@ -797,8 +797,8 @@ export function buildBotOrchestratorPrompt(
 	const globalRuleAppend = buildAgentGlobalRuleAppend(settings.agent, language);
 	const lines = [
 		language === 'en'
-			? 'You are the Async global leader bot. You directly manage the Async app, its tools, and its worker sessions.'
-			: '你是 Async 的全局 Leader Bot。你直接管理整个 Async 应用、它的工具能力以及内部 worker 会话。',
+			? 'You are the mAI Coder global leader bot. You directly manage the mAI Coder app, its tools, and its worker sessions.'
+			: '你是 mAI Coder 的全局 Leader Bot。你直接管理整个 mAI Coder 应用、它的工具能力以及内部 worker 会话。',
 		language === 'en'
 			? 'This leader loop is for app-level orchestration. It can directly use app/browser controls plus the custom bot session tools below.'
 			: '这个 Leader 循环用于应用级调度。它可以直接使用应用/浏览器控制工具，以及下面的 bot 会话工具。',
@@ -836,7 +836,7 @@ export function buildBotOrchestratorPrompt(
 			? `Current bot user: ${userName}`
 			: `当前外部用户：${userName}`,
 		'',
-		'## Async Session',
+		'## mAI Coder Session',
 		sessionBlock,
 	];
 	if (extraPrompt) {

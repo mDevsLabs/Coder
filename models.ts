@@ -1,6 +1,144 @@
 import type { Hono } from "npm:hono@4";
 import { extractToken, getDb, getWeekData, TIER_LIMITS, verifyToken } from "./config.ts";
 
+// Helper : enregistre les tokens totaux après chaque requête (Q7)
+async function recordTotalTokens(userId: string, weekStartStr: string, total: number) {
+  if (!userId || total <= 0) return;
+  try {
+    const sql = getDb();
+    await sql`
+      INSERT INTO weekly_usage (user_id, week_start, tokens_used)
+      VALUES (${userId}::text, ${weekStartStr}, ${total})
+      ON CONFLICT (user_id, week_start)
+      DO UPDATE SET tokens_used = weekly_usage.tokens_used + ${total}
+    `;
+  } catch (_) {}
+}
+
+// Helper : proxy vers OpenRouter en capturant l'usage pour le comptage (stream + non-stream)
+async function proxyOpenRouterWithUsage(
+  openRouterRes: Response,
+  userId: string,
+  weekStartStr: string
+): Promise<Response> {
+  const contentType = openRouterRes.headers.get("Content-Type") || "application/json";
+  const isStream = contentType.includes("text/event-stream");
+
+  if (!isStream) {
+    // Non-stream : lire le JSON corps pour extraire usage
+    const clone = openRouterRes.clone();
+    let usageTotal = 0;
+    try {
+      const json: any = await clone.json();
+      const u = json.usage || json.usage_metadata || {};
+      const prompt = u.prompt_tokens ?? u.promptTokens ?? u.input_tokens ?? 0;
+      const completion = u.completion_tokens ?? u.completionTokens ?? u.output_tokens ?? 0;
+      const total = (typeof json.usage?.total_tokens === "number") ? json.usage.total_tokens : (Number(prompt) + Number(completion));
+      if (total > 0) usageTotal = total;
+      // Certains providers renvoient usage directement
+      if (!usageTotal && typeof u.totalTokens === "number") usageTotal = u.totalTokens;
+    } catch (_) {}
+    if (usageTotal > 0 && userId) {
+      // fire-and-forget
+      void recordTotalTokens(userId, weekStartStr, usageTotal);
+    }
+    return new Response(openRouterRes.body, {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": contentType,
+      },
+      status: openRouterRes.status,
+    });
+  }
+
+  // Stream : tee + parser SSE pour capter le dernier chunk usage
+  const body = openRouterRes.body;
+  if (!body) {
+    return new Response(null, {
+      headers: { "Access-Control-Allow-Origin": "*", "Content-Type": contentType },
+      status: openRouterRes.status,
+    });
+  }
+  let captInput = 0;
+  let captOutput = 0;
+  let captTotal = 0;
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const stream = new ReadableStream({
+    async start(controller) {
+      const reader = body.getReader();
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          // Parser léger pour usage sans bloquer
+          try {
+            const chunkText = decoder.decode(value, { stream: true });
+            buffer += chunkText;
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed.startsWith("data:")) continue;
+              const data = trimmed.slice(5).trim();
+              if (!data || data === "[DONE]") continue;
+              try {
+                const j: any = JSON.parse(data);
+                if (j.usage) {
+                  const u = j.usage;
+                  const p = u.prompt_tokens ?? u.promptTokens ?? u.input_tokens ?? 0;
+                  const c = u.completion_tokens ?? u.completionTokens ?? u.output_tokens ?? 0;
+                  const t = u.total_tokens ?? (Number(p) + Number(c));
+                  if (Number(p) > 0) captInput = Number(p);
+                  if (Number(c) > 0) captOutput = Number(c);
+                  if (Number(t) > 0) captTotal = Number(t);
+                }
+              } catch (_) {}
+            }
+          } catch (_) {}
+          controller.enqueue(value);
+        }
+        // flush buffer restant
+        if (buffer.trim().startsWith("data:")) {
+          try {
+            const data = buffer.trim().slice(5).trim();
+            if (data && data !== "[DONE]") {
+              const j: any = JSON.parse(data);
+              if (j.usage) {
+                const u = j.usage;
+                const p = u.prompt_tokens ?? 0;
+                const c = u.completion_tokens ?? 0;
+                const t = u.total_tokens ?? (Number(p) + Number(c));
+                if (Number(p) > 0) captInput = Number(p);
+                if (Number(c) > 0) captOutput = Number(c);
+                if (Number(t) > 0) captTotal = Number(t);
+              }
+            }
+          } catch (_) {}
+        }
+      } finally {
+        controller.close();
+        const total = captTotal > 0 ? captTotal : (captInput + captOutput);
+        if (total > 0 && userId) void recordTotalTokens(userId, weekStartStr, total);
+      }
+    },
+    cancel() {
+      // best effort: try to cancel upstream
+      try { (body as any).cancel?.(); } catch (_) {}
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Content-Type": contentType,
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+    },
+    status: openRouterRes.status,
+  });
+}
+
 export function registerModelRoutes(app: Hono) {
   // GET /usage
   app.get("/usage", async (c) => {
@@ -91,7 +229,7 @@ export function registerModelRoutes(app: Hono) {
     }
   });
 
-  // PROXY : CHAT COMPLETIONS (CLI)
+  // PROXY : CHAT COMPLETIONS (CLI) — corrigé : clé aléatoire + comptage réel
   app.post("/chat/completions", async (c) => {
     try {
       const token = extractToken(c.req.raw);
@@ -102,7 +240,7 @@ export function registerModelRoutes(app: Hono) {
       const payload = await verifyToken(token);
       const userId = payload.sub as string;
 
-      // Vérification des limites avant d'autoriser la requête
+      // Vérification des limites avant d'autoriser la requête (Q7)
       const sql = getDb();
       const userRes =
         await sql`SELECT tier FROM users WHERE id = ${userId} LIMIT 1`;
@@ -123,9 +261,10 @@ export function registerModelRoutes(app: Hono) {
 
       // Le corps de la requête du CLI
       const body = await c.req.json();
-      
+
+      // Q1/Q2 : clé au hasard, même que pour /v1/models jusqu'à déconnexion
       const keyRows = await sql`
-        SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text LIMIT 1
+        SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text ORDER BY RANDOM() LIMIT 1
       `;
       const apiKey = keyRows.length > 0 ? keyRows[0].api_key : Deno.env.get("OPENROUTER_API_KEY");
 
@@ -133,16 +272,7 @@ export function registerModelRoutes(app: Hono) {
         return c.json({ error: "Clé fournisseur manquante." }, 500);
       }
 
-      try {
-        await sql`
-          INSERT INTO weekly_usage (user_id, week_start, tokens_used)
-          VALUES (${userId}::text, ${weekStartStr}, 1)
-          ON CONFLICT (user_id, week_start)
-          DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
-        `;
-      } catch(e) {}
-
-      // Redirection de la requête vers OpenRouter
+      // Redirection de la requête vers OpenRouter (sans +1 fictif)
       const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
         {
@@ -157,30 +287,35 @@ export function registerModelRoutes(app: Hono) {
         }
       );
 
-      // Retourne le stream ou la réponse directement au CLI
-      return new Response(response.body, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Content-Type":
-            response.headers.get("Content-Type") || "application/json",
-        },
-        status: response.status,
-      });
+      if (!response.ok) {
+        return new Response(response.body, {
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": response.headers.get("Content-Type") || "application/json",
+          },
+          status: response.status,
+        });
+      }
+      return await proxyOpenRouterWithUsage(response, userId, weekStartStr);
     } catch {
       return c.json({ error: "Erreur serveur proxy." }, 500);
     }
   });
 
-  // GET /v1/models
+  // GET /v1/models — utilise la clé aléatoire tirée pour l'utilisateur (Q1/Q2)
   app.get("/v1/models", async (c) => {
     const userPlan = c.get("userPlan");
-    const apiKey = c.get("apiKey");
+    const apiKey = (c.get("matchedApiKey") as string | null) || c.get("apiKey");
     const planStr = String(userPlan || "Free").toLowerCase().trim();
     const isPaidPlan = ["plus", "pro", "max"].includes(planStr);
     const shouldFilterFreeOnly = !isPaidPlan || !apiKey;
 
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/models");
+      const headers: Record<string, string> = {};
+      if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
+      const res = await fetch("https://openrouter.ai/api/v1/models", {
+        headers: Object.keys(headers).length ? headers : undefined,
+      });
       if (!res.ok) {
         throw new Error("OpenRouter fetch error");
       }
@@ -379,23 +514,19 @@ export function registerModelRoutes(app: Hono) {
         return c.json({ error: "Votre limite hebdomadaire est épuisée. Quota atteint." }, 429);
       }
 
-      const keyRows = await sql`
-        SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text LIMIT 1
-      `;
-      const apiKey = keyRows.length > 0 ? keyRows[0].api_key : Deno.env.get("OPENROUTER_API_KEY");
+      // Q1/Q2 : même clé que pour /v1/models (matchedApiKey du middleware sinon RANDOM)
+      const matched = c.get("matchedApiKey") as string | null;
+      let apiKey: string | null = matched || null;
+      if (!apiKey) {
+        const keyRows = await sql`
+          SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text ORDER BY RANDOM() LIMIT 1
+        `;
+        apiKey = keyRows.length > 0 ? keyRows[0].api_key : (Deno.env.get("OPENROUTER_API_KEY") || null);
+      }
 
       if (!apiKey) {
         return c.json({ error: "Clé fournisseur manquante." }, 500);
       }
-
-      try {
-        await sql`
-          INSERT INTO weekly_usage (user_id, week_start, tokens_used)
-          VALUES (${userId}::text, ${weekStartStr}, 1)
-          ON CONFLICT (user_id, week_start)
-          DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
-        `;
-      } catch(e) {}
 
       const openRouterRes = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -411,14 +542,16 @@ export function registerModelRoutes(app: Hono) {
         }
       );
 
-      return new Response(openRouterRes.body, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Content-Type":
-            openRouterRes.headers.get("Content-Type") || "application/json",
-        },
-        status: openRouterRes.status,
-      });
+      if (!openRouterRes.ok) {
+        return new Response(openRouterRes.body, {
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": openRouterRes.headers.get("Content-Type") || "application/json",
+          },
+          status: openRouterRes.status,
+        });
+      }
+      return await proxyOpenRouterWithUsage(openRouterRes, userId, weekStartStr);
     } catch {
       return c.json({ error: "Failed to process chat completion." }, 500);
     }
@@ -472,23 +605,19 @@ export function registerModelRoutes(app: Hono) {
         return c.json({ error: "Votre limite hebdomadaire est épuisée. Quota atteint." }, 429);
       }
 
-      const keyRows = await sql`
-        SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text LIMIT 1
-      `;
-      const apiKey = keyRows.length > 0 ? keyRows[0].api_key : Deno.env.get("OPENROUTER_API_KEY");
+      // Q1/Q2 : même clé que pour /v1/models
+      const matchedAnthropic = c.get("matchedApiKey") as string | null;
+      let apiKey: string | null = matchedAnthropic || null;
+      if (!apiKey) {
+        const keyRows = await sql`
+          SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text ORDER BY RANDOM() LIMIT 1
+        `;
+        apiKey = keyRows.length > 0 ? keyRows[0].api_key : (Deno.env.get("OPENROUTER_API_KEY") || null);
+      }
 
       if (!apiKey) {
         return c.json({ error: "Clé fournisseur manquante." }, 500);
       }
-
-      try {
-        await sql`
-          INSERT INTO weekly_usage (user_id, week_start, tokens_used)
-          VALUES (${userId}::text, ${weekStartStr}, 1)
-          ON CONFLICT (user_id, week_start)
-          DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
-        `;
-      } catch(e) {}
 
       const openRouterRes = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -504,14 +633,16 @@ export function registerModelRoutes(app: Hono) {
         }
       );
 
-      return new Response(openRouterRes.body, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Content-Type":
-            openRouterRes.headers.get("Content-Type") || "application/json",
-        },
-        status: openRouterRes.status,
-      });
+      if (!openRouterRes.ok) {
+        return new Response(openRouterRes.body, {
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": openRouterRes.headers.get("Content-Type") || "application/json",
+          },
+          status: openRouterRes.status,
+        });
+      }
+      return await proxyOpenRouterWithUsage(openRouterRes, userId, weekStartStr);
     } catch {
       return c.json({ error: "Failed to process Anthropic request." }, 500);
     }
@@ -565,23 +696,19 @@ export function registerModelRoutes(app: Hono) {
         return c.json({ error: "Votre limite hebdomadaire est épuisée. Quota atteint." }, 429);
       }
 
-      const keyRows = await sql`
-        SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text LIMIT 1
-      `;
-      const apiKey = keyRows.length > 0 ? keyRows[0].api_key : Deno.env.get("OPENROUTER_API_KEY");
+      // Q1/Q2 : même clé que pour /v1/models
+      const matchedGoogle = c.get("matchedApiKey") as string | null;
+      let apiKey: string | null = matchedGoogle || null;
+      if (!apiKey) {
+        const keyRows = await sql`
+          SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text ORDER BY RANDOM() LIMIT 1
+        `;
+        apiKey = keyRows.length > 0 ? keyRows[0].api_key : (Deno.env.get("OPENROUTER_API_KEY") || null);
+      }
 
       if (!apiKey) {
         return c.json({ error: "Clé fournisseur manquante." }, 500);
       }
-
-      try {
-        await sql`
-          INSERT INTO weekly_usage (user_id, week_start, tokens_used)
-          VALUES (${userId}::text, ${weekStartStr}, 1)
-          ON CONFLICT (user_id, week_start)
-          DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
-        `;
-      } catch(e) {}
 
       // Google payload is different, we send it to OpenRouter's endpoint.
       const openRouterRes = await fetch(
@@ -598,14 +725,16 @@ export function registerModelRoutes(app: Hono) {
         }
       );
 
-      return new Response(openRouterRes.body, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Content-Type":
-            openRouterRes.headers.get("Content-Type") || "application/json",
-        },
-        status: openRouterRes.status,
-      });
+      if (!openRouterRes.ok) {
+        return new Response(openRouterRes.body, {
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": openRouterRes.headers.get("Content-Type") || "application/json",
+          },
+          status: openRouterRes.status,
+        });
+      }
+      return await proxyOpenRouterWithUsage(openRouterRes, userId, weekStartStr);
     } catch {
       return c.json({ error: "Failed to process Google request." }, 500);
     }

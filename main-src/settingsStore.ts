@@ -108,6 +108,8 @@ export type MaiAccountState = {
 	jwtToken?: string;
 	user?: MaiAccountProfile;
 	apiKey?: string;
+	/** Clé aléatoire tirée dans mprojects_api_keys pour /v1/models (Q1), réutilisée jusqu'à déconnexion */
+	chosenApiKey?: string;
 	usage?: MaiAccountUsage;
 	lastSyncedAt?: number;
 };
@@ -935,6 +937,30 @@ export function patchSettings(partial: Partial<ShellSettings>): ShellSettings {
 		bots: mergedBots,
 		plugins: mergedPlugins,
 	};
+	// Q5 : forcer le provider mAI système (non désactivable / non modifiable)
+	if (cached.models?.providers) {
+		const idx = cached.models.providers.findIndex((p) => p.id === DEFAULT_MAI_PROVIDER_ID);
+		if (idx === -1) {
+			cached.models.providers = [
+				{
+					...DEFAULT_MAI_PROVIDER,
+					apiKey: cached.maiAccount?.chosenApiKey || cached.maiAccount?.apiKey || (cached.models.providers.find((p) => p.id === DEFAULT_MAI_PROVIDER_ID) as any)?.apiKey || "",
+				},
+				...cached.models.providers,
+			];
+		} else {
+			const existing = cached.models.providers[idx]!;
+			cached.models.providers[idx] = {
+				...existing,
+				id: DEFAULT_MAI_PROVIDER_ID,
+				displayName: "mAI",
+				paradigm: "openai-compatible",
+				baseURL: "https://mai.val.run/v1",
+				// préserver la clé choisie (Q1) sinon celle existante
+				apiKey: existing.apiKey || cached.maiAccount?.chosenApiKey || cached.maiAccount?.apiKey || "",
+			};
+		}
+	}
 	cached = migrateDefaultModelRemoveAuto(cached).next;
 	cached = migrateProviderModelLayout(cached).next;
 	cached = migrateThinkingByModel(cached).next;

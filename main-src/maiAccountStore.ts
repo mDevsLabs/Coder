@@ -198,9 +198,9 @@ export async function maiFetchUsage(jwtToken: string): Promise<MaiUsageResponse>
 }
 
 /**
- * 7. Récupérer la clé API liée au user_id dans mprojects_api_keys via /api-keys
+ * 7. Récupérer les clés API liées au user_id dans mprojects_api_keys via /api-keys (Q1 : tirage au hasard)
  */
-export async function maiFetchApiKey(jwtToken: string): Promise<string | null> {
+export async function maiFetchAllApiKeys(jwtToken: string): Promise<string[]> {
 	try {
 		const res = await fetch(`${MAI_API_BASE}/api-keys`, {
 			method: 'GET',
@@ -211,13 +211,24 @@ export async function maiFetchApiKey(jwtToken: string): Promise<string | null> {
 		});
 		const json = await res.json().catch(() => ({}));
 		if (res.ok && json.success && Array.isArray(json.keys) && json.keys.length > 0) {
-			const firstKey = json.keys[0];
-			return typeof firstKey.api_key === 'string' ? firstKey.api_key.trim() : null;
+			return json.keys
+				.map((k: any) => (typeof k.api_key === 'string' ? k.api_key.trim() : ""))
+				.filter((s: string) => s.length > 0);
 		}
-		return null;
+		return [];
 	} catch {
-		return null;
+		return [];
 	}
+}
+
+export async function maiFetchApiKey(jwtToken: string): Promise<string | null> {
+	const keys = await maiFetchAllApiKeys(jwtToken);
+	if (keys.length === 0) return null;
+	// Q1 : clé au hasard, réutilisable jusqu'à déconnexion (mise en cache via chosenApiKey)
+	const current = getSettings().maiAccount?.chosenApiKey?.trim();
+	if (current && keys.includes(current)) return current;
+	const idx = Math.floor(Math.random() * keys.length);
+	return keys[idx] ?? null;
 }
 
 /**
@@ -264,14 +275,24 @@ export async function maiLogUsage(jwtToken: string, tokensUsed: number): Promise
 
 /**
  * Synchronise entièrement le compte mAI à partir du token JWT
+ * Q1 : choisi une clé au hasard dans mprojects_api_keys et la conserve jusqu'à déconnexion
+ * Q2 Option A : côté serveur le middleware accepte le JWT et tire aussi au hasard
  */
 export async function syncMaiAccountWithToken(jwtToken: string): Promise<MaiAccountState> {
-	const [usageRes, apiKeyFound] = await Promise.all([
+	const [usageRes, allKeys] = await Promise.all([
 		maiFetchUsage(jwtToken),
-		maiFetchApiKey(jwtToken),
+		maiFetchAllApiKeys(jwtToken),
 	]);
 
-	const effectiveApiKey = apiKeyFound || jwtToken;
+	let chosenApiKey: string | null = null;
+	const cachedChosen = getSettings().maiAccount?.chosenApiKey?.trim();
+	if (cachedChosen && allKeys.includes(cachedChosen)) {
+		chosenApiKey = cachedChosen;
+	} else if (allKeys.length > 0) {
+		const idx = Math.floor(Math.random() * allKeys.length);
+		chosenApiKey = allKeys[idx] ?? null;
+	}
+	const effectiveApiKey = chosenApiKey || jwtToken;
 	const userProfile: MaiAccountProfile | undefined = usageRes.ok
 		? {
 				id: usageRes.email || 'mai-user',
@@ -296,6 +317,7 @@ export async function syncMaiAccountWithToken(jwtToken: string): Promise<MaiAcco
 		jwtToken,
 		user: userProfile,
 		apiKey: effectiveApiKey,
+		chosenApiKey: chosenApiKey || undefined,
 		usage,
 		lastSyncedAt: Date.now(),
 	};
