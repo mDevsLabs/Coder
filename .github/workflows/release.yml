@@ -38,6 +38,7 @@ jobs:
       ASYNC_BUILTIN_TEAM_SOURCE: ${{ github.workspace }}/agency-agents
       GYP_MSVS_VERSION: "2022"
       npm_config_msvs_version: "2022"
+      npm_config_python: "python"
 
     steps:
       - name: Check out repository
@@ -64,12 +65,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Configure node-gyp
-        shell: bash
-        run: |
-          npm config set msvs_version 2022
-          npm config set python python
 
       - name: Install dependencies
         run: npm ci
