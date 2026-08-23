@@ -1,16 +1,32 @@
-name: Release
+name: Build & Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: "Version du tag (ex: v1.0.0, laisser vide pour le tag courant/commit)"
+        required: false
+        default: ""
+      publish_release:
+        description: "Publier la release GitHub ?"
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
+  group: build-release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   NODE_VERSION: 20
@@ -106,6 +122,10 @@ jobs:
     needs:
       - windows-release
       - macos-release
+    # Condition : publier uniquement si push sur main, ou si workflow_dispatch avec publish_release = true
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && inputs.publish_release == true)
 
     steps:
       - name: Download Windows assets
@@ -123,6 +143,7 @@ jobs:
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.version_tag != '' && inputs.version_tag || github.ref_name }}
           files: |
             release-assets/windows/**/*
             release-assets/macos/**/*
