@@ -242,7 +242,7 @@ export async function streamAnthropic(
 			return;
 		}
 		if (timeoutAc.signal.aborted) {
-			handlers.onError('连接超时：LLM 响应过慢，已自动中止。请重试或检查网络。');
+			handlers.onError('Délai d\'attente dépassé : la réponse du modèle est trop lente, requête interrompue. Veuillez réessayer.');
 			return;
 		}
 		handlers.onError(formatLlmSdkError(e));

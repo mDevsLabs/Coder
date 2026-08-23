@@ -232,7 +232,6 @@ export function ModelPickerDropdown({
 						) : null}
 						{items.map((m) => {
 							const isSel = selectedId === m.id;
-							const rowThink = getThinkingLevel(m.id);
 							return (
 								<div
 									key={m.id}
@@ -259,12 +258,6 @@ export function ModelPickerDropdown({
 									<span className="ref-model-dd-main">
 										<span className="ref-model-dd-title-row">
 											<span className="ref-model-dd-label" title={m.label}>{m.label}</span>
-											<span
-												className={`ref-model-dd-tag ref-model-dd-tag--think ref-model-dd-tag--think-${rowThink}`}
-												title={t('thinking.badgeTitle')}
-											>
-												{t(`thinking.badge.${rowThink}`)}
-											</span>
 										</span>
 										{m.providerLabel ? (
 											<span className="ref-model-dd-provider-meta" title={m.providerLabel}>

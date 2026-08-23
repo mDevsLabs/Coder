@@ -180,13 +180,13 @@ export function registerMiddleware(app: Hono) {
     const endpoint = c.req.path;
     const method = c.req.method;
 
-    // Logging & Mise à jour quota (uniquement pour les clés API utilisateur réelles)
+    // Logging & Mise à jour quota (pour toutes les requêtes authentifiées)
     const isJwtLoggingRoute = path.startsWith("/v1/devices");
-    if (!isJwtLoggingRoute && effectiveKeyForQuota && effectiveKeyForQuota !== systemMaiApiKey) {
+    if (!isJwtLoggingRoute && (effectiveKeyForQuota || currentUserId) && effectiveKeyForQuota !== systemMaiApiKey) {
       try {
         const sql = getDb();
-        const effectiveKeyToLog = matchedApiKey || effectiveKeyForQuota;
-        const prefixCandidate = (apiKey || effectiveKeyToLog).substring(0, 11);
+        const effectiveKeyToLog = matchedApiKey || (effectiveKeyForQuota && effectiveKeyForQuota.length < 64 ? effectiveKeyForQuota : (currentUserId ? `user:${currentUserId}` : 'jwt-session'));
+        const prefixCandidate = effectiveKeyToLog.substring(0, 11);
 
         await sql`
           INSERT INTO mprojects_api_logs (api_key, endpoint, method, status_code, latency_ms)
@@ -197,9 +197,8 @@ export function registerMiddleware(app: Hono) {
           UPDATE mprojects_api_keys
           SET request_count = request_count + 1, last_used_at = NOW()
           WHERE api_key = ${effectiveKeyToLog}::text
-             OR api_key = ${apiKey}::text
+             OR (user_id IS NOT NULL AND user_id = ${currentUserId}::text)
              OR api_key = ${prefixCandidate}::text
-             OR ${apiKey}::text LIKE (api_key || '%')
              OR api_key LIKE (${prefixCandidate} || '%')
         `;
       } catch (err) {

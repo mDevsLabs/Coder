@@ -141,7 +141,7 @@ export async function streamGemini(
 			return;
 		}
 		if (e instanceof Error && e.name === 'AbortError') {
-			handlers.onError('连接超时：无法在限定时间内建立与 Gemini 的响应。请检查网络后重试。');
+			handlers.onError('Délai d\'attente dépassé : impossible d\'établir la connexion avec Gemini dans le temps imparti. Veuillez vérifier votre réseau.');
 			return;
 		}
 		handlers.onError(formatLlmSdkError(e));

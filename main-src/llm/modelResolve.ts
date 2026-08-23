@@ -189,7 +189,7 @@ export function resolveModelRequest(settings: ShellSettings, selectionId: string
 		return {
 			ok: false,
 			message:
-				'未选择模型。请在输入区选择模型，或在设置 → 模型中添加提供商与模型并选择默认模型。',
+				'Aucun modèle sélectionné. Veuillez choisir un modèle dans la barre d\'envoi ou dans Paramètres → Modèles.',
 		};
 	}
 
@@ -198,7 +198,7 @@ export function resolveModelRequest(settings: ShellSettings, selectionId: string
 		return {
 			ok: false,
 			message:
-				'无法解析当前模型：该模型不存在、未在启用列表中或「请求名称」为空。请在设置 → 模型中检查。',
+				'Impossible de charger ce modèle : il n\'existe pas, n\'est pas activé ou son nom de requête est vide. Vérifiez dans Paramètres → Modèles.',
 		};
 	}
 	const entry = e;
@@ -208,7 +208,7 @@ export function resolveModelRequest(settings: ShellSettings, selectionId: string
 		return {
 			ok: false,
 			message:
-				'无法解析当前模型：该模型未关联到有效提供商。请在设置 → 模型中为模型指定提供商，或重新添加提供商。',
+				'Impossible de charger ce modèle : aucun fournisseur associé. Veuillez réassigner un fournisseur dans Paramètres → Modèles.',
 		};
 	}
 

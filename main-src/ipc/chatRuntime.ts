@@ -50,6 +50,7 @@ import { getWorkspaceRootForWebContents } from '../workspace.js';
 import { getWorkspaceLspManagerForWebContents } from '../lspSessionsByWebContents.js';
 import { queueExtractMemories } from '../services/extractMemories/extractMemories.js';
 import { generateThreadTitle } from '../threadTitle.js';
+import { syncMaiAccountWithToken } from '../maiAccountStore.js';
 import type { WebContents } from 'electron';
 
 /**
@@ -97,10 +98,21 @@ export function recordTurnTokenUsageStats(
 	});
 }
 
+export function triggerMaiUsageRefresh(): void {
+	try {
+		const s = getSettings();
+		if (s.maiAccount?.jwtToken) {
+			void syncMaiAccountWithToken(s.maiAccount.jwtToken).catch(() => {});
+		}
+	} catch {
+		/* ignore */
+	}
+}
+
 export function persistAssistantStreamError(threadId: string, message: string): void {
 	try {
 		const lang = getSettings().language;
-		const prefix = lang === 'en' ? 'Error: ' : '错误：';
+		const prefix = lang === 'en' ? 'Error: ' : lang === 'zh-CN' ? '错误：' : 'Erreur : ';
 		appendMessage(threadId, { role: 'assistant', content: `${prefix}${message}` });
 	} catch (e) {
 		console.warn('[chat:stream] persist assistant error failed:', e instanceof Error ? e.message : e);
@@ -327,6 +339,7 @@ export function runChatStream(
 								settings,
 								modelSelection,
 							});
+							triggerMaiUsageRefresh();
 							send({ threadId, type: 'done', text: full, usage });
 						},
 						onError: (message) => emitStreamError(message),
@@ -537,6 +550,7 @@ export function runChatStream(
 									settings,
 									modelSelection,
 								});
+								triggerMaiUsageRefresh();
 								send({ threadId, type: 'done', text: full, usage });
 							},
 							onError: (message) => emitStreamError(message),
@@ -586,6 +600,7 @@ export function runChatStream(
 							settings,
 							modelSelection,
 						});
+						triggerMaiUsageRefresh();
 						if (mode === 'agent') {
 							const listed = listAgentDiffChunks(flattenAssistantTextPartsForSearch(full));
 							if (listed.length > 0) {

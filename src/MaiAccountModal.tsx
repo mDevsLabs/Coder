@@ -168,7 +168,7 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 	const user = account?.user;
 	const usage = account?.usage;
 	const tokensUsed = usage?.tokensUsed ?? 0;
-	const limit = usage?.limit ?? 2_000_000;
+	const limit = usage?.limit ?? 5_000_000;
 	const usagePercent = Math.min(100, Math.round((tokensUsed / (limit || 1)) * 100));
 
 	const formattedTokens = new Intl.NumberFormat('fr-FR').format(tokensUsed);

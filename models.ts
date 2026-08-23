@@ -525,7 +525,16 @@ export function registerModelRoutes(app: Hono) {
       }
 
       if (!apiKey) {
-        return c.json({ error: "Clé fournisseur manquante." }, 500);
+        return c.json(
+          {
+            error: {
+              code: "missing_provider_key",
+              message: "Clé fournisseur manquante. Veuillez vérifier la configuration de votre compte mAI ou votre clé API.",
+              type: "server_error",
+            },
+          },
+          500
+        );
       }
 
       const openRouterRes = await fetch(
@@ -552,8 +561,17 @@ export function registerModelRoutes(app: Hono) {
         });
       }
       return await proxyOpenRouterWithUsage(openRouterRes, userId, weekStartStr);
-    } catch {
-      return c.json({ error: "Failed to process chat completion." }, 500);
+    } catch (err: unknown) {
+      return c.json(
+        {
+          error: {
+            code: "internal_error",
+            message: err instanceof Error ? err.message : "Erreur lors du traitement de la requête.",
+            type: "api_error",
+          },
+        },
+        500
+      );
     }
   });
 

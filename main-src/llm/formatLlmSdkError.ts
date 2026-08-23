@@ -1,18 +1,18 @@
 import { APIError as OpenAIAPIError } from 'openai';
 import { APIError as AnthropicAPIError } from '@anthropic-ai/sdk';
 
-function statusHintZh(status: number): string {
+function statusHintFr(status: number): string {
 	if (status === 401 || status === 403) {
-		return '（常见于 API Key 无效、欠费、无权限或被提供商拒绝。）';
+		return ' (Clé API invalide, compte non autorisé ou accès refusé par le fournisseur)';
 	}
 	if (status === 402) {
-		return '（可能与账户计费或余额有关。）';
+		return ' (Crédits insuffisants ou problème de facturation du compte)';
 	}
 	if (status === 429) {
-		return '（可能是限流，请稍后重试。）';
+		return ' (Limite de requêtes atteinte ou quota dépassé, veuillez patienter)';
 	}
 	if (status >= 500 && status <= 599) {
-		return '（服务端错误，可稍后重试。）';
+		return ' (Erreur serveur du fournisseur IA, veuillez réessayer)';
 	}
 	return '';
 }
@@ -37,7 +37,7 @@ export function formatLlmSdkError(e: unknown): string {
 		const msg = (e.message ?? '').trim();
 		const body = stringifyErrorBody(e.error);
 		if (typeof status === 'number') {
-			const hint = statusHintZh(status);
+			const hint = statusHintFr(status);
 			const head = `HTTP ${status}${hint}`;
 			const parts = [head, msg, body].filter((p) => p.length > 0);
 			// 避免 message 与 body 完全重复

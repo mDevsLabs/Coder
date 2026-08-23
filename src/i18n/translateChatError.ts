@@ -3,7 +3,14 @@ import type { TFunction } from './types';
 /** 是否与 App 写入的 `app.errorPrefix` 助手气泡一致（易读样式 / 避免 Agent 解析漏字） */
 export function isChatAssistantErrorLine(content: string, t: TFunction): boolean {
 	const prefix = t('app.errorPrefix', { message: '' });
-	return content.startsWith(prefix);
+	return (
+		content.startsWith(prefix) ||
+		content.startsWith('Erreur : ') ||
+		content.startsWith('Erreur: ') ||
+		content.startsWith('Error: ') ||
+		content.startsWith('错误：') ||
+		content.startsWith('错误:')
+	);
 }
 
 /** 主进程 / Agent 循环发出的固定中文错误 → 词典 key */

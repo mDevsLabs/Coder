@@ -1,4 +1,4 @@
-﻿import { BrowserWindow, Menu, Tray } from 'electron';
+import { BrowserWindow, Menu, Tray } from 'electron';
 import { checkForUpdates } from './autoUpdate.js';
 import { createAppWindow, focusAppWindow, getAppWindowSurfaceForWebContents } from './appWindow.js';
 
@@ -51,19 +51,19 @@ export function initAppTray(iconPath: string | undefined, quitApp: () => void): 
 	tray.setContextMenu(
 		Menu.buildFromTemplate([
 			{
-				label: '打开 mAI Coder',
+				label: 'Ouvrir mAI Coder',
 				click: () => showMainWindow(),
 			},
 			{
-				label: '新建对话',
+				label: 'Nouvelle conversation',
 				click: () => sendTrayCommand('newThread'),
 			},
 			{
-				label: '打开设置',
+				label: 'Ouvrir les paramètres',
 				click: () => sendTrayCommand('openSettings'),
 			},
 			{
-				label: '检查更新',
+				label: 'Vérifier les mises à jour',
 				click: () => {
 					showMainWindow();
 					void checkForUpdates();
@@ -71,7 +71,7 @@ export function initAppTray(iconPath: string | undefined, quitApp: () => void): 
 			},
 			{ type: 'separator' },
 			{
-				label: '退出',
+				label: 'Quitter',
 				click: () => quitApp(),
 			},
 		])

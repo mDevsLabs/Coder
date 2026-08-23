@@ -35,14 +35,14 @@ export async function streamOpenAICompatible(
 
 	const key = options.requestApiKey.trim();
 	if (!key) {
-		handlers.onError('未配置 OpenAI 兼容 API Key。请在设置 → 模型中填写全局密钥或该模型的独立密钥。');
+		handlers.onError('Clé API non configurée pour ce fournisseur compatible OpenAI. Veuillez renseigner votre clé dans Paramètres → Modèles.');
 		return;
 	}
 
 	const baseURL = options.requestBaseURL?.trim() || undefined;
 	const model = options.requestModelId.trim();
 	if (!model) {
-		handlers.onError('模型请求名称为空。请在 Models 中编辑该模型的「请求名称」。');
+		handlers.onError('Nom de requête du modèle manquant. Veuillez modifier le modèle dans Paramètres → Modèles.');
 		return;
 	}
 
@@ -52,7 +52,7 @@ export async function streamOpenAICompatible(
 		try {
 			httpAgent = new HttpsProxyAgent(proxyRaw);
 		} catch {
-			handlers.onError('代理地址无效，请在设置 → 模型 → 提供商中检查 HTTP 代理格式（如 http://127.0.0.1:7890）。');
+			handlers.onError('Adresse du proxy invalide. Veuillez vérifier le format du proxy HTTP dans Paramètres → Modèles.');
 			return;
 		}
 	}
@@ -246,7 +246,7 @@ export async function streamOpenAICompatible(
 			return;
 		}
 		if (timeoutAc.signal.aborted) {
-			handlers.onError('连接超时：LLM 响应过慢，已自动中止。请重试或检查网络。');
+			handlers.onError('Délai d\'attente dépassé : la réponse du modèle est trop lente, requête interrompue. Veuillez réessayer.');
 			return;
 		}
 		handlers.onError(formatLlmSdkError(e));

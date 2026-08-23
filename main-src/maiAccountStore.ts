@@ -177,20 +177,27 @@ export async function maiFetchUsage(jwtToken: string): Promise<MaiUsageResponse>
 			},
 		});
 		const json = await res.json().catch(() => ({}));
-		if (!res.ok) {
-			return { ok: false, message: json.error || 'Erreur lors de la récupération de l\'usage.' };
-		}
+		const rawTokensUsed =
+			json.tokensUsed ?? json.tokens_used ?? json.used ?? json.weeklyUsed ?? json.weekly_used;
+		const parsedTokensUsed = typeof rawTokensUsed === 'number' ? rawTokensUsed : Number(rawTokensUsed);
+		const tokensUsed = Number.isFinite(parsedTokensUsed) && parsedTokensUsed >= 0 ? parsedTokensUsed : 0;
+
+		const rawLimit =
+			json.limit ?? json.maxTokens ?? json.max_tokens ?? json.tokenLimit ?? json.token_limit;
+		const parsedLimit = typeof rawLimit === 'number' ? rawLimit : Number(rawLimit);
+		const limit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 5_000_000;
+
 		return {
 			ok: true,
 			email: json.email,
 			username: json.username,
-			avatarUrl: json.avatarUrl,
+			avatarUrl: json.avatarUrl || json.avatar_url,
 			tier: json.tier || 'Free',
 			phone: json.phone,
-			tokensUsed: typeof json.tokensUsed === 'number' ? json.tokensUsed : 0,
-			limit: typeof json.limit === 'number' ? json.limit : 2_000_000,
-			resetAt: json.resetAt,
-			weekStart: json.weekStart,
+			tokensUsed,
+			limit,
+			resetAt: json.resetAt || json.reset_at,
+			weekStart: json.weekStart || json.week_start,
 		};
 	} catch (err: unknown) {
 		return { ok: false, message: err instanceof Error ? err.message : 'Erreur réseau.' };

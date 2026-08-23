@@ -1,6 +1,7 @@
 import { memo, type ReactNode, type RefObject } from 'react';
 import type { TFunction } from './i18n';
 import type { ThreadInfo } from './threadTypes';
+import { formatTokenCountShort } from './contextMeterFormat';
 import {
 	IconChevron,
 	IconDotsHorizontal,
@@ -365,7 +366,7 @@ export const AgentLeftSidebar = memo(function AgentLeftSidebar({
 								) : null}
 							</div>
 							{maiAccount?.usage ? (
-								<div style={{ marginTop: 3 }}>
+								<div style={{ marginTop: 4 }}>
 									<div style={{ height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
 										<div
 											style={{
@@ -375,6 +376,19 @@ export const AgentLeftSidebar = memo(function AgentLeftSidebar({
 												borderRadius: 2,
 											}}
 										/>
+									</div>
+									<div
+										style={{
+											display: 'flex',
+											justifyContent: 'space-between',
+											alignItems: 'center',
+											marginTop: 2,
+											fontSize: 10,
+											color: 'var(--fg-muted, #a1a1aa)',
+										}}
+									>
+										<span>{formatTokenCountShort(maiAccount.usage.tokensUsed)} / {formatTokenCountShort(maiAccount.usage.limit)}</span>
+										<span>{Math.min(100, Math.round((maiAccount.usage.tokensUsed / (maiAccount.usage.limit || 1)) * 100))}%</span>
 									</div>
 								</div>
 							) : null}
