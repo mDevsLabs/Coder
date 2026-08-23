@@ -1,4 +1,4 @@
-﻿import { spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { getShellProvider } from './detectShell.js';
 import { createBashProviderWithPath } from './bashProvider.js';
 import { createPowerShellProviderWithPath } from './powershellProvider.js';
@@ -173,13 +173,13 @@ export async function executeShellCommand(command: string, opts: CommandExecutor
 			stderrBuffer = next.value;
 			truncated ||= next.truncated;
 		});
-		child.once('error', (error) => {
+		(child as any).once('error', (error: any) => {
 			if (settled) return;
 			settled = true;
 			for (const cleanup of cleanupFns) cleanup();
 			reject(error);
 		});
-		child.once('close', finish);
+		(child as any).once('close', finish);
 		child.stdin?.end();
 	});
 }

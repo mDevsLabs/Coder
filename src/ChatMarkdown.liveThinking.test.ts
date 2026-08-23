@@ -13,7 +13,7 @@ function renderChatMarkdown(props: ComponentProps<typeof ChatMarkdown>): string 
 	return renderToStaticMarkup(
 		React.createElement(
 			I18nProvider,
-			null,
+			{ initialLocale: 'zh-CN' },
 			React.createElement(ChatMarkdown, props)
 		)
 	);

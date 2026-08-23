@@ -120,6 +120,12 @@ export type AppShellSettingsValue = Pick<
 	| 'setTeamSettings'
 	| 'botIntegrations'
 	| 'setBotIntegrations'
+	| 'maiAccount'
+	| 'setMaiAccount'
+	| 'maiAccountModalOpen'
+	| 'setMaiAccountModalOpen'
+	| 'openMaiAccountModal'
+	| 'closeMaiAccountModal'
 > & { openSettingsPageBase: SettingsHook['openSettingsPage'] };
 
 export type AppShellFoundationMerged = AppShellChromeValue &

@@ -231,6 +231,14 @@ const INVOKE_CHANNELS = new Set([
 	'auto-update:install',
 	'auto-update:get-status',
 	'auto-update:open-folder',
+	'mai:getAccount',
+	'mai:login',
+	'mai:verifyLogin',
+	'mai:register',
+	'mai:verifyRegister',
+	'mai:resendCode',
+	'mai:refreshUsage',
+	'mai:logout',
 ]);
 
 const chatHandlers = new Map();
@@ -342,6 +350,19 @@ ipcRenderer.on('async-shell:browserNewWindow', (_event, payload) => {
 
 ipcRenderer.on('async-shell:googleLoginExternal', (_event, payload) => {
 	for (const fn of googleLoginExternalHandlers.values()) {
+		try {
+			fn(payload);
+		} catch (e) {
+			console.error(e);
+		}
+	}
+});
+
+const maiAccountHandlers = new Map();
+let maiAccountSeq = 0;
+
+ipcRenderer.on('mai:accountUpdated', (_event, payload) => {
+	for (const fn of maiAccountHandlers.values()) {
 		try {
 			fn(payload);
 		} catch (e) {
@@ -544,5 +565,10 @@ contextBridge.exposeInMainWorld('asyncShell', {
 		const id = ++trayCommandSeq;
 		trayCommandHandlers.set(id, callback);
 		return () => trayCommandHandlers.delete(id);
+	},
+	subscribeMaiAccount(callback) {
+		const id = ++maiAccountSeq;
+		maiAccountHandlers.set(id, callback);
+		return () => maiAccountHandlers.delete(id);
 	},
 });

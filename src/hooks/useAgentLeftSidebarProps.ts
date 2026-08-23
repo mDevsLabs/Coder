@@ -27,6 +27,8 @@ export type UseAgentLeftSidebarPropsParams = {
 	openUniversalTerminal: () => void;
 	showSkillsNav?: boolean;
 	showAutomationNav?: boolean;
+	maiAccount?: import('../ipcTypes').MaiAccountState;
+	openMaiAccount?: () => void;
 };
 
 export function useAgentLeftSidebarProps(p: UseAgentLeftSidebarPropsParams): AgentLeftSidebarProps {
@@ -96,6 +98,8 @@ export function useAgentLeftSidebarProps(p: UseAgentLeftSidebarPropsParams): Age
 			openGeneralSettings,
 			openSkillsSettings: p.showSkillsNav !== false ? openSkillsSettings : undefined,
 			openUniversalTerminal: p.showAutomationNav !== false ? openUniversalTerminal : undefined,
+			maiAccount: p.maiAccount,
+			onOpenMaiAccount: p.openMaiAccount,
 		}),
 		[
 			p.t,
@@ -121,6 +125,8 @@ export function useAgentLeftSidebarProps(p: UseAgentLeftSidebarPropsParams): Age
 			openUniversalTerminal,
 			p.showSkillsNav,
 			p.showAutomationNav,
+			p.maiAccount,
+			p.openMaiAccount,
 		]
 	);
 }

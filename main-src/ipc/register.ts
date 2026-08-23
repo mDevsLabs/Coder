@@ -145,6 +145,7 @@ import { registerBrowserHandlers } from './handlers/browserHandlers.js';
 import { registerMcpHandlers } from './handlers/mcpHandlers.js';
 import { registerPluginsHandlers } from './handlers/pluginsHandlers.js';
 import { registerSettingsHandlers } from './handlers/settingsHandlers.js';
+import { registerMaiAuthHandlers } from './handlers/maiAuthHandlers.js';
 import { registerTerminalExecHandlers } from './handlers/terminalExecHandlers.js';
 import { readTextFileSyncWithMetadata, writeTextFileAtomicSync, type TextEncoding } from '../textEncoding.js';
 import { senderWorkspaceRoot, workspaceRootsEqual } from './agentRuntime.js';
@@ -382,6 +383,7 @@ export function registerIpc(): void {
 	registerGitHandlers();
 	registerBrowserHandlers();
 	registerSettingsHandlers();
+	registerMaiAuthHandlers();
 	registerPluginsHandlers();
 	registerMcpHandlers();
 	registerTerminalExecHandlers();

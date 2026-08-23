@@ -47,6 +47,8 @@ export type AgentLeftSidebarProps = {
 	openGeneralSettings: () => void;
 	openSkillsSettings?: () => void;
 	openUniversalTerminal?: () => void;
+	maiAccount?: import('./ipcTypes').MaiAccountState;
+	onOpenMaiAccount?: () => void;
 };
 
 export const AgentLeftSidebar = memo(function AgentLeftSidebar({
@@ -71,6 +73,8 @@ export const AgentLeftSidebar = memo(function AgentLeftSidebar({
 	openGeneralSettings,
 	openSkillsSettings,
 	openUniversalTerminal,
+	maiAccount,
+	onOpenMaiAccount,
 }: AgentLeftSidebarProps) {
 	return (
 		<div className="ref-left-agent-nest">
@@ -295,7 +299,88 @@ export const AgentLeftSidebar = memo(function AgentLeftSidebar({
 					</div>
 				</div>
 			</div>
-			<div className="ref-left-footer ref-left-footer--agent">
+			<div className="ref-left-footer ref-left-footer--agent" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+				{onOpenMaiAccount ? (
+					<button
+						type="button"
+						className="ref-agent-settings-link"
+						onClick={onOpenMaiAccount}
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+							padding: '6px 8px',
+							borderRadius: 8,
+							background: maiAccount?.jwtToken ? 'rgba(59, 130, 246, 0.08)' : 'transparent',
+							border: maiAccount?.jwtToken ? '1px solid rgba(59, 130, 246, 0.2)' : '1px solid transparent',
+							cursor: 'pointer',
+							textAlign: 'left',
+							width: '100%',
+						}}
+					>
+						{maiAccount?.user?.avatarUrl ? (
+							<img
+								src={maiAccount.user.avatarUrl}
+								alt="Avatar"
+								style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }}
+							/>
+						) : (
+							<div
+								style={{
+									width: 22,
+									height: 22,
+									borderRadius: '50%',
+									background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									fontSize: 11,
+									fontWeight: 700,
+									color: '#fff',
+									flexShrink: 0,
+								}}
+							>
+								{maiAccount?.user?.username ? maiAccount.user.username.charAt(0).toUpperCase() : 'm'}
+							</div>
+						)}
+						<div style={{ flex: 1, minWidth: 0 }}>
+							<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+								<span style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+									{maiAccount?.user?.username || t('mai.account')}
+								</span>
+								{maiAccount?.user?.tier ? (
+									<span
+										style={{
+											fontSize: 10,
+											fontWeight: 700,
+											textTransform: 'uppercase',
+											padding: '1px 5px',
+											borderRadius: 4,
+											background: 'rgba(59, 130, 246, 0.2)',
+											color: '#60a5fa',
+										}}
+									>
+										{maiAccount.user.tier}
+									</span>
+								) : null}
+							</div>
+							{maiAccount?.usage ? (
+								<div style={{ marginTop: 3 }}>
+									<div style={{ height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+										<div
+											style={{
+												height: '100%',
+												width: `${Math.min(100, Math.round((maiAccount.usage.tokensUsed / (maiAccount.usage.limit || 1)) * 100))}%`,
+												background: '#3b82f6',
+												borderRadius: 2,
+											}}
+										/>
+									</div>
+								</div>
+							) : null}
+						</div>
+					</button>
+				) : null}
 				<button type="button" className="ref-agent-settings-link" onClick={openGeneralSettings}>
 					<IconSettings className="ref-agent-settings-link-icon" />
 					<span>{t('app.settings')}</span>

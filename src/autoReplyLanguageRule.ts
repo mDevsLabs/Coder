@@ -16,11 +16,14 @@ function normalizeLocale(raw: string | null | undefined): string {
 
 function languageLabelForUi(locale: string, uiLocale: AppLocale): string {
 	const normalized = normalizeLocale(locale).toLowerCase();
+	if (normalized === 'fr' || normalized.startsWith('fr')) {
+		return uiLocale === 'en' ? 'French' : uiLocale === 'zh-CN' ? '法语' : 'Français';
+	}
 	if (normalized === 'zh-cn' || normalized.startsWith('zh-hans')) {
-		return uiLocale === 'en' ? 'Simplified Chinese' : '简体中文';
+		return uiLocale === 'en' ? 'Simplified Chinese' : uiLocale === 'fr' ? 'Chinois simplifié' : '简体中文';
 	}
 	if (normalized.startsWith('en')) {
-		return uiLocale === 'en' ? 'English' : '英文';
+		return uiLocale === 'en' ? 'English' : uiLocale === 'fr' ? 'Anglais' : '英文';
 	}
 	try {
 		const display = new Intl.DisplayNames([uiLocale], { type: 'language' });
@@ -33,6 +36,9 @@ function languageLabelForUi(locale: string, uiLocale: AppLocale): string {
 
 function buildRuleName(locale: string, uiLocale: AppLocale): string {
 	const label = languageLabelForUi(locale, uiLocale);
+	if (uiLocale === 'fr') {
+		return `Langue automatique : répondre en ${label}`;
+	}
 	return uiLocale === 'en'
 		? `Automatic language: respond in ${label}`
 		: `自动语言：默认使用${label}回应`;
@@ -40,17 +46,20 @@ function buildRuleName(locale: string, uiLocale: AppLocale): string {
 
 /**
  * Build the multi-line rule body.
- *
- * Why so verbose: the previous wording ("reply in {label}") was too narrow —
- * models read "reply" as "the final assistant bubble only" and happily produced
- * tool arguments (TaskCreate prompt, ask_plan_question prompts, etc.) and
- * chain-of-thought in English. This expanded form spells out every channel
- * that should follow the user's language, and explicitly carves out the
- * technical tokens that MUST stay verbatim so the model doesn't translate file
- * paths or identifiers.
  */
 function buildRuleContent(locale: string, uiLocale: AppLocale): string {
 	const label = languageLabelForUi(locale, uiLocale);
+	if (uiLocale === 'fr') {
+		return [
+			`Utilisez le ${label} par défaut pour chaque sortie en langage naturel que vous produisez, y compris :`,
+			`- la réponse finale destinée à l'utilisateur ;`,
+			`- les réflexions internes et tokens de pensée (thinking / reasoning) ;`,
+			`- les champs en langage naturel dans les arguments d'outils (ex: prompt TaskCreate, message TaskUpdate, questions et options ask_plan_question, invites request_user_input) ;`,
+			`- les commentaires dans le code adressés à l'utilisateur.`,
+			`Conservez les termes techniques tels quels (chemins de fichiers, options CLI, identifiants, noms de bibliothèques / frameworks / outils, logs ou erreurs copiés), même lorsque la phrase environnante est en ${label}.`,
+			`Ne changez de langue que si l'utilisateur le demande explicitement lors de la requête en cours.`,
+		].join('\n');
+	}
 	if (uiLocale === 'en') {
 		return [
 			`Use ${label} by default for every natural-language output you produce, including:`,

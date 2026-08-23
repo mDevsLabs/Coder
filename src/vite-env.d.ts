@@ -1,4 +1,4 @@
-﻿/// <reference types="vite/client" />
+/// <reference types="vite/client" />
 import type * as React from 'react';
 
 export interface AsyncShellAPI {
@@ -46,6 +46,7 @@ export interface AsyncShellAPI {
 	subscribeTrayCommand?(callback: (payload: { command?: string }) => void): () => void;
 	/** 閼奉亜濮╅弴瀛樻煀閻樿埖鈧焦甯归柅渚婄礄checking / available / downloading / downloaded / error 缁涘绱?*/
 	subscribeAutoUpdateStatus?(callback: (payload: { state: string } & Record<string, unknown>) => void): () => void;
+	subscribeMaiAccount?(callback: (payload: any) => void): () => void;
 }
 declare global {
 interface AsyncShellWebviewElement extends HTMLElement {

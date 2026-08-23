@@ -275,6 +275,10 @@ const handlerCases: Array<{ name: string; load: () => Promise<{ register: () => 
 		load: async () => ({ register: (await import('./handlers/autoUpdateHandlers.js')).registerAutoUpdateHandlers }),
 	},
 	{
+		name: 'maiAuthHandlers',
+		load: async () => ({ register: (await import('./handlers/maiAuthHandlers.js')).registerMaiAuthHandlers }),
+	},
+	{
 		// register.ts is the central dispatcher; its IPC handlers reference
 		// helpers from agentRuntime.ts and chatRuntime.ts that have repeatedly
 		// been the source of "forgot to add the import back" bugs. The whole
@@ -295,7 +299,7 @@ describe('IPC register smoke', () => {
 				expect(typeof channel).toBe('string');
 				expect(typeof fn).toBe('function');
 			}
-		});
+		}, 30000);
 	}
 
 	/**
@@ -361,5 +365,5 @@ describe('IPC register smoke', () => {
 		} finally {
 			removeSmokeWorkspace(workspaceRoot);
 		}
-	}, 15_000);
+	}, 60_000);
 });

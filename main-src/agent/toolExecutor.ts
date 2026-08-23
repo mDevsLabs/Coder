@@ -1000,7 +1000,7 @@ async function performWebSearch(
 					Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 					'Accept-Language': 'en-US,en;q=0.9',
 				},
-				agent: proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined,
+				agent: proxyUrl ? (new HttpsProxyAgent(proxyUrl) as any) : undefined,
 				timeout: WEB_SEARCH_TIMEOUT_MS,
 			},
 			(res) => {

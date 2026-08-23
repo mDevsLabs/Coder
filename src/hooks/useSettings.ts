@@ -28,7 +28,7 @@ import {
 	type AgentSubagent,
 } from '../agentSettingsTypes';
 import type { BotIntegrationConfig } from '../botSettingsTypes';
-import { coerceThinkingByModelId, type ThinkingLevel } from '../ipcTypes';
+import { coerceThinkingByModelId, type ThinkingLevel, type MaiAccountState } from '../ipcTypes';
 import type { ModelPickerItem } from '../ModelPickerDropdown';
 import type { TFunction } from '../i18n';
 import { normalizeTeamSettings } from '../teamPresetCatalog';
@@ -72,6 +72,7 @@ export type LoadedSettingsSnapshot = {
 	bots?: {
 		integrations?: BotIntegrationConfig[];
 	};
+	maiAccount?: MaiAccountState;
 };
 
 export function tagProjectOrigin<T extends { origin?: 'user' | 'project' }>(items: T[] | undefined): T[] {
@@ -109,6 +110,12 @@ export function useSettings(
 		...normalizeTeamSettings(undefined),
 	});
 	const [botIntegrations, setBotIntegrations] = useState<BotIntegrationConfig[]>([]);
+
+	// ── mAI Account state ──
+	const [maiAccount, setMaiAccount] = useState<MaiAccountState | undefined>(undefined);
+	const [maiAccountModalOpen, setMaiAccountModalOpen] = useState(false);
+	const openMaiAccountModal = useCallback(() => setMaiAccountModalOpen(true), []);
+	const closeMaiAccountModal = useCallback(() => setMaiAccountModalOpen(false), []);
 
 	// ── Settings page UI ──
 	const [settingsPageOpen, setSettingsPageOpen] = useState(false);
@@ -302,6 +309,9 @@ export function useSettings(
 		if (st?.editor) {
 			setEditorSettings({ ...defaultEditorSettings(), ...st.editor });
 		}
+		if (st?.maiAccount !== undefined) {
+			setMaiAccount(st.maiAccount);
+		}
 		setTeamSettings(normalizeTeamSettings(st?.team));
 		setBotIntegrations(Array.isArray(st?.bots?.integrations) ? st!.bots!.integrations : []);
 	}, []);
@@ -408,7 +418,23 @@ export function useSettings(
 		});
 	}, [shell, refreshPluginRuntime]);
 
+	useEffect(() => {
+		if (!shell?.subscribeMaiAccount) {
+			return;
+		}
+		return shell.subscribeMaiAccount((account: MaiAccountState) => {
+			setMaiAccount(account);
+		});
+	}, [shell]);
+
 	return {
+		// mAI Account
+		maiAccount,
+		setMaiAccount,
+		maiAccountModalOpen,
+		setMaiAccountModalOpen,
+		openMaiAccountModal,
+		closeMaiAccountModal,
 		// Model
 		modelProviders, setModelProviders,
 		defaultModel, setDefaultModel,

@@ -332,3 +332,28 @@ export type AutoUpdateStatus =
 	| { state: 'downloading'; progress: { percent: number; bytesPerSecond: number; total: number; transferred: number } }
 	| { state: 'downloaded'; platform: string; isSigned: boolean; downloadPath?: string }
 	| { state: 'error'; message: string };
+
+/** Types Compte & Usage mAI */
+export type MaiAccountProfile = {
+	id: string;
+	username: string;
+	email: string;
+	phone?: string;
+	avatarUrl?: string;
+	tier?: string;
+};
+
+export type MaiAccountUsage = {
+	tokensUsed: number;
+	limit: number;
+	resetAt?: string;
+	weekStart?: string;
+};
+
+export type MaiAccountState = {
+	jwtToken?: string;
+	user?: MaiAccountProfile;
+	apiKey?: string;
+	usage?: MaiAccountUsage;
+	lastSyncedAt?: number;
+};

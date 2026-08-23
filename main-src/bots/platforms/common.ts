@@ -349,7 +349,7 @@ export async function requestJson<T>(url: string, options: JsonRequestOptions = 
 			{
 				method: options.method ?? (payload === undefined ? 'GET' : 'POST'),
 				headers,
-				agent: proxyAgent,
+				agent: proxyAgent as any,
 			},
 			(response) => {
 				const status = response.statusCode ?? 0;

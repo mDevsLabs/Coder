@@ -120,8 +120,8 @@ async function spawnDetachedLaunch(
 			shell: opts?.useShell ?? false,
 			windowsHide: opts?.windowsHide ?? true,
 		});
-		child.once('error', reject);
-		child.once('spawn', () => {
+		(child as any).once('error', reject);
+		(child as any).once('spawn', () => {
 			child.unref();
 			resolve();
 		});

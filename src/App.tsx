@@ -77,6 +77,7 @@ function safeHostFromUrl(url: string): string {
 }
 import { isPlanMdPath } from './planExecutedKey';
 import { useSettings } from './hooks/useSettings';
+import { MaiAccountModal } from './MaiAccountModal';
 import { usePlanSystem } from './hooks/usePlanSystem';
 import {
 	useStreamingChat,
@@ -518,6 +519,11 @@ function AppMainWorkspaceInner() {
 		setTeamSettings,
 		botIntegrations,
 		setBotIntegrations,
+		maiAccount,
+		setMaiAccount,
+		maiAccountModalOpen,
+		openMaiAccountModal,
+		closeMaiAccountModal,
 	} = useAppShellSettings();
 
 	const {
@@ -3747,6 +3753,8 @@ function AppMainWorkspaceInner() {
 		openUniversalTerminal: () => {
 			void shell?.invoke('terminalWindow:open', { startPage: true });
 		},
+		maiAccount,
+		openMaiAccount: openMaiAccountModal,
 	});
 
 	/** 未打开工作区时：Agent / Editor 均显示同一套欢迎页（打开项目、最近项目等） */
@@ -4301,10 +4309,14 @@ function AppMainWorkspaceInner() {
 			appearanceSettings,
 			onChangeAppearanceSettings: setAppearanceSettings,
 			showTransientToast,
+			maiAccount,
+			onOpenMaiAccount: openMaiAccountModal,
 		}),
 		[
 			settingsInitialNav,
 			closeSettingsPage,
+			maiAccount,
+			openMaiAccountModal,
 			defaultModel,
 			modelProviders,
 			modelEntries,
@@ -4547,6 +4559,14 @@ function AppMainWorkspaceInner() {
 				subAgentBgToast={subAgentBgToast}
 				composerAttachErr={composerAttachErr}
 				onSubAgentToastClick={onSubAgentToastClick}
+			/>
+
+			<MaiAccountModal
+				open={maiAccountModalOpen}
+				onClose={closeMaiAccountModal}
+				shell={shell}
+				account={maiAccount}
+				onAccountChange={setMaiAccount}
 			/>
 
 			{updateStatus?.state === 'downloaded' ? (

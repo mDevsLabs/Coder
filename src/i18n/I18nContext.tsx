@@ -10,8 +10,14 @@ type I18nContextValue = {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-	const [locale, setLocale] = useState<AppLocale>('zh-CN');
+export function I18nProvider({
+	children,
+	initialLocale = 'fr',
+}: {
+	children?: ReactNode;
+	initialLocale?: AppLocale;
+}) {
+	const [locale, setLocale] = useState<AppLocale>(initialLocale);
 	const t = useMemo(() => createTranslate(locale), [locale]);
 	const value = useMemo(() => ({ locale, setLocale, t }), [locale, t]);
 	return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

@@ -88,6 +88,79 @@ export type ProviderOAuthUsageSummary = {
 	paidTierId?: string;
 };
 
+export type MaiAccountProfile = {
+	id: string;
+	username: string;
+	email: string;
+	phone?: string;
+	avatarUrl?: string;
+	tier?: string;
+};
+
+export type MaiAccountUsage = {
+	tokensUsed: number;
+	limit: number;
+	resetAt?: string;
+	weekStart?: string;
+};
+
+export type MaiAccountState = {
+	jwtToken?: string;
+	user?: MaiAccountProfile;
+	apiKey?: string;
+	usage?: MaiAccountUsage;
+	lastSyncedAt?: number;
+};
+
+export const DEFAULT_MAI_PROVIDER_ID = 'mai';
+
+export const DEFAULT_MAI_PROVIDER: UserLlmProvider = {
+	id: DEFAULT_MAI_PROVIDER_ID,
+	displayName: 'mAI',
+	paradigm: 'openai-compatible',
+	baseURL: 'https://mai.val.run/v1',
+	apiKey: '',
+};
+
+export const DEFAULT_MAI_MODELS: UserModelEntry[] = [
+	{
+		id: 'google/gemini-2.5-flash:free',
+		providerId: DEFAULT_MAI_PROVIDER_ID,
+		displayName: 'Google: Gemini 2.5 Flash',
+		requestName: 'google/gemini-2.5-flash:free',
+		maxOutputTokens: 65535,
+		contextWindowTokens: 1048576,
+		temperatureMode: 'auto',
+	},
+	{
+		id: 'meta-llama/llama-3.3-70b-instruct:free',
+		providerId: DEFAULT_MAI_PROVIDER_ID,
+		displayName: 'Meta: Llama 3.3 70B Instruct',
+		requestName: 'meta-llama/llama-3.3-70b-instruct:free',
+		maxOutputTokens: 128000,
+		contextWindowTokens: 131072,
+		temperatureMode: 'auto',
+	},
+	{
+		id: 'qwen/qwen-2.5-coder-32b-instruct:free',
+		providerId: DEFAULT_MAI_PROVIDER_ID,
+		displayName: 'Qwen: Qwen 2.5 Coder 32B Instruct',
+		requestName: 'qwen/qwen-2.5-coder-32b-instruct:free',
+		maxOutputTokens: 8192,
+		contextWindowTokens: 32768,
+		temperatureMode: 'auto',
+	},
+	{
+		id: 'deepseek/deepseek-r1:free',
+		providerId: DEFAULT_MAI_PROVIDER_ID,
+		displayName: 'DeepSeek: DeepSeek R1',
+		requestName: 'deepseek/deepseek-r1:free',
+		maxOutputTokens: 16000,
+		contextWindowTokens: 163840,
+		temperatureMode: 'auto',
+	},
+];
+
 export type UserModelTemperatureMode = 'auto' | 'custom';
 
 export type UserModelEntry = {
@@ -213,8 +286,10 @@ type PluginMcpServerOverride = {
 };
 
 export type ShellSettings = {
-	/** 界面语言：zh-CN 简体中文（默认）、en 英文 */
-	language?: 'zh-CN' | 'en';
+	/** 界面语言：fr Français（默认）、zh-CN 简体中文、en 英文 */
+	language?: 'fr' | 'zh-CN' | 'en';
+	/** Compte utilisateur mAI (authentification & quotas) */
+	maiAccount?: MaiAccountState;
 	/** @deprecated 已由每条模型的 paradigm 取代，保留仅兼容旧 settings.json */
 	llm?: {
 		provider?: LLMProviderId;
@@ -302,8 +377,15 @@ export type ShellSettings = {
 };
 
 const defaultSettings: ShellSettings = {
-	language: 'zh-CN',
+	language: 'fr',
 	thinkingLevel: 'medium',
+	defaultModel: 'google/gemini-2.5-flash:free',
+	models: {
+		providers: [DEFAULT_MAI_PROVIDER],
+		entries: DEFAULT_MAI_MODELS,
+		enabledIds: DEFAULT_MAI_MODELS.map((m) => m.id),
+		thinkingByModelId: Object.fromEntries(DEFAULT_MAI_MODELS.map((m) => [m.id, 'medium' as ThinkingLevel])),
+	},
 	recentWorkspaces: [],
 	lastOpenedWorkspace: null,
 	providerIdentity: defaultProviderIdentitySettings(),
@@ -574,6 +656,75 @@ function migrateDefaultModelRemoveAuto(settings: ShellSettings): { next: ShellSe
 	return { next: settings, didMutate: false };
 }
 
+function migrateMaiDefaults(settings: ShellSettings): { next: ShellSettings; didMutate: boolean } {
+	let didMutate = false;
+	const currentProviders = settings.models?.providers ?? [];
+	const currentEntries = (settings.models?.entries ?? []).filter((e) => {
+		if (e.id.startsWith('mDevsLabs/')) {
+			didMutate = true;
+			return false;
+		}
+		return true;
+	});
+	const currentEnabledIds = (settings.models?.enabledIds ?? []).filter((id) => {
+		if (id.startsWith('mDevsLabs/')) {
+			didMutate = true;
+			return false;
+		}
+		return true;
+	});
+
+	let nextProviders = [...currentProviders];
+	let nextEntries = [...currentEntries];
+	let nextEnabledIds = [...currentEnabledIds];
+
+	if (!nextProviders.some((p) => p.id === DEFAULT_MAI_PROVIDER_ID)) {
+		nextProviders = [DEFAULT_MAI_PROVIDER, ...nextProviders];
+		didMutate = true;
+	}
+
+	for (const model of DEFAULT_MAI_MODELS) {
+		if (!nextEntries.some((e) => e.id === model.id)) {
+			nextEntries.push(model);
+			if (!nextEnabledIds.includes(model.id)) {
+				nextEnabledIds.push(model.id);
+			}
+			didMutate = true;
+		}
+	}
+
+	let defaultModel = settings.defaultModel;
+	if (!defaultModel || defaultModel.startsWith('mDevsLabs/') || !nextEntries.some((e) => e.id === defaultModel)) {
+		defaultModel = 'google/gemini-2.5-flash:free';
+		didMutate = true;
+	}
+
+	let language = settings.language;
+	if (!language) {
+		language = 'fr';
+		didMutate = true;
+	}
+
+	if (!didMutate) {
+		return { next: settings, didMutate: false };
+	}
+
+	return {
+		next: {
+			...settings,
+			language,
+			defaultModel,
+			models: {
+				...(settings.models ?? {}),
+				providers: nextProviders,
+				entries: nextEntries,
+				enabledIds: nextEnabledIds,
+			},
+		},
+		didMutate: true,
+	};
+}
+
 export function initSettingsStore(userData: string): void {
 	const dir = resolveAsyncDataDir(userData);
 	fs.mkdirSync(dir, { recursive: true });
@@ -594,11 +745,14 @@ export function initSettingsStore(userData: string): void {
 	cached = migratedDm.next;
 	const migratedPm = migrateProviderModelLayout(cached);
 	cached = migratedPm.next;
+	const migratedMai = migrateMaiDefaults(cached);
+	cached = migratedMai.next;
 	const migrated = migrateThinkingByModel(cached);
 	cached = migrated.next;
 	if (
 		migratedDm.didMutate ||
 		migratedPm.didMutate ||
+		migratedMai.didMutate ||
 		migrated.didMutate
 	) {
 		save();

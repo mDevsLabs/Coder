@@ -104,16 +104,39 @@ export function clampMaxOutputTokens(n: number | undefined): number {
 }
 
 function resolveProviderCredentials(
-	provider: UserLlmProvider
+	provider: UserLlmProvider,
+	settings: ShellSettings
 ): { ok: true; apiKey: string; baseURL?: string; proxyUrl?: string; oauthAuth?: ProviderOAuthAuthRecord } | { ok: false; message: string } {
 	let oauthAuth = provider.oauthAuth?.accessToken?.trim() ? provider.oauthAuth : undefined;
+	const isMaiProvider = provider.id === 'mai' || provider.baseURL?.includes('mai.val.run');
+
+	if (isMaiProvider) {
+		const maiAccount = settings.maiAccount;
+		const key = provider.apiKey?.trim() || maiAccount?.apiKey?.trim() || maiAccount?.jwtToken?.trim() || '';
+		if (!key && !maiAccount?.jwtToken) {
+			return {
+				ok: false,
+				message: 'Veuillez vous connecter à votre compte mAI pour utiliser ce modèle (Paramètres → Compte mAI).',
+			};
+		}
+		if (maiAccount?.usage && maiAccount.usage.limit > 0 && maiAccount.usage.tokensUsed >= maiAccount.usage.limit) {
+			return {
+				ok: false,
+				message: `Votre quota hebdomadaire mAI est épuisé (${maiAccount.usage.tokensUsed} / ${maiAccount.usage.limit} tokens). Veuillez recharger votre forfait ou attendre la réinitialisation.`,
+			};
+		}
+		const base = provider.baseURL?.trim() || 'https://mai.val.run/v1';
+		const proxyUrl = provider.proxyUrl?.trim() || undefined;
+		return { ok: true, apiKey: key, baseURL: base, proxyUrl, ...(oauthAuth ? { oauthAuth } : {}) };
+	}
+
 	if (provider.paradigm === 'openai-compatible') {
 		const key = oauthAuth?.accessToken.trim() || provider.apiKey?.trim() || '';
 		if (!key) {
 			return {
 				ok: false,
 				message:
-					'未配置 OpenAI 兼容 API Key。请在设置 → 模型 → 对应提供商中填写 Base URL 与密钥。',
+					'Clé API non configurée pour ce fournisseur. Veuillez renseigner votre clé dans Paramètres → Modèles.',
 			};
 		}
 		const base = provider.baseURL?.trim() || undefined;
@@ -134,7 +157,7 @@ function resolveProviderCredentials(
 		if (!key) {
 			return {
 				ok: false,
-				message: '未配置 Anthropic API Key。请在设置 → 模型 → 对应提供商中填写。',
+				message: 'Clé API Anthropic non configurée. Veuillez renseigner votre clé dans Paramètres → Modèles.',
 			};
 		}
 		const base = provider.baseURL?.trim() || undefined;
@@ -145,7 +168,7 @@ function resolveProviderCredentials(
 	if (!key) {
 		return {
 			ok: false,
-			message: '未配置 Google Gemini API Key。请在设置 → 模型 → 对应提供商中填写。',
+			message: 'Clé API Google Gemini non configurée. Veuillez renseigner votre clé dans Paramètres → Modèles.',
 		};
 	}
 	return { ok: true, apiKey: key, baseURL: undefined, ...(oauthAuth ? { oauthAuth } : {}) };
@@ -189,7 +212,7 @@ export function resolveModelRequest(settings: ShellSettings, selectionId: string
 		};
 	}
 
-	const creds = resolveProviderCredentials(prov);
+	const creds = resolveProviderCredentials(prov, settings);
 	if (!creds.ok) {
 		return creds;
 	}

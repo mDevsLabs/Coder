@@ -556,6 +556,8 @@ type Props = {
 	appearanceSettings: AppAppearanceSettings;
 	onChangeAppearanceSettings: (next: AppAppearanceSettings) => void | Promise<void>;
 	showTransientToast?: (ok: boolean, text: string, durationMs?: number) => void;
+	maiAccount?: import('./ipcTypes').MaiAccountState;
+	onOpenMaiAccount?: () => void;
 };
 
 export type SettingsPageProps = Props;
@@ -599,6 +601,8 @@ export function SettingsPage({
 	appearanceSettings,
 	onChangeAppearanceSettings,
 	showTransientToast,
+	maiAccount,
+	onOpenMaiAccount,
 }: Props) {
 	const { t, locale, setLocale } = useI18n();
 	const navItems = useMemo(() => navItemsForT(t), [t]);
@@ -1167,16 +1171,117 @@ export function SettingsPage({
 										ariaLabel={t('settings.language')}
 										value={locale}
 										onChange={(next) => {
-											const v = next === 'en' ? 'en' : 'zh-CN';
+											const v = next === 'en' ? 'en' : next === 'zh-CN' ? 'zh-CN' : 'fr';
 											setLocale(v);
 											onPersistLanguage?.(v);
 										}}
 										options={[
-											{ value: 'zh-CN', label: t('settings.languageZh') },
+											{ value: 'fr', label: t('settings.languageFr') },
 											{ value: 'en', label: t('settings.languageEn') },
+											{ value: 'zh-CN', label: t('settings.languageZh') },
 										]}
 									/>
 								</div>
+
+								{/* Section Compte mAI & Usage */}
+								<section className="ref-settings-section">
+									<h2 className="ref-settings-subhead">{t('mai.accountTitle')}</h2>
+									<div className="ref-settings-agent-card">
+										<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+											<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+												{maiAccount?.user?.avatarUrl ? (
+													<img
+														src={maiAccount.user.avatarUrl}
+														alt="Avatar"
+														style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }}
+													/>
+												) : (
+													<div
+														style={{
+															width: 44,
+															height: 44,
+															borderRadius: '50%',
+															background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+															display: 'flex',
+															alignItems: 'center',
+															justifyContent: 'center',
+															fontWeight: 700,
+															fontSize: 18,
+															color: '#fff',
+														}}
+													>
+														{maiAccount?.user?.username ? maiAccount.user.username.charAt(0).toUpperCase() : 'm'}
+													</div>
+												)}
+												<div>
+													<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+														<span style={{ fontWeight: 600, fontSize: 15 }}>
+															{maiAccount?.user?.username || (maiAccount?.jwtToken ? 'Utilisateur mAI' : t('mai.notConnected'))}
+														</span>
+														{maiAccount?.user?.tier ? (
+															<span
+																style={{
+																	fontSize: 10,
+																	fontWeight: 700,
+																	textTransform: 'uppercase',
+																	padding: '2px 6px',
+																	borderRadius: 4,
+																	background: 'rgba(59, 130, 246, 0.2)',
+																	color: '#60a5fa',
+																}}
+															>
+																{maiAccount.user.tier}
+															</span>
+														) : null}
+													</div>
+													<div style={{ fontSize: 12, color: 'var(--fg-muted, #a1a1aa)' }}>
+														{maiAccount?.user?.email || 'Authentification via https://mai.val.run'}
+													</div>
+												</div>
+											</div>
+
+											{onOpenMaiAccount ? (
+												<button
+													type="button"
+													onClick={onOpenMaiAccount}
+													style={{
+														padding: '6px 12px',
+														borderRadius: 6,
+														background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+														border: 'none',
+														color: '#fff',
+														fontSize: 13,
+														fontWeight: 500,
+														cursor: 'pointer',
+													}}
+												>
+													{maiAccount?.jwtToken ? 'Gérer le compte' : t('mai.login')}
+												</button>
+											) : null}
+										</div>
+
+										{maiAccount?.usage ? (
+											<div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+												<div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 6 }}>
+													<span>{t('mai.usage')}</span>
+													<span style={{ fontWeight: 600 }}>
+														{new Intl.NumberFormat('fr-FR').format(maiAccount.usage.tokensUsed)} / {new Intl.NumberFormat('fr-FR').format(maiAccount.usage.limit)} tokens
+													</span>
+												</div>
+												<div style={{ height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+													<div
+														style={{
+															height: '100%',
+															width: `${Math.min(100, Math.round((maiAccount.usage.tokensUsed / (maiAccount.usage.limit || 1)) * 100))}%`,
+															background: '#3b82f6',
+															borderRadius: 3,
+														}}
+													/>
+												</div>
+											</div>
+										) : null}
+									</div>
+								</section>
 
 								<section className="ref-settings-section">
 									<h2 className="ref-settings-subhead">{t('settings.general.identityTitle')}</h2>

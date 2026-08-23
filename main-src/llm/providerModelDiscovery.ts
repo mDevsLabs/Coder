@@ -8,6 +8,7 @@ const OPENAI_COMPAT_FALLBACK_API_KEY = 'async-local';
 
 export type DiscoveredProviderModel = {
 	id: string;
+	displayName?: string;
 	contextWindowTokens?: number;
 	maxOutputTokens?: number;
 };
@@ -21,13 +22,14 @@ function normalizePositiveInt(value: unknown): number | undefined {
 }
 
 function extractContextWindowTokens(raw: Record<string, unknown>): number | undefined {
-	return normalizePositiveInt(raw.context_window);
+	return normalizePositiveInt(raw.context_window) ?? normalizePositiveInt(raw.maxContext);
 }
 
 function extractMaxOutputTokens(raw: Record<string, unknown>): number | undefined {
 	return (
 		normalizePositiveInt(raw.max_output_tokens) ??
-		normalizePositiveInt(raw.max_completion_tokens)
+		normalizePositiveInt(raw.max_completion_tokens) ??
+		normalizePositiveInt(raw.maxOutput)
 	);
 }
 
@@ -37,7 +39,7 @@ export async function discoverProviderModels(
 	if (provider.paradigm !== 'openai-compatible') {
 		return {
 			ok: false,
-			message: '当前仅支持 OpenAI 兼容提供商的自动发现。',
+			message: 'Actuellement, seule la découverte automatique des fournisseurs compatibles OpenAI est supportée.',
 		};
 	}
 
@@ -49,7 +51,7 @@ export async function discoverProviderModels(
 		} catch {
 			return {
 				ok: false,
-				message: '代理地址无效，请检查 HTTP 代理格式（如 http://127.0.0.1:7890）。',
+				message: 'Adresse proxy invalide. Vérifiez le format (ex: http://127.0.0.1:7890).',
 			};
 		}
 	}
@@ -78,8 +80,13 @@ export async function discoverProviderModels(
 			const extended = row as unknown as Record<string, unknown>;
 			const contextWindowTokens = extractContextWindowTokens(extended);
 			const maxOutputTokens = extractMaxOutputTokens(extended);
+			const displayName =
+				typeof extended.name === 'string' && extended.name.trim()
+					? extended.name.trim()
+					: undefined;
 			models.push({
 				id,
+				...(displayName ? { displayName } : {}),
 				...(contextWindowTokens != null ? { contextWindowTokens } : {}),
 				...(maxOutputTokens != null ? { maxOutputTokens } : {}),
 			});

@@ -1,6 +1,7 @@
 import type { AppLocale, TFunction, TParams } from './types';
-import { messagesZhCN } from './messages.zh-CN';
+import { messagesFr } from './messages.fr';
 import { messagesEn } from './messages.en';
+import { messagesZhCN } from './messages.zh-CN';
 
 export function interpolate(template: string, params?: TParams): string {
 	if (!params) {
@@ -13,20 +14,23 @@ export function interpolate(template: string, params?: TParams): string {
 }
 
 export function createTranslate(locale: AppLocale): TFunction {
-	const primary = locale === 'en' ? messagesEn : messagesZhCN;
-	const secondary = locale === 'en' ? messagesZhCN : messagesEn;
+	const primary = locale === 'fr' ? messagesFr : locale === 'en' ? messagesEn : messagesZhCN;
+	const secondary = locale === 'fr' ? messagesEn : locale === 'en' ? messagesFr : messagesEn;
 	return (key: string, params?: TParams): string => {
-		const raw = primary[key] ?? secondary[key] ?? key;
+		const raw = primary[key] ?? secondary[key] ?? messagesEn[key] ?? messagesZhCN[key] ?? key;
 		return interpolate(raw, params);
 	};
 }
 
-/** 无 Context 时的回退（与默认语言一致） */
-export const defaultT = createTranslate('zh-CN');
+/** Fallback sans Context : Français par défaut */
+export const defaultT = createTranslate('fr');
 
 export function normalizeLocale(raw: unknown): AppLocale {
+	if (raw === 'zh-CN' || raw === 'zh') {
+		return 'zh-CN';
+	}
 	if (raw === 'en') {
 		return 'en';
 	}
-	return 'zh-CN';
+	return 'fr';
 }
