@@ -34,6 +34,7 @@
     "appId": "com.asyncshell.app",
     "productName": "Async IDE",
     "artifactName": "Async-IDE-${version}-${arch}.${ext}",
+    "npmRebuild": false,
     "directories": {
       "output": "release"
     },

@@ -68,8 +68,9 @@ const sourceRoot = sourceCandidates.find((candidate) => {
 
 if (!sourceRoot) {
 	const triedPaths = sourceCandidates.join(', ');
-	console.error(`[builtin-team] source repo not found. tried: ${triedPaths}`);
-	process.exit(1);
+	console.warn(`[builtin-team] source repo not found (tried: ${triedPaths}). Creating empty target directory.`);
+	ensureDir(targetRoot);
+	process.exit(0);
 }
 
 cleanDir(targetRoot);
