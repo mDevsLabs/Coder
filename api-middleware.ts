@@ -1,30 +1,5 @@
 import type { Hono } from "npm:hono@4";
-import { sqlite } from "https://esm.town/v/std/sqlite";
-import { jwtVerify } from "npm:jose";
-import { getDb, getJwtSecret, TIER_REQUEST_LIMITS } from "./config.ts";
-
-// Cache clé aléatoire choisie pour /v1/models → réutilisée jusqu'à déconnexion (Q1)
-const chosenMaiKeyCache = new Map<string, string>();
-
-async function pickRandomApiKeyForUser(userId: string): Promise<string | null> {
-  const cached = chosenMaiKeyCache.get(userId);
-  if (cached) return cached;
-  try {
-    const sql = getDb();
-    const rows = await sql`
-      SELECT api_key FROM mprojects_api_keys
-      WHERE user_id = ${userId}::text
-      ORDER BY RANDOM()
-      LIMIT 1
-    `;
-    if (rows.length > 0 && rows[0].api_key) {
-      const key = String(rows[0].api_key);
-      chosenMaiKeyCache.set(userId, key);
-      return key;
-    }
-  } catch (_) {}
-  return null;
-}
+import { getDb, TIER_REQUEST_LIMITS, verifyToken } from "./config.ts";
 
 export function registerMiddleware(app: Hono) {
   // Middleware /v1/* pour Auth & Logging
@@ -43,67 +18,52 @@ export function registerMiddleware(app: Hono) {
     let userPlan = "Free";
     let currentUserId: string | null = null;
     const currentApiKey: string | null = apiKey;
-    let matchedApiKey: string | null = apiKey;
+    let matchedApiKey: string | null = null;
 
     // 1. Clé système MAI_API_KEY (accès complet aux modèles Plus/Max)
     if (systemMaiApiKey && apiKey === systemMaiApiKey) {
       userPlan = "Plus";
       currentUserId = "system-mai";
     }
-    // 2. Clé API utilisateur enregistrée
+    // 2. Authentification par JWT ou clé d'API utilisateur
     else if (apiKey) {
-      const sql = getDb();
-      const prefixCandidate = apiKey.substring(0, 11);
-      const rows = await sql`
-        SELECT k.*, u.tier as user_tier
-        FROM mprojects_api_keys k
-        LEFT JOIN users u ON k.user_id = u.id::text OR k.user_id = u.username OR k.user_id = u.email
-        WHERE k.api_key = ${apiKey}::text 
-           OR k.api_key = ${prefixCandidate}::text
-           OR ${apiKey}::text LIKE (k.api_key || '%')
-           OR k.api_key LIKE (${prefixCandidate} || '%')
-        LIMIT 1
-      `;
-
-      // Option A (Q2) : accepter JWT sur /v1/chat/completions etc. même si api_key non trouvé
-      const isJwtFallbackRoute =
-        path.startsWith("/v1/chat/completions") ||
-        path.startsWith("/v1/messages") ||
-        path.startsWith("/v1beta/models") ||
-        path.startsWith("/v1/devices") ||
-        path === "/v1/models";
-
-      if (rows.length > 0) {
-        const apiKeyData = rows[0];
-        userPlan = apiKeyData.user_tier || apiKeyData.plan || "Free";
-        currentUserId = apiKeyData.user_id;
-        matchedApiKey = apiKeyData.api_key || apiKey;
-        // Mémoriser ce choix pour Q1 (jusqu'à déconnexion) si c'est une vraie clé
-        if (currentUserId) chosenMaiKeyCache.set(String(currentUserId), String(matchedApiKey));
-      } else if (isJwtFallbackRoute && apiKey) {
-        // Tenter JWT : si valide, tirer une clé au hasard (Q1/Q2) et l'utiliser pour OpenRouter
-        try {
-          const blacklisted = await sqlite.execute({ args: [apiKey], sql: "SELECT 1 FROM token_blacklist WHERE token = ?" });
-          if (blacklisted.rows.length > 0) {
-            return c.json({ error: "Token révoqué." }, 401);
-          }
-          const { payload } = await jwtVerify(apiKey, getJwtSecret());
+      // D'abord tenter de valider le token JWT (session utilisateur mAI)
+      try {
+        const payload = await verifyToken(apiKey);
+        if (payload?.sub) {
           currentUserId = String(payload.sub);
-          // Tier depuis le token, mais revalider en base si possible (plus fiable)
+          userPlan = String((payload as any).tier || "Free");
           try {
+            const sql = getDb();
             const uRows = await sql`SELECT tier FROM users WHERE id::text = ${currentUserId}::text LIMIT 1`;
             if (uRows.length > 0 && uRows[0].tier) userPlan = String(uRows[0].tier);
-            else userPlan = String((payload as any).tier || "Free");
-          } catch { userPlan = String((payload as any).tier || "Free"); }
-          // Q1 : même clé que pour /v1/models jusqu'à déconnexion
-          const randomKey = await pickRandomApiKeyForUser(currentUserId);
-          if (randomKey) matchedApiKey = randomKey;
-          else matchedApiKey = null;
-        } catch (_jwtErr) {
-          if (!isPublicRoute) return c.json({ error: "Invalid API Key." }, 403);
-          // route publique : laisser passer sans auth
+          } catch (_) {}
         }
-      } else if (!isPublicRoute) {
+      } catch (_jwtErr) {
+        // Ce n'est pas un JWT valide, vérifier dans mprojects_api_keys
+        try {
+          const sql = getDb();
+          const prefixCandidate = apiKey.substring(0, 11);
+          const rows = await sql`
+            SELECT k.*, u.tier as user_tier
+            FROM mprojects_api_keys k
+            LEFT JOIN users u ON k.user_id = u.id::text OR k.user_id = u.username OR k.user_id = u.email
+            WHERE k.api_key = ${apiKey}::text 
+               OR k.api_key = ${prefixCandidate}::text
+               OR ${apiKey}::text LIKE (k.api_key || '%')
+               OR k.api_key LIKE (${prefixCandidate} || '%')
+            LIMIT 1
+          `;
+          if (rows.length > 0) {
+            const apiKeyData = rows[0];
+            userPlan = apiKeyData.user_tier || apiKeyData.plan || "Free";
+            currentUserId = apiKeyData.user_id;
+            matchedApiKey = apiKeyData.api_key || apiKey;
+          }
+        } catch (_) {}
+      }
+
+      if (!currentUserId && !isPublicRoute) {
         return c.json({ error: "Invalid API Key." }, 403);
       }
     }
@@ -136,9 +96,7 @@ export function registerMiddleware(app: Hono) {
     c.set("matchedApiKey", matchedApiKey);
 
     // Vérification des quotas pour les clés API enregistrées (mensuel request_count)
-    // Pour les JWT, on vérifie aussi car on a tiré une clé au hasard (Q2 Option A)
-    const effectiveKeyForQuota = matchedApiKey || apiKey;
-    if (effectiveKeyForQuota && currentUserId && currentUserId !== "system-mai") {
+    if (matchedApiKey && currentUserId && currentUserId !== "system-mai") {
       const tierMap: Record<string, number> = { Free: 500, Gratuit: 500, Plus: 1000, Pro: 2000, Max: 5000 };
       const limit = TIER_REQUEST_LIMITS?.[userPlan] || tierMap[userPlan] || 500;
       const sql = getDb();
@@ -182,25 +140,23 @@ export function registerMiddleware(app: Hono) {
 
     // Logging & Mise à jour quota (pour toutes les requêtes authentifiées)
     const isJwtLoggingRoute = path.startsWith("/v1/devices");
-    if (!isJwtLoggingRoute && (effectiveKeyForQuota || currentUserId) && effectiveKeyForQuota !== systemMaiApiKey) {
+    if (!isJwtLoggingRoute && currentUserId && currentUserId !== systemMaiApiKey) {
       try {
         const sql = getDb();
-        const effectiveKeyToLog = matchedApiKey || (effectiveKeyForQuota && effectiveKeyForQuota.length < 64 ? effectiveKeyForQuota : (currentUserId ? `user:${currentUserId}` : 'jwt-session'));
-        const prefixCandidate = effectiveKeyToLog.substring(0, 11);
+        const effectiveKeyToLog = matchedApiKey || `user:${currentUserId}`;
 
         await sql`
           INSERT INTO mprojects_api_logs (api_key, endpoint, method, status_code, latency_ms)
           VALUES (${effectiveKeyToLog}::text, ${endpoint}::text, ${method}::text, ${status}::integer, ${latency}::integer)
         `;
 
-        await sql`
-          UPDATE mprojects_api_keys
-          SET request_count = request_count + 1, last_used_at = NOW()
-          WHERE api_key = ${effectiveKeyToLog}::text
-             OR (user_id IS NOT NULL AND user_id = ${currentUserId}::text)
-             OR api_key = ${prefixCandidate}::text
-             OR api_key LIKE (${prefixCandidate} || '%')
-        `;
+        if (matchedApiKey) {
+          await sql`
+            UPDATE mprojects_api_keys
+            SET request_count = request_count + 1, last_used_at = NOW()
+            WHERE api_key = ${matchedApiKey}::text
+          `;
+        }
       } catch (err) {
         console.error("Erreur logging API:", err);
       }

@@ -50,7 +50,7 @@ import { getWorkspaceRootForWebContents } from '../workspace.js';
 import { getWorkspaceLspManagerForWebContents } from '../lspSessionsByWebContents.js';
 import { queueExtractMemories } from '../services/extractMemories/extractMemories.js';
 import { generateThreadTitle } from '../threadTitle.js';
-import { syncMaiAccountWithToken } from '../maiAccountStore.js';
+import { maiFetchUsage, syncMaiAccountWithToken, updateMaiAccountUsage } from '../maiAccountStore.js';
 import type { WebContents } from 'electron';
 
 /**
@@ -261,6 +261,39 @@ export function runChatStream(
 			if (!resolved.ok) {
 				emitStreamError(resolved.message);
 				return;
+			}
+
+			// Vérification du quota en direct pour le compte mAI
+			if (resolved.providerId === 'mai' || resolved.baseURL?.includes('mai.val.run')) {
+				const jwt = settings.maiAccount?.jwtToken?.trim() || resolved.apiKey?.trim();
+				if (jwt) {
+					try {
+						const usage = await maiFetchUsage(jwt);
+						if (usage.ok) {
+							updateMaiAccountUsage({
+								tokensUsed: usage.tokensUsed,
+								limit: usage.limit,
+								resetAt: usage.resetAt,
+								weekStart: usage.weekStart,
+							});
+							if (usage.limit > 0 && usage.tokensUsed >= usage.limit) {
+								const resetStr = usage.resetAt
+									? new Date(usage.resetAt).toLocaleDateString('fr-FR', {
+											weekday: 'long',
+											day: 'numeric',
+											month: 'long',
+									  })
+									: 'prochainement';
+								emitStreamError(
+									`Votre quota hebdomadaire mAI est épuisé (${usage.tokensUsed.toLocaleString('fr-FR')} / ${usage.limit.toLocaleString('fr-FR')} tokens). Réinitialisation : ${resetStr}.`
+								);
+								return;
+							}
+						}
+					} catch (_) {
+						/* ignore network check errors to allow stream retry */
+					}
+				}
 			}
 
 			// 首条对话前预热到当前模型 API 基址的 TCP/TLS（无代理时）

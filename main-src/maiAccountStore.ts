@@ -271,6 +271,7 @@ export async function maiLogUsage(jwtToken: string, tokensUsed: number): Promise
 				};
 				patchSettings({ maiAccount: nextAccount });
 				broadcastMaiAccountUpdate(nextAccount);
+				updateMaiAccountUsage(nextUsage);
 			}
 			return { ok: true, weeklyUsed: json.weeklyUsed, limit: json.limit };
 		}
@@ -280,26 +281,29 @@ export async function maiLogUsage(jwtToken: string, tokensUsed: number): Promise
 	}
 }
 
+export function updateMaiAccountUsage(usage: MaiAccountUsage): void {
+	const current = getSettings().maiAccount;
+	if (current) {
+		const nextAccount: MaiAccountState = {
+			...current,
+			usage: {
+				...(current.usage || { tokensUsed: 0, limit: 5000000 }),
+				...usage,
+			},
+			lastSyncedAt: Date.now(),
+		};
+		patchSettings({ maiAccount: nextAccount });
+		broadcastMaiAccountUpdate(nextAccount);
+	}
+}
+
 /**
  * Synchronise entièrement le compte mAI à partir du token JWT
- * Q1 : choisi une clé au hasard dans mprojects_api_keys et la conserve jusqu'à déconnexion
- * Q2 Option A : côté serveur le middleware accepte le JWT et tire aussi au hasard
  */
 export async function syncMaiAccountWithToken(jwtToken: string): Promise<MaiAccountState> {
-	const [usageRes, allKeys] = await Promise.all([
-		maiFetchUsage(jwtToken),
-		maiFetchAllApiKeys(jwtToken),
-	]);
+	const usageRes = await maiFetchUsage(jwtToken);
 
-	let chosenApiKey: string | null = null;
-	const cachedChosen = getSettings().maiAccount?.chosenApiKey?.trim();
-	if (cachedChosen && allKeys.includes(cachedChosen)) {
-		chosenApiKey = cachedChosen;
-	} else if (allKeys.length > 0) {
-		const idx = Math.floor(Math.random() * allKeys.length);
-		chosenApiKey = allKeys[idx] ?? null;
-	}
-	const effectiveApiKey = chosenApiKey || jwtToken;
+	const effectiveApiKey = jwtToken.trim();
 	const userProfile: MaiAccountProfile | undefined = usageRes.ok
 		? {
 				id: usageRes.email || 'mai-user',
@@ -324,12 +328,11 @@ export async function syncMaiAccountWithToken(jwtToken: string): Promise<MaiAcco
 		jwtToken,
 		user: userProfile,
 		apiKey: effectiveApiKey,
-		chosenApiKey: chosenApiKey || undefined,
 		usage,
 		lastSyncedAt: Date.now(),
 	};
 
-	// Mettre à jour le provider mAI dans settings.models.providers avec la clé API
+	// Mettre à jour le provider mAI dans settings.models.providers avec le token JWT
 	const curSettings = getSettings();
 	const curProviders = curSettings.models?.providers ?? [];
 	const hasMai = curProviders.some((p) => p.id === 'mai');
