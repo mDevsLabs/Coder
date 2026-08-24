@@ -387,6 +387,16 @@ export async function syncMaiAccountWithToken(jwtToken: string): Promise<MaiAcco
 		/* ignore network errors when fetching models */
 	}
 
+	if (!nextEntries.some((e) => e.providerId === 'mai')) {
+		nextEntries = [...DEFAULT_MAI_MODELS, ...nextEntries];
+	}
+	const allMaiIds = nextEntries.filter((e) => e.providerId === 'mai').map((e) => e.id);
+	nextEnabled = Array.from(new Set([...allMaiIds, ...nextEnabled]));
+
+	if (!defaultModel || !nextEntries.some((e) => e.id === defaultModel)) {
+		defaultModel = nextEntries[0]?.id || 'google/gemini-2.5-flash:free';
+	}
+
 	patchSettings({
 		maiAccount: nextState,
 		defaultModel: defaultModel || 'google/gemini-2.5-flash:free',

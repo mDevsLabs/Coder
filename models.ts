@@ -1,6 +1,20 @@
 import type { Hono } from "npm:hono@4";
 import { extractToken, getDb, getWeekData, TIER_LIMITS, verifyToken } from "./config.ts";
 
+export function getOpenRouterApiKey(): string | null {
+  try {
+    const key = Deno.env.get("OPENROUTER_API_KEY");
+    if (key && key.trim().length > 0) return key.trim();
+  } catch (_) {}
+  try {
+    if (typeof process !== "undefined" && process?.env?.OPENROUTER_API_KEY) {
+      const key = process.env.OPENROUTER_API_KEY;
+      if (key && key.trim().length > 0) return key.trim();
+    }
+  } catch (_) {}
+  return null;
+}
+
 // Helper : enregistre les tokens totaux après chaque requête (Q7)
 async function recordTotalTokens(userId: string, weekStartStr: string, total: number) {
   if (!userId || total <= 0) return;
@@ -117,7 +131,9 @@ async function proxyOpenRouterWithUsage(
           } catch (_) {}
         }
       } finally {
-        controller.close();
+        try {
+          controller.close();
+        } catch (_) {}
         const total = captTotal > 0 ? captTotal : (captInput + captOutput);
         if (total > 0 && userId) void recordTotalTokens(userId, weekStartStr, total);
       }
@@ -262,23 +278,18 @@ export function registerModelRoutes(app: Hono) {
       // Le corps de la requête du CLI
       const body = await c.req.json();
 
-      // Q1/Q2 : clé au hasard, même que pour /v1/models jusqu'à déconnexion
-      const keyRows = await sql`
-        SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text ORDER BY RANDOM() LIMIT 1
-      `;
-      const apiKey = keyRows.length > 0 ? keyRows[0].api_key : Deno.env.get("OPENROUTER_API_KEY");
-
-      if (!apiKey) {
-        return c.json({ error: "Clé fournisseur manquante." }, 500);
+      const openRouterKey = getOpenRouterApiKey();
+      if (!openRouterKey) {
+        return c.json({ error: "Clé fournisseur manquante sur le serveur." }, 500);
       }
 
-      // Redirection de la requête vers OpenRouter (sans +1 fictif)
+      // Redirection de la requête vers OpenRouter
       const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
         {
           body: JSON.stringify(body),
           headers: {
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${openRouterKey}`,
             "Content-Type": "application/json",
             "HTTP-Referer": "https://mai.val.run",
             "X-Title": "mAI CLI",
@@ -302,17 +313,17 @@ export function registerModelRoutes(app: Hono) {
     }
   });
 
-  // GET /v1/models — utilise la clé aléatoire tirée pour l'utilisateur (Q1/Q2)
+  // GET /v1/models
   app.get("/v1/models", async (c) => {
     const userPlan = c.get("userPlan");
-    const apiKey = (c.get("matchedApiKey") as string | null) || c.get("apiKey");
     const planStr = String(userPlan || "Free").toLowerCase().trim();
     const isPaidPlan = ["plus", "pro", "max"].includes(planStr);
-    const shouldFilterFreeOnly = !isPaidPlan || !apiKey;
+    const shouldFilterFreeOnly = !isPaidPlan;
+    const openRouterKey = getOpenRouterApiKey();
 
     try {
       const headers: Record<string, string> = {};
-      if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
+      if (openRouterKey) headers["Authorization"] = `Bearer ${openRouterKey}`;
       const res = await fetch("https://openrouter.ai/api/v1/models", {
         headers: Object.keys(headers).length ? headers : undefined,
       });
@@ -514,22 +525,13 @@ export function registerModelRoutes(app: Hono) {
         return c.json({ error: "Votre limite hebdomadaire est épuisée. Quota atteint." }, 429);
       }
 
-      // Q1/Q2 : même clé que pour /v1/models (matchedApiKey du middleware sinon RANDOM)
-      const matched = c.get("matchedApiKey") as string | null;
-      let apiKey: string | null = matched || null;
-      if (!apiKey) {
-        const keyRows = await sql`
-          SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text ORDER BY RANDOM() LIMIT 1
-        `;
-        apiKey = keyRows.length > 0 ? keyRows[0].api_key : (Deno.env.get("OPENROUTER_API_KEY") || null);
-      }
-
-      if (!apiKey) {
+      const openRouterKey = getOpenRouterApiKey();
+      if (!openRouterKey) {
         return c.json(
           {
             error: {
               code: "missing_provider_key",
-              message: "Clé fournisseur manquante. Veuillez vérifier la configuration de votre compte mAI ou votre clé API.",
+              message: "Clé fournisseur OpenRouter non configurée sur le serveur.",
               type: "server_error",
             },
           },
@@ -542,7 +544,7 @@ export function registerModelRoutes(app: Hono) {
         {
           body: JSON.stringify(body),
           headers: {
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${openRouterKey}`,
             "Content-Type": "application/json",
             "HTTP-Referer": "https://mai.val.run",
             "X-Title": "mAI Public API",
@@ -623,18 +625,9 @@ export function registerModelRoutes(app: Hono) {
         return c.json({ error: "Votre limite hebdomadaire est épuisée. Quota atteint." }, 429);
       }
 
-      // Q1/Q2 : même clé que pour /v1/models
-      const matchedAnthropic = c.get("matchedApiKey") as string | null;
-      let apiKey: string | null = matchedAnthropic || null;
-      if (!apiKey) {
-        const keyRows = await sql`
-          SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text ORDER BY RANDOM() LIMIT 1
-        `;
-        apiKey = keyRows.length > 0 ? keyRows[0].api_key : (Deno.env.get("OPENROUTER_API_KEY") || null);
-      }
-
-      if (!apiKey) {
-        return c.json({ error: "Clé fournisseur manquante." }, 500);
+      const openRouterKey = getOpenRouterApiKey();
+      if (!openRouterKey) {
+        return c.json({ error: "Clé fournisseur OpenRouter non configurée sur le serveur." }, 500);
       }
 
       const openRouterRes = await fetch(
@@ -642,7 +635,7 @@ export function registerModelRoutes(app: Hono) {
         {
           body: JSON.stringify(body),
           headers: {
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${openRouterKey}`,
             "Content-Type": "application/json",
             "HTTP-Referer": "https://mai.val.run",
             "X-Title": "mAI Public API",
@@ -714,18 +707,9 @@ export function registerModelRoutes(app: Hono) {
         return c.json({ error: "Votre limite hebdomadaire est épuisée. Quota atteint." }, 429);
       }
 
-      // Q1/Q2 : même clé que pour /v1/models
-      const matchedGoogle = c.get("matchedApiKey") as string | null;
-      let apiKey: string | null = matchedGoogle || null;
-      if (!apiKey) {
-        const keyRows = await sql`
-          SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text ORDER BY RANDOM() LIMIT 1
-        `;
-        apiKey = keyRows.length > 0 ? keyRows[0].api_key : (Deno.env.get("OPENROUTER_API_KEY") || null);
-      }
-
-      if (!apiKey) {
-        return c.json({ error: "Clé fournisseur manquante." }, 500);
+      const openRouterKey = getOpenRouterApiKey();
+      if (!openRouterKey) {
+        return c.json({ error: "Clé fournisseur OpenRouter non configurée sur le serveur." }, 500);
       }
 
       // Google payload is different, we send it to OpenRouter's endpoint.
@@ -734,7 +718,7 @@ export function registerModelRoutes(app: Hono) {
         {
           body: JSON.stringify(body),
           headers: {
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${openRouterKey}`,
             "Content-Type": "application/json",
             "HTTP-Referer": "https://mai.val.run",
             "X-Title": "mAI Public API",

@@ -1,9 +1,10 @@
-import type {
-	ModelRequestParadigm,
-	ProviderOAuthAuthRecord,
-	ShellSettings,
-	UserLlmProvider,
-	UserModelEntry,
+import {
+	DEFAULT_MAI_PROVIDER,
+	type ModelRequestParadigm,
+	type ProviderOAuthAuthRecord,
+	type ShellSettings,
+	type UserLlmProvider,
+	type UserModelEntry,
 } from '../settingsStore.js';
 import type { ProviderIdentitySettings } from '../../src/providerIdentitySettings.js';
 import {
@@ -119,13 +120,7 @@ function resolveProviderCredentials(
 				message: 'Veuillez vous connecter à votre compte mAI pour utiliser ce modèle (Paramètres → Compte mAI).',
 			};
 		}
-		if (maiAccount?.usage && maiAccount.usage.limit > 0 && maiAccount.usage.tokensUsed >= maiAccount.usage.limit) {
-			return {
-				ok: false,
-				message: `Votre quota hebdomadaire mAI est épuisé (${maiAccount.usage.tokensUsed} / ${maiAccount.usage.limit} tokens). Veuillez recharger votre forfait ou attendre la réinitialisation.`,
-			};
-		}
-		const base = provider.baseURL?.trim() || 'https://mai.val.run/v1';
+		const base = (provider.baseURL?.trim() || 'https://mai.val.run/v1').replace(/\/+$/, '');
 		const proxyUrl = provider.proxyUrl?.trim() || undefined;
 		return { ok: true, apiKey: key, baseURL: base, proxyUrl, ...(oauthAuth ? { oauthAuth } : {}) };
 	}
@@ -139,7 +134,7 @@ function resolveProviderCredentials(
 					'Clé API non configurée pour ce fournisseur. Veuillez renseigner votre clé dans Paramètres → Modèles.',
 			};
 		}
-		const base = provider.baseURL?.trim() || undefined;
+		const base = provider.baseURL?.trim() ? provider.baseURL.trim().replace(/\/+$/, '') : undefined;
 		const proxyUrl = provider.proxyUrl?.trim() || undefined;
 		return { ok: true, apiKey: key, baseURL: base, proxyUrl, ...(oauthAuth ? { oauthAuth } : {}) };
 	}
@@ -160,7 +155,7 @@ function resolveProviderCredentials(
 				message: 'Clé API Anthropic non configurée. Veuillez renseigner votre clé dans Paramètres → Modèles.',
 			};
 		}
-		const base = provider.baseURL?.trim() || undefined;
+		const base = provider.baseURL?.trim() ? provider.baseURL.trim().replace(/\/+$/, '') : undefined;
 		return { ok: true, apiKey: key, baseURL: base, ...(oauthAuth ? { oauthAuth } : {}) };
 	}
 
@@ -193,17 +188,33 @@ export function resolveModelRequest(settings: ShellSettings, selectionId: string
 		};
 	}
 
-	const e = entryById(entries, selectionId);
-	if (!e || !enabledSet.has(e.id) || !isUsable(e)) {
+	let entry = entryById(entries, selectionId);
+	if (!entry) {
+		const sNorm = selectionId.trim().toLowerCase();
+		entry = entries.find((x) => x.id?.trim().toLowerCase() === sNorm || x.requestName?.trim().toLowerCase() === sNorm);
+	}
+	// Si le modèle n'a pas été trouvé, basculer sur le modèle par défaut ou le premier modèle valide
+	if (!entry && entries.length > 0) {
+		const defEntry = settings.defaultModel ? entryById(entries, settings.defaultModel) : null;
+		if (defEntry && isUsable(defEntry)) {
+			entry = defEntry;
+		} else {
+			entry = entries.find((x) => isUsable(x) && (enabledSet.has(x.id) || x.providerId === 'mai')) || entries.find(isUsable);
+		}
+	}
+
+	if (!entry || !isUsable(entry)) {
 		return {
 			ok: false,
 			message:
-				'Impossible de charger ce modèle : il n\'existe pas, n\'est pas activé ou son nom de requête est vide. Vérifiez dans Paramètres → Modèles.',
+				'Impossible de charger ce modèle : il n\'existe pas ou son nom de requête est vide. Vérifiez dans Paramètres → Modèles.',
 		};
 	}
-	const entry = e;
 
-	const prov = providerById(providers, entry.providerId);
+	let prov = providerById(providers, entry.providerId);
+	if (!prov && (entry.providerId === 'mai' || !entry.providerId)) {
+		prov = providers.find((p) => p.id === 'mai' || p.baseURL?.includes('mai.val.run')) || DEFAULT_MAI_PROVIDER;
+	}
 	if (!prov) {
 		return {
 			ok: false,
