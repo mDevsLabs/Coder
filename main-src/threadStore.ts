@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { resolveAsyncDataDir } from './dataDir.js';
+import { resolveMaiDataDir } from './dataDir.js';
 import { syncThreadMessages } from './sessionDb.js';
 import { appendSuffixToStructuredAssistant, isStructuredAssistantMessage } from '../src/agentStructuredMessage.js';
 import type { AgentSessionSnapshot } from '../src/agentSessionTypes.js';
@@ -238,7 +238,7 @@ function normalizeLoadedThread(thread: ThreadRecord): ThreadRecord {
 }
 
 export function initThreadStore(userData: string, initialWorkspaceRoot: string | null = null): void {
-	const dir = resolveAsyncDataDir(userData);
+	const dir = resolveMaiDataDir(userData);
 	fs.mkdirSync(dir, { recursive: true });
 	storePath = path.join(dir, 'threads.json');
 	migrationWorkspaceRoot = initialWorkspaceRoot;

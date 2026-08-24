@@ -32,7 +32,7 @@ import type { useSettings } from './useSettings';
 type SettingsHook = ReturnType<typeof useSettings>;
 
 export type UseAppShellSlicesParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	t: TFunction;
 	setLocale: (locale: AppLocale) => void;
 	locale: AppLocale;

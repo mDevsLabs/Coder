@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { BrandLogo } from './BrandLogo';
 import type { TFunction } from './i18n';
 
-const REPO_URL = 'https://github.com/ZYKJShadow/mAI-Coder';
+const REPO_URL = 'https://github.com/mDevsLabs/Coder';
 
 type VersionInfo = {
 	version: string;
@@ -15,7 +15,7 @@ type VersionInfo = {
 type Props = {
 	open: boolean;
 	t: TFunction;
-	shell: Window['asyncShell'] | undefined;
+	shell: Window['maiShell'] | undefined;
 	onClose: () => void;
 };
 

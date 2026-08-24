@@ -275,7 +275,7 @@ function parseDataUrlPng(dataUrl: string): Buffer {
 function buildDefaultBrowserScreenshotPath(execCtx: ToolExecutionContext): { full: string; rel: string | null } {
 	const fileName = `browser-${new Date().toISOString().replace(/[:.]/g, '-').replace(/Z$/, 'Z')}.png`;
 	if (execCtx.workspaceRoot) {
-		const rel = path.posix.join('.async', 'browser-captures', fileName);
+		const rel = path.posix.join('.mai', 'browser-captures', fileName);
 		const full = resolveWorkspacePath(rel, execCtx.workspaceRoot);
 		return { full, rel };
 	}
@@ -3887,7 +3887,7 @@ async function executeLspTool(call: ToolCall, execCtx: ToolExecutionContext): Pr
 		return {
 			toolCallId: call.id,
 			name: call.name,
-			content: `No LSP server handles extension "${ext}". Add a plugin under <asyncData>/plugins/<name>/ or <workspace>/.async/plugins/<name>/ with .lsp.json (command + extensionToLanguage), or use legacy settings.json "lsp.servers". For TS/JS, install typescript-language-server in the project or register it explicitly.`,
+			content: `No LSP server handles extension "${ext}". Add a plugin under <maiData>/plugins/<name>/ or <workspace>/.mai/plugins/<name>/ with .lsp.json (command + extensionToLanguage), or use legacy settings.json "lsp.servers". For TS/JS, install typescript-language-server in the project or register it explicitly.`,
 			isError: false,
 		};
 	}

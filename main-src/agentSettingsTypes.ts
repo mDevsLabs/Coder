@@ -12,7 +12,7 @@ export type AgentRule = {
 	scope: AgentRuleScope;
 	globPattern?: string;
 	enabled: boolean;
-	/** user = 全局设置；project = 当前仓库 `.async/agent.json` */
+	/** user = 全局设置；project = 当前仓库 `.mai/agent.json` */
 	origin?: AgentItemOrigin;
 };
 
@@ -165,7 +165,7 @@ export type AgentCustomization = {
 	 * 无法展示确认 UI 时（如纯后台子 Agent），将本应为询问的规则视为拒绝。
 	 */
 	shouldAvoidPermissionPrompts?: boolean;
-	/** 控制何时触发 `.async/memory` 后台抽取，减少每轮都调用模型 */
+	/** 控制何时触发 `.mai/memory` 后台抽取，减少每轮都调用模型 */
 	memoryExtraction?: AgentMemoryExtractionSettings;
 	/** 控制是否启用自动 Skill 创建及阈值 */
 	skillExtraction?: AgentSkillExtractionSettings;

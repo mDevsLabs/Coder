@@ -27,7 +27,7 @@ setWorkspaceFileIndexReadyBroadcaster((rootNorm) => {
 			continue;
 		}
 		try {
-			w.webContents.send('async-shell:workspaceFileIndexReady', rootNorm);
+			w.webContents.send('mai-coder:workspaceFileIndexReady', rootNorm);
 		} catch {
 			/* ignore */
 		}
@@ -309,12 +309,16 @@ function readPlanFileForExecute(absPath: string, windowWorkspaceRoot: string | n
 	} catch {
 		return null;
 	}
-	const userPlansDir = path.join(app.getPath('userData'), '.async', 'plans');
+	const userPlansDir = path.join(app.getPath('userData'), '.mai', 'plans');
+	const userPlansDirLegacy = path.join(app.getPath('userData'), '.async', 'plans');
 	const root = windowWorkspaceRoot;
-	const wsPlansDir = root ? path.join(root, '.async', 'plans') : null;
+	const wsPlansDir = root ? path.join(root, '.mai', 'plans') : null;
+	const wsPlansDirLegacy = root ? path.join(root, '.async', 'plans') : null;
 	const allowed =
 		isPathInsideRoot(resolved, userPlansDir) ||
-		(wsPlansDir != null && isPathInsideRoot(resolved, wsPlansDir));
+		isPathInsideRoot(resolved, userPlansDirLegacy) ||
+		(wsPlansDir != null && isPathInsideRoot(resolved, wsPlansDir)) ||
+		(wsPlansDirLegacy != null && isPathInsideRoot(resolved, wsPlansDirLegacy));
 	if (!allowed) {
 		return null;
 	}
@@ -371,7 +375,7 @@ export function registerIpc(): void {
 	setWorkspaceFsTouchNotifier(() => {
 		for (const win of BrowserWindow.getAllWindows()) {
 			if (!win.isDestroyed()) {
-				win.webContents.send('async-shell:workspaceFsTouched');
+				win.webContents.send('mai-coder:workspaceFsTouched');
 			}
 		}
 	});
@@ -463,7 +467,7 @@ export function registerIpc(): void {
 			return { ok: false as const, error: 'too-large' as const };
 		}
 		const safeName = sanitizeComposerAttachmentName(rawName);
-		const dirRel = '.async/composer-drops';
+		const dirRel = '.mai/composer-drops';
 		const dirAbs = path.join(root, dirRel);
 		try {
 			fs.mkdirSync(dirAbs, { recursive: true });
@@ -690,19 +694,22 @@ export function registerIpc(): void {
 		return { ok: true as const };
 	});
 
-	/** 把工作区 `.async/` 整个移动到 `.async.bak-<ts>/`，用于黑屏/启动异常时的应急恢复。
+	/** 把工作区 `.mai/` (ou legacy `.async/`) 整个移动到 `.mai.bak-<ts>/`，用于黑屏/启动异常时的应急恢复。
 	 *  保留备份而不直接删除，避免误删用户记忆/计划。 */
 	ipcMain.handle('workspaceAgent:resetAsyncDir', (event) => {
 		const root = senderWorkspaceRoot(event);
 		if (!root) {
 			return { ok: false as const, error: 'no-workspace' as const };
 		}
-		const dir = path.join(root, '.async');
+		// Préfère .mai, fallback legacy .async pour migration
+		const maiDir = path.join(root, '.mai');
+		const asyncDir = path.join(root, '.async');
+		const dir = fs.existsSync(maiDir) ? maiDir : asyncDir;
 		try {
 			if (!fs.existsSync(dir)) {
 				return { ok: true as const, backupPath: null };
 			}
-			const backupPath = path.join(root, `.async.bak-${Date.now()}`);
+			const backupPath = path.join(root, `.mai.bak-${Date.now()}`);
 			fs.renameSync(dir, backupPath);
 			return { ok: true as const, backupPath };
 		} catch (e) {
@@ -719,7 +726,7 @@ export function registerIpc(): void {
 			return { ok: true as const, skills: [...globalSkills, ...loadClaudeWorkspaceSkills(root)] };
 	});
 
-	/** 删除工作区内技能目录（`.cursor|claude|async/skills/<slug>/` 整夹），参数为其中 `SKILL.md` 的相对路径 */
+	/** 删除工作区内技能目录（`.cursor|claude|mai/skills/<slug>/` 整夹），参数为其中 `SKILL.md` 的相对路径 */
 	ipcMain.handle('workspace:deleteSkillFromDisk', (event, skillMdRel: string) => {
 		const root = senderWorkspaceRoot(event);
 		if (!root) {
@@ -736,7 +743,7 @@ export function registerIpc(): void {
 			parts.length !== 3 ||
 			parts[1] !== 'skills' ||
 			!rootSeg ||
-			!['.cursor', '.claude', '.async'].includes(rootSeg) ||
+			!['.cursor', '.claude', '.mai', '.async'].includes(rootSeg) ||
 			!parts[2] ||
 			parts[2].includes('..')
 		) {
@@ -1566,7 +1573,7 @@ export function registerIpc(): void {
 				const t = replaceFromUserVisibleIndex(threadId, visibleIndex, userText, editParts);
 				clearManagedAgentsForThread({
 					threadId,
-					emit: (evt) => event.sender.send('async-shell:chat', evt),
+					emit: (evt) => event.sender.send('mai-coder:chat', evt),
 				});
 				if (visibleIndex === 0 && t.titleSource !== 'manual') {
 					queueThreadTitleGeneration({
@@ -1626,7 +1633,7 @@ export function registerIpc(): void {
 			null;
 		if (session) {
 			attachManagedAgentEmitter(String(threadId ?? '').trim(), (evt) => {
-				event.sender.send('async-shell:chat', evt);
+				event.sender.send('mai-coder:chat', evt);
 			});
 		}
 		return { ok: true as const, session };
@@ -1658,7 +1665,7 @@ export function registerIpc(): void {
 		options.onToolResultReplacementStateChange = (state) =>
 			saveToolResultReplacementState(threadId, state);
 		const send = (evt: import('../agent/managedSubagents.js').ManagedAgentUiEvent) =>
-			event.sender.send('async-shell:chat', evt);
+			event.sender.send('mai-coder:chat', evt);
 		const result = await sendInputToManagedAgent({
 			threadId,
 			agentId,
@@ -1714,7 +1721,7 @@ export function registerIpc(): void {
 		options.onToolResultReplacementStateChange = (state) =>
 			saveToolResultReplacementState(threadId, state);
 		const send = (evt: import('../agent/managedSubagents.js').ManagedAgentUiEvent) =>
-			event.sender.send('async-shell:chat', evt);
+			event.sender.send('mai-coder:chat', evt);
 		const result = await resumeManagedAgent({
 			threadId,
 			agentId,
@@ -1732,7 +1739,7 @@ export function registerIpc(): void {
 			return { ok: false as const, error: 'missing close payload' };
 		}
 		const send = (evt: import('../agent/managedSubagents.js').ManagedAgentUiEvent) =>
-			event.sender.send('async-shell:chat', evt);
+			event.sender.send('mai-coder:chat', evt);
 		const result = closeManagedAgent({ threadId, agentId, emit: send });
 		return result.ok ? { ok: true as const } : { ok: false as const, error: result.error };
 	});
@@ -2053,14 +2060,14 @@ ipcMain.handle(
 				const content = String(payload.content ?? '');
 				const wsRoot = senderWorkspaceRoot(event);
 				if (wsRoot) {
-					const dir = path.join(wsRoot, '.async', 'plans');
+					const dir = path.join(wsRoot, '.mai', 'plans');
 					fs.mkdirSync(dir, { recursive: true });
 					const full = path.join(dir, safe);
 					fs.writeFileSync(full, content, 'utf8');
-					const relPath = path.join('.async', 'plans', safe).replace(/\\/g, '/');
+					const relPath = path.join('.mai', 'plans', safe).replace(/\\/g, '/');
 					return { ok: true as const, path: full, relPath };
 				}
-				const dir = path.join(app.getPath('userData'), '.async', 'plans');
+				const dir = path.join(app.getPath('userData'), '.mai', 'plans');
 				fs.mkdirSync(dir, { recursive: true });
 				const full = path.join(dir, safe);
 				fs.writeFileSync(full, content, 'utf8');

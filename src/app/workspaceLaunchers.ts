@@ -3,7 +3,8 @@ import type { TFunction } from '../i18n';
 export type WorkspaceLauncherTool = 'vscode' | 'cursor' | 'antigravity' | 'explorer' | 'terminal';
 
 export const DEFAULT_WORKSPACE_LAUNCHER: WorkspaceLauncherTool = 'vscode';
-export const AGENT_WORKSPACE_LAUNCHER_STORAGE_KEY = 'async:agent-workspace-launcher-v1';
+export const AGENT_WORKSPACE_LAUNCHER_STORAGE_KEY = 'mai-coder:agent-workspace-launcher-v1';
+export const LEGACY_AGENT_WORKSPACE_LAUNCHER_STORAGE_KEY = 'async:agent-workspace-launcher-v1';
 export const WORKSPACE_LAUNCHER_ORDER: readonly WorkspaceLauncherTool[] = [
 	'vscode',
 	'cursor',
@@ -27,8 +28,12 @@ export function readStoredWorkspaceLauncher(): WorkspaceLauncherTool {
 		return DEFAULT_WORKSPACE_LAUNCHER;
 	}
 	try {
-		const raw = localStorage.getItem(AGENT_WORKSPACE_LAUNCHER_STORAGE_KEY);
-		return isWorkspaceLauncherTool(raw) ? raw : DEFAULT_WORKSPACE_LAUNCHER;
+		let raw = localStorage.getItem(AGENT_WORKSPACE_LAUNCHER_STORAGE_KEY) || localStorage.getItem(LEGACY_AGENT_WORKSPACE_LAUNCHER_STORAGE_KEY);
+		if (isWorkspaceLauncherTool(raw)) {
+			if (!localStorage.getItem(AGENT_WORKSPACE_LAUNCHER_STORAGE_KEY) && raw) try { localStorage.setItem(AGENT_WORKSPACE_LAUNCHER_STORAGE_KEY, raw); } catch {}
+			return raw;
+		}
+		return DEFAULT_WORKSPACE_LAUNCHER;
 	} catch {
 		return DEFAULT_WORKSPACE_LAUNCHER;
 	}

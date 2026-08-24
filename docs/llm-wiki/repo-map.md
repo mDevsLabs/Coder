@@ -15,7 +15,7 @@
 | `public/` | 静态资源 | 供 Vite 构建 |
 | `resources/` | 打包资源 | 应用图标等 |
 | `dist/` | 渲染层构建产物 | 生成目录 |
-| `.async/` | 工作区运行时数据 | 记忆、索引、Agent 项目切片等 |
+| `.mai/` | 工作区运行时数据 | 记忆、索引、Agent 项目切片等 |
 
 ## `main-src/` 内部热点
 
@@ -34,7 +34,7 @@
 | `main-src/workspaceFileIndex.ts` | 工作区文件索引与搜索 |
 | `main-src/workspaceSymbolIndex.ts` | 导出符号级索引 |
 | `main-src/workspace.ts` | 工作区绑定与路径越界保护 |
-| `main-src/memdir/` | `.async/memory` 入口、扫描、类型定义 |
+| `main-src/memdir/` | `.mai/memory` 入口、扫描、类型定义 |
 | `main-src/services/extractMemories/` | 对话到记忆文件的后台抽取 |
 | `main-src/browser/` | 内置浏览器配置、分区、命令状态 |
 | `main-src/bots/` | 外部平台 bot 适配和会话控制 |
@@ -60,8 +60,8 @@
 
 - `electron/main.bundle.cjs`：由 `esbuild.main.mjs` 生成。
 - `dist/`：由 Vite 生成。
-- `.async/index/`：运行时索引结果，可能包含历史条目，不应直接当源码真相。
-- `.async/memory/`：项目运行时记忆，不等同于已审阅文档。
+- `.mai/index/`：运行时索引结果，可能包含历史条目，不应直接当源码真相。
+- `.mai/memory/`：项目运行时记忆，不等同于已审阅文档。
 
 ## 按任务找入口
 

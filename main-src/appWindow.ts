@@ -17,9 +17,13 @@ import { acquireWorkspaceFileIndexRef, releaseWorkspaceFileIndexRef } from './wo
 const isDev = !app.isPackaged;
 const devUrl = process.env.VITE_DEV_SERVER_URL ?? 'http://127.0.0.1:5173';
 const loadDistFlag =
-	process.env.ASYNC_SHELL_LOAD_DIST === '1' || process.env.VOID_SHELL_LOAD_DIST === '1';
+	process.env.MAI_CODER_LOAD_DIST === '1' ||
+	process.env.ASYNC_SHELL_LOAD_DIST === '1' ||
+	process.env.VOID_SHELL_LOAD_DIST === '1';
 const openDevTools =
-	process.env.ASYNC_SHELL_DEVTOOLS === '1' || process.env.VOID_SHELL_DEVTOOLS === '1';
+	process.env.MAI_CODER_DEVTOOLS === '1' ||
+	process.env.ASYNC_SHELL_DEVTOOLS === '1' ||
+	process.env.VOID_SHELL_DEVTOOLS === '1';
 
 let appIconPath: string | undefined;
 
@@ -208,7 +212,7 @@ export function createAppWindow(opts?: {
 
 	const notifyLayout = () => {
 		if (!win.isDestroyed()) {
-			win.webContents.send('async-shell:layout');
+			win.webContents.send('mai-coder:layout');
 		}
 	};
 	win.on('resize', notifyLayout);

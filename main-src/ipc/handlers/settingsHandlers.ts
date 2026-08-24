@@ -353,7 +353,7 @@ async function handleProviderOAuthLoginPayload(rawPayload: unknown) {
 /**
  * `settings:*`、`team:getBuiltinCatalog` IPC：读写 settings、内置 team 目录、
  * provider 模型发现、bot 连接测试、bot skill 文件夹导入。
- * 行为与原 register.ts 一致；颜色模式同步广播 `async-shell:themeMode`。
+ * 行为与原 register.ts 一致；颜色模式同步广播 `mai-coder:themeMode`。
  */
 export function registerSettingsHandlers(): void {
 	ipcMain.handle('settings:get', () => getSettings());
@@ -365,7 +365,7 @@ export function registerSettingsHandlers(): void {
 		if (syncedColorMode === 'light' || syncedColorMode === 'dark' || syncedColorMode === 'system') {
 			for (const win of BrowserWindow.getAllWindows()) {
 				if (!win.isDestroyed()) {
-					win.webContents.send('async-shell:themeMode', { colorMode: syncedColorMode });
+					win.webContents.send('mai-coder:themeMode', { colorMode: syncedColorMode });
 				}
 			}
 		}

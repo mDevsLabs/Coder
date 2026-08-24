@@ -5,7 +5,7 @@ import { IconCloseSmall } from '../icons';
 import type { TerminalProfile } from './terminalSettings';
 import { TerminalAuthPromptModal } from './TerminalAuthPromptModal';
 
-type AsyncShell = NonNullable<Window['asyncShell']>;
+type AsyncShell = NonNullable<Window['maiShell']>;
 
 type SftpEntry = {
 	name: string;

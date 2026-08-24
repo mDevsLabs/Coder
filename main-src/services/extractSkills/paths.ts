@@ -7,11 +7,11 @@ export function getAutoSkillPath(workspaceRoot?: string | null): string | null {
 	if (!root) {
 		return null;
 	}
-	return path.join(root, '.async', 'skills', AUTO_SKILL_DIR) + path.sep;
+	return path.join(root, '.mai', 'skills', AUTO_SKILL_DIR) + path.sep;
 }
 
 export function getAutoSkillFilePath(workspaceRoot: string, slug: string): string {
-	return path.join(workspaceRoot, '.async', 'skills', AUTO_SKILL_DIR, slug, 'SKILL.md');
+	return path.join(workspaceRoot, '.mai', 'skills', AUTO_SKILL_DIR, slug, 'SKILL.md');
 }
 
 export function isAutoSkillPath(filePath: string, workspaceRoot?: string | null): boolean {

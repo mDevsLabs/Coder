@@ -106,7 +106,7 @@ function configureUpdater(): void {
 			const downloadedFile = getDownloadedUpdatePath();
 			if (downloadedFile) {
 				const downloadsDir = join(app.getPath('home'), 'Downloads');
-				const dest = join(downloadsDir, `Async-IDE-${info.version}-mac-update.zip`);
+				const dest = join(downloadsDir, `mAI-Coder-${info.version}-mac-update.zip`);
 				try {
 					if (!existsSync(downloadsDir)) {
 						mkdirSync(downloadsDir, { recursive: true });

@@ -9,7 +9,7 @@
 
 - 按 workspace root 分桶
 - 支持引用计数，多窗口共享同一 root 的索引
-- 跳过 `.git`、`node_modules`、`dist`、`.idea`、`.async/index/`、`.async/memory/` 等目录
+- 跳过 `.git`、`node_modules`、`dist`、`.idea`、`.mai/index/`、`.mai/memory/` 等目录
 - 有最大文件数限制：`MAX_WORKSPACE_FILES = 5000`
 - 会维护排序快照和 basename bucket，以支持更快搜索
 
@@ -100,7 +100,7 @@
 当前仓库里：
 
 - ~~README 仍提到 `workspaceSemanticIndex.ts`~~ → **已修正**：README / README.zh-CN.md 已删除该条目
-- `.async/index/semantic.json` 仍残留了这个文件的索引内容（运行时历史残影）
+- `.mai/index/semantic.json` 仍残留了这个文件的索引内容（运行时历史残影）
 - 当前工作树中 `main-src/workspaceSemanticIndex.ts` 并不存在
 
 结论：

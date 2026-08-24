@@ -1,11 +1,11 @@
 import Database from 'better-sqlite3';
 import * as path from 'node:path';
-import { getCachedAsyncDataDir } from './dataDir.js';
+import { getCachedMaiDataDir } from './dataDir.js';
 
 let db: Database.Database | null = null;
 
 function getDbPath(): string {
-	return path.join(getCachedAsyncDataDir(), 'session.db');
+	return path.join(getCachedMaiDataDir(), 'session.db');
 }
 
 function initSchema(dbInstance: Database.Database): void {

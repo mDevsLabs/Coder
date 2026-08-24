@@ -11,7 +11,7 @@ import {
 } from './colorMode';
 
 export const INITIAL_WINDOW_THEME_QUERY_PARAM = 'initialWindowTheme';
-export const INITIAL_WINDOW_THEME_STORAGE_KEY = 'async:initial-window-theme-v1';
+export const INITIAL_WINDOW_THEME_STORAGE_KEY = 'mai-coder:initial-window-theme-v1';
 
 type InitialWindowThemePayload = {
 	colorMode?: unknown;

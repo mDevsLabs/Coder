@@ -25,7 +25,7 @@ export type ThreadNavigationState = {
 };
 
 export type UseThreadActionsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	workspace: string | null;
 	currentId: string | null;
 	currentIdRef: MutableRefObject<string | null>;

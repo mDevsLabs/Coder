@@ -1,7 +1,7 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 
 export type UseUiZoomParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	setUiZoom: Dispatch<SetStateAction<number>>;
 	setWindowMaximized: Dispatch<SetStateAction<boolean>>;
 };

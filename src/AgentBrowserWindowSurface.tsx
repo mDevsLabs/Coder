@@ -359,7 +359,7 @@ function isBrowserControlPayload(raw: unknown): raw is BrowserControlPayload {
 	}
 }
 
-function safeGetWebviewUrl(node: AsyncShellWebviewElement | null): string {
+function safeGetWebviewUrl(node: MaiShellWebviewElement | null): string {
 	if (!node) {
 		return '';
 	}
@@ -851,7 +851,7 @@ function clampBrowserCaptureDockHeight(value: number, maxHeight: number = BROWSE
 }
 
 async function notifyBrowserCommandResult(
-	shell: NonNullable<Window['asyncShell']> | undefined,
+	shell: NonNullable<Window['maiShell']> | undefined,
 	payload: BrowserCommandResultPayload
 ): Promise<void> {
 	if (!shell) {
@@ -924,9 +924,9 @@ const BrowserTabView = memo(
 		onTitle: (id: string, title: string) => void;
 		onLoading: (id: string, isLoading: boolean, currentUrl?: string) => void;
 		onFailLoad: (id: string, error: { message: string; url: string }) => void;
-		onRegisterWebview: (id: string, node: AsyncShellWebviewElement | null) => void;
+		onRegisterWebview: (id: string, node: MaiShellWebviewElement | null) => void;
 	}) {
-	const webviewRef = useRef<AsyncShellWebviewElement | null>(null);
+	const webviewRef = useRef<MaiShellWebviewElement | null>(null);
 	const fingerprintScriptRef = useRef<string | null>(null);
 	fingerprintScriptRef.current = fingerprintScript;
 	const hookScriptRef = useRef<string>(hookScript);
@@ -959,7 +959,7 @@ const BrowserTabView = memo(
 	}, []);
 
 	const assignWebviewRef = useCallback(
-		(node: AsyncShellWebviewElement | null) => {
+		(node: MaiShellWebviewElement | null) => {
 			webviewRef.current = node;
 			try {
 				onRegisterWebview(tabIdRef.current, node);
@@ -1242,7 +1242,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 	variant?: 'sidebar' | 'window';
 }) {
 	const { t, shell } = useAppShellChromeCore();
-	const webviewsRef = useRef<Map<string, AsyncShellWebviewElement>>(new Map());
+	const webviewsRef = useRef<Map<string, MaiShellWebviewElement>>(new Map());
 	const addressInputRef = useRef<HTMLInputElement | null>(null);
 	const defaultUserAgentRef = useRef('');
 
@@ -1952,7 +1952,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 		}
 	}, [clearDataBusy, shell, t]);
 
-	const waitForWebviewNode = useCallback((tabId: string, timeoutMs: number = 10_000): Promise<AsyncShellWebviewElement> => {
+	const waitForWebviewNode = useCallback((tabId: string, timeoutMs: number = 10_000): Promise<MaiShellWebviewElement> => {
 		const startedAt = Date.now();
 		return new Promise((resolve, reject) => {
 			const tick = () => {
@@ -1972,7 +1972,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 	}, []);
 
 	const waitForWebviewSettled = useCallback(
-		(node: AsyncShellWebviewElement, tabId: string, timeoutMs: number = 15_000): Promise<void> => {
+		(node: MaiShellWebviewElement, tabId: string, timeoutMs: number = 15_000): Promise<void> => {
 			const currentTab = tabsRef.current.find((tab) => tab.id === tabId);
 			if (!currentTab?.isLoading) {
 				return Promise.resolve();
@@ -2008,7 +2008,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 
 	const readPageFromWebview = useCallback(
 		async (
-			node: AsyncShellWebviewElement,
+			node: MaiShellWebviewElement,
 			options: { selector?: string; includeHtml?: boolean; maxChars?: number }
 		): Promise<Record<string, unknown>> => {
 			const maxChars = Math.min(Math.max(500, Math.floor(options.maxChars ?? 12_000)), 50_000);
@@ -2080,7 +2080,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 
 	const clickElementInWebview = useCallback(
 		async (
-			node: AsyncShellWebviewElement,
+			node: MaiShellWebviewElement,
 			options: { selector: string }
 		): Promise<Record<string, unknown>> => {
 			// Phase 1（同步脚本）：定位元素、滚到视口、fire-and-forget 启动光标动画。
@@ -2179,7 +2179,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 
 	const inputTextInWebview = useCallback(
 		async (
-			node: AsyncShellWebviewElement,
+			node: MaiShellWebviewElement,
 			options: { selector: string; text: string; pressEnter?: boolean }
 		): Promise<Record<string, unknown>> => {
 			// Phase 1（同步）：定位、滚动、fire-and-forget 启动光标动画
@@ -2354,7 +2354,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 
 	const waitForSelectorInWebview = useCallback(
 		async (
-			node: AsyncShellWebviewElement,
+			node: MaiShellWebviewElement,
 			options: { selector: string; visible?: boolean; timeoutMs?: number }
 		): Promise<Record<string, unknown>> => {
 			const timeoutMs = Math.min(Math.max(500, Math.floor(options.timeoutMs ?? 20_000)), 60_000);
@@ -2463,7 +2463,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 		[]
 	);
 
-	const captureWebviewScreenshot = useCallback(async (node: AsyncShellWebviewElement): Promise<Record<string, unknown>> => {
+	const captureWebviewScreenshot = useCallback(async (node: MaiShellWebviewElement): Promise<Record<string, unknown>> => {
 		const image = await node.capturePage();
 		const size = image.getSize();
 		return {
@@ -2965,7 +2965,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 				await shell.invoke('threads:select', record.threadId).catch(() => {});
 				// Dispatch a window event so App.tsx (which owns currentId) can pick it up too.
 				window.dispatchEvent(
-					new CustomEvent('async-shell:focusThread', { detail: { threadId: record.threadId } })
+					new CustomEvent('mai-coder:focusThread', { detail: { threadId: record.threadId } })
 				);
 			} catch {
 				/* ignore */
@@ -3046,7 +3046,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 		[captureDockHeight]
 	);
 
-	const handleRegisterWebview = useCallback((id: string, node: AsyncShellWebviewElement | null) => {
+	const handleRegisterWebview = useCallback((id: string, node: MaiShellWebviewElement | null) => {
 		if (node) {
 			webviewsRef.current.set(id, node);
 			if (!defaultUserAgentRef.current) {
@@ -3246,7 +3246,7 @@ const AgentRightSidebarBrowserPanel = memo(function AgentRightSidebarBrowserPane
 
 	// Subscribe to main-process forwarded new-window events for webview contents.
 	// Electron 12+ deprecated the 'new-window' event; the host (this webContents)
-	// receives 'async-shell:browserNewWindow' from web-contents-created hook in main.
+	// receives 'mai-coder:browserNewWindow' from web-contents-created hook in main.
 	useEffect(() => {
 		const subscribe = shell?.subscribeBrowserNewWindow;
 		if (!subscribe) {

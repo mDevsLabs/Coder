@@ -748,7 +748,7 @@ export async function dispatchBrowserControlToHostId(hostId: number, command: Br
 		if (!host || host.isDestroyed()) {
 			return false;
 		}
-		host.send('async-shell:browserControl', command);
+		host.send('mai-coder:browserControl', command);
 		return true;
 	} catch {
 		return false;
@@ -777,7 +777,7 @@ export function sendApplyConfigToDetachedBrowserWindowIfOpen(
 			config,
 			defaultUserAgent,
 		};
-		contents.send('async-shell:browserControl', command);
+		contents.send('mai-coder:browserControl', command);
 		return true;
 	} catch {
 		return false;

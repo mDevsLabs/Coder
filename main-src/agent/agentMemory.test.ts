@@ -6,8 +6,8 @@ import { getAgentMemoryDir, loadAgentMemoryPrompt } from './agentMemory.js';
 describe('agentMemory', () => {
 	it('builds project/local/user memory directories', () => {
 		const root = path.join(os.tmpdir(), 'async-workspace');
-		expect(getAgentMemoryDir('reviewer', 'project', root)?.replace(/\\/g, '/')).toContain('/.async/agent-memory/reviewer/');
-		expect(getAgentMemoryDir('reviewer', 'local', root)?.replace(/\\/g, '/')).toContain('/.async/agent-memory-local/reviewer/');
+		expect(getAgentMemoryDir('reviewer', 'project', root)?.replace(/\\/g, '/')).toContain('/.mai/agent-memory/reviewer/');
+		expect(getAgentMemoryDir('reviewer', 'local', root)?.replace(/\\/g, '/')).toContain('/.mai/agent-memory-local/reviewer/');
 		expect(getAgentMemoryDir('reviewer', 'user', root)?.replace(/\\/g, '/')).toContain('/agent-memory/reviewer/');
 	});
 

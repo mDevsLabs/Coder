@@ -127,7 +127,7 @@ export function registerBrowserHandlers(): void {
 		if (!mainContents || mainContents.isDestroyed()) {
 			return { ok: false as const, error: 'no-host' as const };
 		}
-		mainContents.send('async-shell:openSettingsNav', nav);
+		mainContents.send('mai-coder:openSettingsNav', nav);
 		const win = BrowserWindow.fromWebContents(mainContents);
 		if (win && !win.isDestroyed()) {
 			if (win.isMinimized()) {
@@ -155,7 +155,7 @@ export function registerBrowserHandlers(): void {
 		if (!mainContents || mainContents.isDestroyed()) {
 			return { ok: false as const, error: 'no-host' as const };
 		}
-		mainContents.send('async-shell:composerAppendDraft', { text: text.slice(0, 120_000) });
+		mainContents.send('mai-coder:composerAppendDraft', { text: text.slice(0, 120_000) });
 		const win = BrowserWindow.fromWebContents(mainContents);
 		if (win && !win.isDestroyed()) {
 			if (win.isMinimized()) {
@@ -432,7 +432,7 @@ export function registerBrowserHandlers(): void {
 		if (deliver) {
 			const mainContents = webContents.fromId(hostId);
 			if (mainContents && !mainContents.isDestroyed()) {
-				mainContents.send('async-shell:captureAnalysisDispatch', {
+				mainContents.send('mai-coder:captureAnalysisDispatch', {
 					prompt: result.prompt.slice(0, 120_000),
 					mode,
 					sourceUrl,

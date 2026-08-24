@@ -31,11 +31,11 @@ function sendTrayCommand(command: 'newThread' | 'openSettings'): void {
 	const win = showMainWindow();
 	win.webContents.once('did-finish-load', () => {
 		if (!win.isDestroyed()) {
-			win.webContents.send('async-shell:trayCommand', { command });
+			win.webContents.send('mai-coder:trayCommand', { command });
 		}
 	});
 	if (!win.webContents.isLoading()) {
-		win.webContents.send('async-shell:trayCommand', { command });
+		win.webContents.send('mai-coder:trayCommand', { command });
 	}
 }
 

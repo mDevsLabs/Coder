@@ -4,7 +4,7 @@ import type { ShellLayoutMode } from '../app/shellLayoutStorage';
 export type AgentRightSidebarView = 'git' | 'plan' | 'file' | 'team' | 'browser' | 'agents';
 
 export type UseTeamSessionActionsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	currentId: string | null;
 	layoutMode: ShellLayoutMode;
 	setSelectedTask: (threadId: string, taskId: string) => void;

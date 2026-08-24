@@ -24,7 +24,7 @@ import type { ThinkingLevel } from '../ipcTypes';
 export type LayoutWindowAvailability = Record<ShellLayoutMode, boolean>;
 
 export type UseSettingsPersistenceParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 
 	// color mode + transition
 	setTransitionOrigin: (origin?: ThemeTransitionOrigin) => void;

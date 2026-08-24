@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import type { TFunction } from './i18n';
 
-export type AppShell = NonNullable<Window['asyncShell']> | undefined;
+export type AppShell = NonNullable<Window['maiShell']> | undefined;
 
 export interface AppContextValue {
 	shell: AppShell;

@@ -36,7 +36,7 @@
 | `workspace:listFiles` | 文件列表（经 `ensureWorkspaceFileIndex`） |
 | `workspace:searchFiles` | 工作区内文件搜索 |
 | `workspace:searchSymbols` | 符号搜索 |
-| `workspace:saveComposerAttachment` | Composer 拖拽附件落盘到 `.async/composer-drops` |
+| `workspace:saveComposerAttachment` | Composer 拖拽附件落盘到 `.mai/composer-drops` |
 | `workspace:pickComposerImages` | 选择图片附件 |
 | `workspace:resolveDroppedFilePath` | 解析拖拽文件路径 |
 
@@ -99,7 +99,7 @@
 | `plugins:addMarketplace` / `plugins:refreshMarketplace` / `plugins:removeMarketplace` | 插件市场管理 |
 | `plugins:install` / `plugins:uninstall` | 插件安装与卸载 |
 | `plugins:setEnabled` | 插件启用状态 |
-| `workspaceAgent:get` / `workspaceAgent:set` / `workspaceAgent:resetAsyncDir` | `.async/agent.json` 项目切片与重置 |
+| `workspaceAgent:get` / `workspaceAgent:set` / `workspaceAgent:resetAsyncDir` | `.mai/agent.json` 项目切片与重置 |
 | `workspace:listDiskSkills` / `workspace:deleteSkillFromDisk` | 磁盘技能扫描与删除 |
 | `workspace:memory:stats` / `workspace:memory:rebuild` | 项目记忆索引维护 |
 
@@ -112,7 +112,7 @@
 | `threads:fileStates` | 线程关联文件状态 |
 | `threads:getExecutedPlanKeys` / `threads:markPlanExecuted` | Plan 审阅执行记录 |
 | `threads:getPlan` | 线程内结构化 plan 元数据 |
-| `plan:save` | Markdown Plan 落盘（工作区或 userData 下 `.async/plans`） |
+| `plan:save` | Markdown Plan 落盘（工作区或 userData 下 `.mai/plans`） |
 | `plan:saveStructured` | 结构化 plan 写入线程存储 |
 | `plan:toolQuestionRespond` | Plan 工具提问的用户响应 |
 

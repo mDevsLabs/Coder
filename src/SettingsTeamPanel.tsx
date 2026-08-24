@@ -108,7 +108,7 @@ export function SettingsTeamPanel({ value, onChange, modelEntries, modelProvider
 
 	useEffect(() => {
 		let cancelled = false;
-		const shell = window.asyncShell;
+		const shell = window.maiShell;
 		if (!shell) {
 			setBuiltinCatalog({
 				ok: false,

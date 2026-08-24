@@ -109,8 +109,8 @@ describe('executeTool file encoding', () => {
 	});
 
 	it('preserves GB18030 when Edit modifies an existing legacy-encoded file', async () => {
-		const previous = process.env.ASYNC_LEGACY_TEXT_ENCODING;
-		process.env.ASYNC_LEGACY_TEXT_ENCODING = 'gb18030';
+		const previous = process.env.MAI_CODER_LEGACY_TEXT_ENCODING;
+		process.env.MAI_CODER_LEGACY_TEXT_ENCODING = 'gb18030';
 		try {
 			const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'async-edit-encoding-'));
 			const file = path.join(workspaceRoot, 'gbk.txt');
@@ -132,9 +132,9 @@ describe('executeTool file encoding', () => {
 			expect(decoded.encoding).toBe('gb18030');
 		} finally {
 			if (previous === undefined) {
-				delete process.env.ASYNC_LEGACY_TEXT_ENCODING;
+				delete process.env.MAI_CODER_LEGACY_TEXT_ENCODING;
 			} else {
-				process.env.ASYNC_LEGACY_TEXT_ENCODING = previous;
+				process.env.MAI_CODER_LEGACY_TEXT_ENCODING = previous;
 			}
 		}
 	});

@@ -13,7 +13,7 @@ describe('editorMarkdownView', () => {
 	});
 
 	it('defaults plan files to preview', () => {
-		expect(defaultMarkdownViewForPath('.async/plans/foo.plan.md')).toBe('preview');
+		expect(defaultMarkdownViewForPath('.mai/plans/foo.plan.md')).toBe('preview');
 		expect(defaultMarkdownViewForPath('README.md')).toBe('source');
 	});
 

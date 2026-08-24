@@ -154,8 +154,10 @@ export type TerminalAppSettings = {
 
 export const DEFAULT_PROFILE_ID = 'default';
 export const BUILTIN_PROFILE_PREFIX = 'builtin:';
-export const STORAGE_KEY = 'void-shell:terminal:settings';
-export const TERMINAL_SETTINGS_CHANGED_EVENT = 'async:terminal-settings-changed';
+export const STORAGE_KEY = 'mai-coder:terminal:settings';
+export const LEGACY_STORAGE_KEY = 'void-shell:terminal:settings';
+export const LEGACY_ASYNC_STORAGE_KEY = 'async:terminal:settings';
+export const TERMINAL_SETTINGS_CHANGED_EVENT = 'mai-coder:terminal-settings-changed';
 export const DEFAULT_TERMINAL_WORD_SEPARATOR = ` ()[]{}'",`;
 
 export const FONT_FAMILY_CHOICES: { label: string; value: string }[] = [
@@ -400,7 +402,16 @@ export function normalizeTerminalSettings(raw: unknown): TerminalAppSettings {
 
 export function loadTerminalSettings(): TerminalAppSettings {
 	try {
-		const raw = window.localStorage.getItem(STORAGE_KEY);
+		let raw = window.localStorage.getItem(STORAGE_KEY);
+		if (!raw) raw = window.localStorage.getItem(LEGACY_STORAGE_KEY) || window.localStorage.getItem(LEGACY_ASYNC_STORAGE_KEY);
+		if (raw) {
+			try {
+				const parsed = normalizeTerminalSettings(JSON.parse(raw));
+				// migrer vers nouvelle clé si provenait de l'ancien
+				if (!window.localStorage.getItem(STORAGE_KEY)) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+				return parsed;
+			} catch {}
+		}
 		if (!raw) {
 			return defaultTerminalSettings();
 		}
@@ -1190,7 +1201,7 @@ export function syncTerminalSettingsToMain(settings?: TerminalAppSettings): void
 	if (typeof window === 'undefined') {
 		return;
 	}
-	const shell = window.asyncShell;
+	const shell = window.maiShell;
 	if (!shell?.invoke) {
 		return;
 	}

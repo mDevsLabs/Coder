@@ -8,7 +8,7 @@ import {
 	defaultProviderIdentitySettings,
 	type ProviderIdentitySettings,
 } from '../src/providerIdentitySettings.js';
-import { getCachedAsyncDataDir, resolveAsyncDataDir } from './dataDir.js';
+import { getCachedMaiDataDir, resolveMaiDataDir } from './dataDir.js';
 import { normalizeThinkingLevel, type ThinkingLevel } from './llm/thinkingLevel.js';
 export type { ThinkingLevel } from './llm/thinkingLevel.js';
 export type {
@@ -224,7 +224,7 @@ export type ShellUiSettings = {
 
 /**
  * 旧版在 settings.json 中登记 LSP 的方式；**优先推荐**使用插件声明：
- * 在 `<asyncData>/plugins/<name>/` 或 `<workspace>/.async/plugins/<name>/` 下放置 `.lsp.json` 或 `plugin.json#lspServers`。
+ * 在 `<maiData>/plugins/<name>/` 或 `<workspace>/.mai/plugins/<name>/` 下放置 `.lsp.json` 或 `plugin.json#lspServers`。
  * 保留本结构仅为兼容已有配置（会合并为 `plugin:settings:<id>`）。
  */
 export type ShellLspUserServer = {
@@ -373,7 +373,7 @@ export type ShellSettings = {
 	};
 	/** 插件市场与用户级插件目录 */
 	plugins?: {
-		/** 用户级插件目录；为空时回退到 `<asyncData>/plugins` */
+		/** 用户级插件目录；为空时回退到 `<maiData>/plugins` */
 		userPluginsDir?: string | null;
 	};
 };
@@ -728,7 +728,7 @@ function migrateMaiDefaults(settings: ShellSettings): { next: ShellSettings; did
 }
 
 export function initSettingsStore(userData: string): void {
-	const dir = resolveAsyncDataDir(userData);
+	const dir = resolveMaiDataDir(userData);
 	fs.mkdirSync(dir, { recursive: true });
 	settingsPath = path.join(dir, 'settings.json');
 	if (fs.existsSync(settingsPath)) {
@@ -768,7 +768,7 @@ export function getSettings(): ShellSettings {
 }
 
 export function getDefaultUserPluginsRoot(): string {
-	const root = path.join(getCachedAsyncDataDir(), 'plugins');
+	const root = path.join(getCachedMaiDataDir(), 'plugins');
 	fs.mkdirSync(root, { recursive: true });
 	return root;
 }

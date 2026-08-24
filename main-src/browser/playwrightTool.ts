@@ -208,7 +208,7 @@ async function snapshotPage(page: Page, maxChars: number): Promise<{
 function buildScreenshotPath(workspaceRoot: string | null): { full: string; rel: string | null } {
 	const fileName = `pw-${new Date().toISOString().replace(/[:.]/g, '-').replace(/Z$/, 'Z')}.png`;
 	if (workspaceRoot) {
-		const rel = path.posix.join('.async', 'pw-captures', fileName);
+		const rel = path.posix.join('.mai', 'pw-captures', fileName);
 		const full = path.resolve(workspaceRoot, rel);
 		return { full, rel };
 	}

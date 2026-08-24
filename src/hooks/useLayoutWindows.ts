@@ -6,7 +6,7 @@ import {
 } from '../app/shellLayoutStorage';
 
 export type UseLayoutWindowsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	shellLayoutStorageKey: string;
 	setLayoutMode: Dispatch<SetStateAction<ShellLayoutMode>>;
 	composerRichBottomRef: RefObject<HTMLDivElement | null>;

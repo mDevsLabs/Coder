@@ -4,7 +4,7 @@ export type EffectiveColorScheme = 'light' | 'dark';
 export type ThemeTransitionOrigin = { x: number; y: number };
 
 export const APP_UI_STYLE = 'mac-codex';
-export const COLOR_MODE_STORAGE_KEY = 'async:color-mode-v1';
+export const COLOR_MODE_STORAGE_KEY = 'mai-coder:color-mode-v1';
 
 export function normalizeColorMode(raw: unknown): AppColorMode {
 	if (raw === 'light' || raw === 'dark' || raw === 'system') {

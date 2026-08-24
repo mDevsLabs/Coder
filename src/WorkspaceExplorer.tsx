@@ -14,7 +14,7 @@ export type GitPathStatusMap = Record<string, { xy: string; label: string }>;
 
 type DirEntry = { name: string; isDirectory: boolean; rel: string };
 
-type AsyncShell = NonNullable<Window['asyncShell']>;
+type AsyncShell = NonNullable<Window['maiShell']>;
 
 /** 资源管理器右键菜单对应的主进程 / 应用层能力（由 App 注入） */
 export type WorkspaceExplorerActions = {

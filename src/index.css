@@ -16060,7 +16060,7 @@ body.is-resizing-browser-capture-dock {
 
 .ref-model-dd-title-row {
 	display: flex;
-	flex-wrap: nowrap;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: 3px;
 	min-width: 0;
@@ -16082,12 +16082,12 @@ body.is-resizing-browser-capture-dock {
 	font-size: 12px;
 	font-weight: 500;
 	line-height: 1.3;
-	flex: 0 1 auto;
+	flex: 1 1 auto;
 	min-width: 0;
-	max-width: min(72%, 220px);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	max-width: 380px;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
 }
 
 .ref-model-dd-sub {

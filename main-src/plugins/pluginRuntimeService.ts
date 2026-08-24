@@ -610,7 +610,7 @@ export function getPluginRuntimeState(workspaceRoot: string | null): PluginRunti
 		return runtimeCache.state;
 	}
 	const userPluginsRoot = resolveUserPluginsRoot(settings);
-	const projectPluginsRoot = workspaceRoot ? path.join(path.resolve(workspaceRoot), '.async', 'plugins') : null;
+	const projectPluginsRoot = workspaceRoot ? path.join(path.resolve(workspaceRoot), '.mai', 'plugins') : null;
 	const plugins = [
 		...scanInstalledPluginDirs(userPluginsRoot, 'user'),
 		...scanInstalledPluginDirs(projectPluginsRoot, 'project'),

@@ -3,13 +3,17 @@ import { type ComposerMode } from '../ComposerPlusMenu';
 import { type ComposerSegment } from '../composerSegments';
 import { streamingStore } from '../streamingStore';
 
-const COMPOSER_MODE_KEY = 'async:composer-mode-v1';
+const COMPOSER_MODE_KEY = 'mai-coder:composer-mode-v1';
+const LEGACY_COMPOSER_MODE_KEY = 'async:composer-mode-v1';
 
 function readComposerMode(): ComposerMode {
 	try {
 		if (typeof window === 'undefined') return 'agent';
-		const v = localStorage.getItem(COMPOSER_MODE_KEY);
-		if (v === 'agent' || v === 'plan' || v === 'team' || v === 'debug' || v === 'ask') return v;
+		let v = localStorage.getItem(COMPOSER_MODE_KEY) || localStorage.getItem(LEGACY_COMPOSER_MODE_KEY);
+		if (v === 'agent' || v === 'plan' || v === 'team' || v === 'debug' || v === 'ask') {
+			if (!localStorage.getItem(COMPOSER_MODE_KEY) && v) try { localStorage.setItem(COMPOSER_MODE_KEY, v); } catch {}
+			return v;
+		}
 	} catch {
 		/* ignore */
 	}

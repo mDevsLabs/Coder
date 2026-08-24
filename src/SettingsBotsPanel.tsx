@@ -14,7 +14,7 @@ type Props = {
 	value: BotIntegrationConfig[];
 	onChange: (next: BotIntegrationConfig[]) => void;
 	modelEntries: UserModelEntry[];
-	shell: NonNullable<Window['asyncShell']> | null;
+	shell: NonNullable<Window['maiShell']> | null;
 };
 
 type EditorMode = 'create' | 'edit';
@@ -235,7 +235,7 @@ type FeishuAuthSectionProps = {
 	t: TFunction;
 	draft: BotIntegrationConfig;
 	onChangeDraft: (next: BotIntegrationConfig) => void;
-	shell: NonNullable<Window['asyncShell']>;
+	shell: NonNullable<Window['maiShell']>;
 };
 
 function FeishuAuthSection({ t, draft, onChangeDraft, shell }: FeishuAuthSectionProps) {
@@ -406,7 +406,7 @@ type BotEditorModalProps = {
 	mode: EditorMode;
 	draft: BotIntegrationConfig;
 	modelEntries: UserModelEntry[];
-	shell: NonNullable<Window['asyncShell']> | null;
+	shell: NonNullable<Window['maiShell']> | null;
 	onChangeDraft: (next: BotIntegrationConfig) => void;
 	onClose: () => void;
 	onSave: () => void;

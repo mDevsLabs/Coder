@@ -4,7 +4,7 @@ import type { PluginRuntimeState } from './pluginRuntimeTypes';
 import { useI18n } from './i18n';
 import { VoidSelect } from './VoidSelect';
 
-type ShellApi = NonNullable<Window['asyncShell']>;
+type ShellApi = NonNullable<Window['maiShell']>;
 
 type Props = {
 	shell: ShellApi | null;

@@ -13,7 +13,7 @@ type MemoryStats = {
 	entryCount?: number;
 };
 
-type ShellApi = NonNullable<Window['asyncShell']>;
+type ShellApi = NonNullable<Window['maiShell']>;
 
 type Props = {
 	shell: ShellApi | null;

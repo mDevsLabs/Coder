@@ -43,7 +43,7 @@ Async IDE 是一个开源、桌面端、Agent-first 的 AI IDE Shell。它不是
 
 - 它更像一个“AI Shell”而不是全量通用 IDE。
 - 主进程承担大量能力，所以很多行为不是前端组件就能解释清楚，必须同时看 `main-src/`。
-- 运行时记忆体系分层明显：`docs/llm-wiki` 不是 `.async/memory` 的替代，而是更可审阅的上层知识层。
+- 运行时记忆体系分层明显：`docs/llm-wiki` 不是 `.mai/memory` 的替代，而是更可审阅的上层知识层。
 
 ## 当前代码现实
 

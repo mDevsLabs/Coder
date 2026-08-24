@@ -85,7 +85,7 @@ type ActiveTerminalAuthPrompt = TerminalSessionAuthPrompt & {
 	profileName: string;
 };
 
-type ShellBridge = NonNullable<Window['asyncShell']>;
+type ShellBridge = NonNullable<Window['maiShell']>;
 
 type TabViewProps = {
 	sessionId: string;
@@ -867,7 +867,7 @@ type Props = {
 };
 
 export const TerminalWindowSurface = memo(function TerminalWindowSurface({ t, forceStartPage = false }: Props) {
-	const shell = window.asyncShell;
+	const shell = window.maiShell;
 	const [sessions, setSessions] = useState<SessionInfo[]>([]);
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const [splitLayout, setSplitLayout] = useState<TerminalSplitLayout>({
@@ -2118,7 +2118,7 @@ export const TerminalWindowSurface = memo(function TerminalWindowSurface({ t, fo
 									t={t}
 									profile={sessionProfile}
 									onClose={() => closePortsPanel(session.id)}
-									onCopy={(text) => void window.asyncShell?.invoke('clipboard:writeText', text)}
+									onCopy={(text) => void window.maiShell?.invoke('clipboard:writeText', text)}
 									onOpenSettings={() => openProfileSettingsFromToolbar(sessionProfile, 'ports')}
 								/>
 							) : null}

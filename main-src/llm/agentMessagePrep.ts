@@ -168,8 +168,8 @@ function scanSkillsDirectory(
  * 从工作区加载磁盘技能：
  * - `.claude/skills/<slug>/SKILL.md`
  * - `.cursor/skills/<slug>/SKILL.md`（Cursor）
- * - `.async/skills/<slug>/SKILL.md`（本应用约定）
- * 与设置里 Skills 合并时按 slug；**优先级：`.async` > `.cursor` > `.claude`**（后者可被前者覆盖）。
+ * - `.mai/skills/<slug>/SKILL.md`（本应用约定）
+ * 与设置里 Skills 合并时按 slug；**优先级：`.mai` > `.cursor` > `.claude`**（后者可被前者覆盖）。
  */
 export function loadClaudeWorkspaceSkills(workspaceRoot: string | null): AgentSkill[] {
 	if (!workspaceRoot) {
@@ -177,7 +177,7 @@ export function loadClaudeWorkspaceSkills(workspaceRoot: string | null): AgentSk
 	}
 	const claude = scanSkillsDirectory(workspaceRoot, ['.claude', 'skills'], 'claude');
 	const cursor = scanSkillsDirectory(workspaceRoot, ['.cursor', 'skills'], 'cursor');
-	const asyncShell = scanSkillsDirectory(workspaceRoot, ['.async', 'skills'], 'async');
+	const asyncShell = scanSkillsDirectory(workspaceRoot, ['.mai', 'skills'], 'async');
 	return [...claude, ...cursor, ...asyncShell];
 }
 
@@ -201,8 +201,8 @@ function getUserHomeDir(): string | null {
 /**
  * 从全局目录加载磁盘技能（用户主目录级别）：
  * - `~/.claude/skills/<slug>/SKILL.md`
- * - `~/.async/skills/<slug>/SKILL.md`
- * 优先级：`.async` > `.claude`
+ * - `~/.mai/skills/<slug>/SKILL.md`
+ * 优先级：`.mai` > `.claude`
  */
 export function loadGlobalSkills(): AgentSkill[] {
 	const home = getUserHomeDir();
@@ -210,7 +210,7 @@ export function loadGlobalSkills(): AgentSkill[] {
 		return [];
 	}
 	const claude = scanSkillsDirectory(home, ['.claude', 'skills'], 'claude');
-	const asyncShell = scanSkillsDirectory(home, ['.async', 'skills'], 'async');
+	const asyncShell = scanSkillsDirectory(home, ['.mai', 'skills'], 'async');
 	// 标记为全局来源
 	const markGlobal = (skills: AgentSkill[], sourceLabel: string): AgentSkill[] =>
 		skills.map((s) => ({
@@ -226,7 +226,7 @@ export function loadGlobalSkills(): AgentSkill[] {
  * 扫描磁盘子 Agent 配置（兼容 Claude Code `.claude/agents/<name>.md` 约定）：
  * - `.claude/agents/<name>.md`
  * - `.cursor/agents/<name>.md`（兼容写法）
- * - `.async/agents/<name>.md`
+ * - `.mai/agents/<name>.md`
  * 文件名（去扩展名）作为 subagent 名称；frontmatter 可提供 `name`、`description`，正文为 instructions。
  */
 function scanSubagentsDirectory(
@@ -280,7 +280,7 @@ export function loadClaudeWorkspaceSubagents(workspaceRoot: string | null): Agen
 	}
 	const claude = scanSubagentsDirectory(workspaceRoot, ['.claude', 'agents'], 'claude');
 	const cursor = scanSubagentsDirectory(workspaceRoot, ['.cursor', 'agents'], 'cursor');
-	const asyncShell = scanSubagentsDirectory(workspaceRoot, ['.async', 'agents'], 'async');
+	const asyncShell = scanSubagentsDirectory(workspaceRoot, ['.mai', 'agents'], 'async');
 	return [...claude, ...cursor, ...asyncShell];
 }
 
@@ -472,7 +472,7 @@ function pathMatchesGlob(relPath: string, pattern: string): boolean {
 
 /** 工作区磁盘规则目录：优先 Async 约定，其次 Cursor 兼容路径 */
 const THIRD_PARTY_RULE_DIRS = [
-	{ segments: ['.async', 'rules'] as const, prefix: '.async/rules' },
+	{ segments: ['.mai', 'rules'] as const, prefix: '.mai/rules' },
 	{ segments: ['.cursor', 'rules'] as const, prefix: '.cursor/rules' },
 ] as const;
 
@@ -503,7 +503,7 @@ function readRuleFilesFromDir(absDir: string, pathPrefix: string): string[] {
 	return parts;
 }
 
-/** 读取工作区 `.async/rules` 与 `.cursor/rules` 下 .md / .mdc（Async 优先，其次 Cursor 习惯） */
+/** 读取工作区 `.mai/rules` 与 `.cursor/rules` 下 .md / .mdc（Async 优先，其次 Cursor 习惯） */
 export function loadThirdPartyAgentRules(workspaceRoot: string | null): string {
 	if (!workspaceRoot) {
 		return '';
@@ -576,7 +576,7 @@ export function buildAgentSystemAppend(opts: {
 	const agent = opts.agent;
 
 	if (opts.thirdPartyRules.trim()) {
-		parts.push(`#### 从项目导入的规则（.async/rules、.cursor/rules、CLAUDE.md、.claude/rules）\n${opts.thirdPartyRules.trim()}`);
+		parts.push(`#### 从项目导入的规则（.mai/rules、.cursor/rules、CLAUDE.md、.claude/rules）\n${opts.thirdPartyRules.trim()}`);
 	}
 
 	parts.push(...buildEnabledAlwaysRuleBlocks(agent));

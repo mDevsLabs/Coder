@@ -13,7 +13,7 @@ import {
 	type BrowserSidebarSettingsConfig,
 } from './browserSidebarConfig';
 
-type ShellApi = NonNullable<Window['asyncShell']>;
+type ShellApi = NonNullable<Window['maiShell']>;
 
 const FINGERPRINT_MODAL_TRANSITION_MS = 300;
 

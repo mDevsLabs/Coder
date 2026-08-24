@@ -1,4 +1,5 @@
 import * as path from 'node:path';
+import { migrateWorkspaceAsyncToMai } from '../migrateMai.js';
 
 export const ENTRYPOINT_NAME = 'MEMORY.md';
 
@@ -7,7 +8,8 @@ export function getAutoMemPath(workspaceRoot?: string | null): string | null {
 	if (!root) {
 		return null;
 	}
-	return path.join(root, '.async', 'memory') + path.sep;
+	migrateWorkspaceAsyncToMai(root);
+	return path.join(root, '.mai', 'memory') + path.sep;
 }
 
 export function getAutoMemEntrypoint(workspaceRoot?: string | null): string | null {

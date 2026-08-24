@@ -13,7 +13,8 @@ export type EditorInlineDiffState = {
 	reviewMode: 'snapshot' | 'readonly';
 };
 
-export const EDITOR_TERMINAL_HEIGHT_KEY = 'async:editor-terminal-height-v1';
+export const EDITOR_TERMINAL_HEIGHT_KEY = 'mai-coder:editor-terminal-height-v1';
+export const LEGACY_EDITOR_TERMINAL_HEIGHT_KEY = 'async:editor-terminal-height-v1';
 
 const editorTerminalHeightLsKey = (isolatedEditorSurface: boolean): string =>
 	isolatedEditorSurface ? `void-shell:editor:${EDITOR_TERMINAL_HEIGHT_KEY}` : EDITOR_TERMINAL_HEIGHT_KEY;
@@ -29,7 +30,13 @@ export function clampEditorTerminalHeight(h: number): number {
 function readEditorTerminalHeightPx(lsKey: string): number {
 	try {
 		if (typeof window === 'undefined') return 220;
-		const raw = localStorage.getItem(lsKey);
+		let raw = localStorage.getItem(lsKey);
+		if (!raw) {
+			// fallback legacy
+			const legacyKey = lsKey.replace('mai-coder:', 'async:');
+			raw = localStorage.getItem(legacyKey) || localStorage.getItem(LEGACY_EDITOR_TERMINAL_HEIGHT_KEY);
+			if (raw && !localStorage.getItem(lsKey)) try { localStorage.setItem(lsKey, raw); } catch {}
+		}
 		if (raw) {
 			const n = Number(raw);
 			if (Number.isFinite(n) && n > 0) return clampEditorTerminalHeight(n);

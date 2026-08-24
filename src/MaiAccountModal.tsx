@@ -5,7 +5,7 @@ import type { MaiAccountState } from './ipcTypes';
 type Props = {
 	open: boolean;
 	onClose: () => void;
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	account: MaiAccountState | undefined;
 	onAccountChange: (account: MaiAccountState) => void;
 };

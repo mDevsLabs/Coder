@@ -6,12 +6,12 @@
 
 ## 一句话职责
 
-`getPluginRuntimeState(workspaceRoot)` 扫描 **用户插件根** 与 **`<workspace>/.async/plugins`** 下的合法安装目录，读出 Claude/Codex 风格 manifest，聚合成 `PluginRuntimeState`（`plugins`、`skills`、`commands`、`mcpServers`）；`mergeAgentWithPluginRuntime` 把 skills/commands 并进用户 `AgentCustomization`；`getEffectiveMcpServerConfigs` 把 **磁盘上的 `mcpServers` 列表** 与 **插件贡献的 MCP 配置** 拼接，供 `McpManager.loadConfigs` 使用。
+`getPluginRuntimeState(workspaceRoot)` 扫描 **用户插件根** 与 **`<workspace>/.mai/plugins`** 下的合法安装目录，读出 Claude/Codex 风格 manifest，聚合成 `PluginRuntimeState`（`plugins`、`skills`、`commands`、`mcpServers`）；`mergeAgentWithPluginRuntime` 把 skills/commands 并进用户 `AgentCustomization`；`getEffectiveMcpServerConfigs` 把 **磁盘上的 `mcpServers` 列表** 与 **插件贡献的 MCP 配置** 拼接，供 `McpManager.loadConfigs` 使用。
 
 ## 扫描范围与缓存
 
 - **用户范围**：`resolveUserPluginsRoot(getSettings())` 下的子目录（`scope: 'user'`）。
-- **项目范围**：`workspaceRoot` 存在时 `path.join(workspaceRoot, '.async', 'plugins')`（`scope: 'project'`）。
+- **项目范围**：`workspaceRoot` 存在时 `path.join(workspaceRoot, '.mai', 'plugins')`（`scope: 'project'`）。
 - **缓存**：`runtimeCache` 键为 `(normalizeWorkspaceKey(workspaceRoot), getPluginDiscoveryVersion(), pluginMcpOverridesCacheKey(settings.pluginMcpOverrides))`，任一变化则重新扫描。
 
 单插件贡献由 `readContributionForPluginDir` 汇总：manifest 全禁用或安装 meta 禁用时返回 `null`，不参与聚合。

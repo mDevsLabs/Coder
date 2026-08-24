@@ -73,7 +73,7 @@ export function PtyTerminalView({ sessionId, active, compactChrome, onSessionExi
 	}, []);
 
 	useEffect(() => {
-		const shell = window.asyncShell;
+		const shell = window.maiShell;
 		const el = containerRef.current;
 		if (!shell?.subscribeTerminalSessionData || !el) {
 			return;
@@ -389,7 +389,7 @@ export function PtyTerminalView({ sessionId, active, compactChrome, onSessionExi
 		}
 		const term = termRef.current;
 		const fit = fitRef.current;
-		const shell = window.asyncShell;
+		const shell = window.maiShell;
 		if (!term || !fit || !shell) {
 			return;
 		}

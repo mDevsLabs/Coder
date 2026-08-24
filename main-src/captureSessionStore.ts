@@ -10,7 +10,7 @@
 
 import Database from 'better-sqlite3';
 import * as path from 'node:path';
-import { getCachedAsyncDataDir } from './dataDir.js';
+import { getCachedMaiDataDir } from './dataDir.js';
 import type {
 	BrowserCaptureHookEvent,
 	BrowserCaptureRequestDetail,
@@ -37,7 +37,7 @@ export type CaptureSessionDetail = CaptureSessionSummary & {
 };
 
 function getDbPath(): string {
-	return path.join(getCachedAsyncDataDir(), 'browser-capture-sessions.db');
+	return path.join(getCachedMaiDataDir(), 'browser-capture-sessions.db');
 }
 
 function init(): Database.Database {

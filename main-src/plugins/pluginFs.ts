@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-export const ASYNC_PLUGIN_META_FILE = '.async-plugin.json';
+export const ASYNC_PLUGIN_META_FILE = '.mai-plugin.json';
 const CLAUDE_PLUGIN_DIR = '.claude-plugin';
 const CODEX_PLUGIN_DIR = '.codex-plugin';
 const MANIFEST_PLUGIN_DIRS = new Set([CLAUDE_PLUGIN_DIR, CODEX_PLUGIN_DIR]);

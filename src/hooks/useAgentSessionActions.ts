@@ -5,7 +5,7 @@ import type { AgentRightSidebarView } from './useTeamSessionActions';
 import type { AgentSessionState } from './useAgentSession';
 
 export type UseAgentSessionActionsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	currentId: string | null;
 	currentIdRef: MutableRefObject<string | null>;
 	t: TFunction;

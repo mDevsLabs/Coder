@@ -11,7 +11,7 @@ export type WizardPending = {
 };
 
 export type UseWizardSendsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	currentId: string | null;
 	defaultModel: string;
 	t: TFunction;

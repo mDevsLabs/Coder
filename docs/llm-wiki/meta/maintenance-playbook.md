@@ -19,13 +19,13 @@
 2. 当前配置和持久化实现
 3. 当前测试
 4. README / docs
-5. `.async/memory`
-6. `.async/index/` 等运行时生成索引
+5. `.mai/memory`
+6. `.mai/index/` 等运行时生成索引
 
 规则：
 
 - 上层与下层冲突时，不要“平均采信”，而要写清楚谁是当前事实、谁是旧信息。
-- `.async/memory` 可以提供线索，但不能跳过代码核验。
+- `.mai/memory` 可以提供线索，但不能跳过代码核验。
 
 ## 新数据源进入后的处理流程
 
@@ -33,7 +33,7 @@
 
 - 源码文件
 - README / 设计文档
-- `.async/memory` 新记忆
+- `.mai/memory` 新记忆
 - 运行时生成物
 - 外部需求说明
 
@@ -89,24 +89,24 @@
 
 1. 修正受影响的专题页。
 2. 把冲突写进 [矛盾与待确认项](./contradictions-and-open-questions.md)。
-3. 如果旧信息来自 `.async/memory`，考虑同步刷新或删除对应记忆。
+3. 如果旧信息来自 `.mai/memory`，考虑同步刷新或删除对应记忆。
 
-## 关于 `.async/memory`
+## 关于 `.mai/memory`
 
 建议把它当作“面向对话注入的压缩记忆”，而不是文档系统本身。
 
 推荐分工：
 
 - `docs/llm-wiki/`：架构、事实、规则、冲突、导航
-- `.async/memory/`：短索引、长期偏好、便于自动加载的记忆钩子
+- `.mai/memory/`：短索引、长期偏好、便于自动加载的记忆钩子
 
 注意：
 
-- 当前仓库默认在 `.gitignore` 中忽略 `.async/`
-- 因此 `.async/agent.json`、`.async/memory/`、`.async/index/` 默认都偏本地运行时资产
+- 当前仓库默认在 `.gitignore` 中忽略 `.mai/`
+- 因此 `.mai/agent.json`、`.mai/memory/`、`.mai/index/` 默认都偏本地运行时资产
 - 真正需要团队共享的知识，应优先编译到 `docs/llm-wiki/`
 
-如果某条 `.async/memory` 记忆已经明显过时，应当：
+如果某条 `.mai/memory` 记忆已经明显过时，应当：
 
 - 在 Wiki 里记录冲突
 - 视情况刷新那条 memory 文件
@@ -127,4 +127,4 @@
 - 是否出现重复主题页
 - 新说法是否和源码一致
 - 有无新的冲突需要记录
-- 是否需要同步 `.async/agent.json` 的入口规则
+- 是否需要同步 `.mai/agent.json` 的入口规则

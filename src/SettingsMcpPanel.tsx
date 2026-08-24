@@ -748,7 +748,7 @@ export type SettingsMcpPanelProps = {
 	onStartServer: (id: string) => void;
 	onStopServer: (id: string) => void;
 	onRestartServer: (id: string) => void;
-	shell: NonNullable<Window['asyncShell']> | null;
+	shell: NonNullable<Window['maiShell']> | null;
 };
 
 export function SettingsMcpPanel({

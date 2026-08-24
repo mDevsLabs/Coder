@@ -300,7 +300,7 @@ export type PlanSavePayload = {
 export type PlanSaveResult = {
 	ok: boolean;
 	path?: string;
-	/** 工作区内相对路径（`.async/plans/...`），便于在编辑器中打开 */
+	/** 工作区内相对路径（`.mai/plans/...`），便于在编辑器中打开 */
 	relPath?: string;
 	error?: string;
 };

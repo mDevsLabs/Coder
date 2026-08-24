@@ -36,7 +36,7 @@ export type BrowserSidebarSettingsConfig = {
 	fingerprint: BrowserFingerprintSpoofSettings;
 };
 
-export const BROWSER_SIDEBAR_CONFIG_SYNC_EVENT = 'async-shell:browser-sidebar-config-sync';
+export const BROWSER_SIDEBAR_CONFIG_SYNC_EVENT = 'mai-coder:browser-sidebar-config-sync';
 
 export type BrowserSidebarConfigSyncDetail = {
 	config: Partial<BrowserSidebarSettingsConfig>;

@@ -100,7 +100,7 @@ describe('runDesktopShellInit', () => {
 		};
 		const shell = {
 			invoke: vi.fn(async (channel: string) => {
-				if (channel === 'async-shell:ping') return { ok: true, message: 'pong' };
+				if (channel === 'mai-coder:ping') return { ok: true, message: 'pong' };
 				if (channel === 'workspace:get') return { root: 'D:/work/app' };
 				if (channel === 'app:getPaths') return { home: 'D:/Users/me' };
 				if (channel === 'settings:get') return settings;
@@ -109,7 +109,7 @@ describe('runDesktopShellInit', () => {
 				if (channel === 'settings:set') return settings;
 				return {};
 			}),
-		} as unknown as NonNullable<Window['asyncShell']>;
+		} as unknown as NonNullable<Window['maiShell']>;
 		const applyLoadedSettings = vi.fn();
 		const refreshThreads = vi.fn(async () => {
 			throw new Error('thread list unavailable');

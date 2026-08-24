@@ -51,7 +51,7 @@ export type AgentGitPack = {
 };
 
 export type UseAgentSidebarFilePreviewParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	layoutMode: ShellLayoutMode;
 	currentId: string | null;
 	openFileInTab: (

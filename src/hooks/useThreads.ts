@@ -11,7 +11,7 @@ import {
 } from '../threadTypes';
 import { normWorkspaceRootKey } from '../workspaceRootKey';
 
-type Shell = NonNullable<Window['asyncShell']>;
+type Shell = NonNullable<Window['maiShell']>;
 
 type RefreshThreadsOptions = {
 	shouldApply?: () => boolean;

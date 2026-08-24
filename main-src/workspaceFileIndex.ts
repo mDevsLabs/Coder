@@ -47,6 +47,11 @@ const SKIP_DIR_NAMES = new Set([
 ]);
 
 const SKIP_RELATIVE_PREFIXES = [
+	'.mai/index/',
+	'.mai/memory/',
+	'.mai/composer-drops/',
+	'.mai/agent-memory/',
+	'.mai/agent-memory-local/',
 	'.async/index/',
 	'.async/memory/',
 	'.async/composer-drops/',

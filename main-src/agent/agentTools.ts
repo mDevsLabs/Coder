@@ -122,7 +122,7 @@ export const AGENT_TOOLS: AgentToolDef[] = [
 	{
 		name: 'Write',
 		description:
-			'Create a new file or completely overwrite an existing file. This tool writes through Async\'s encoding-safe file path: existing text file encodings/BOMs are preserved when possible, and new files default to UTF-8. For streaming UI, emit the **file_path** argument first, before **content**, so the editor can show the file card title before code starts arriving. For small targeted edits on existing files, prefer **Edit**. When asked to persist Async/Cursor-style project rules as `.mdc` files, use `.async/rules/` under the workspace unless the user specifies another path.',
+			'Create a new file or completely overwrite an existing file. This tool writes through Async\'s encoding-safe file path: existing text file encodings/BOMs are preserved when possible, and new files default to UTF-8. For streaming UI, emit the **file_path** argument first, before **content**, so the editor can show the file card title before code starts arriving. For small targeted edits on existing files, prefer **Edit**. When asked to persist Async/Cursor-style project rules as `.mdc` files, use `.mai/rules/` under the workspace unless the user specifies another path.',
 		parameters: {
 			type: 'object',
 			properties: {
@@ -426,7 +426,7 @@ export const AGENT_TOOLS: AgentToolDef[] = [
 				file_path: {
 					type: 'string',
 					description:
-						'For screenshot_page: optional output path. Workspace-relative or absolute inside the workspace. If omitted, the app saves to `.async/browser-captures/` when a workspace is open, otherwise to a temp folder.',
+						'For screenshot_page: optional output path. Workspace-relative or absolute inside the workspace. If omitted, the app saves to `.mai/browser-captures/` when a workspace is open, otherwise to a temp folder.',
 				},
 				timeout_ms: {
 					type: 'number',
@@ -703,7 +703,7 @@ export const AGENT_TOOLS: AgentToolDef[] = [
 				file_path: {
 					type: 'string',
 					description:
-						'For screenshot: optional output path. If omitted, saves to `.async/pw-captures/` under the workspace.',
+						'For screenshot: optional output path. If omitted, saves to `.mai/pw-captures/` under the workspace.',
 				},
 				timeout_ms: {
 					type: 'number',
@@ -729,7 +729,7 @@ export const AGENT_TOOLS: AgentToolDef[] = [
 	{
 		name: 'LSP',
 		description:
-			'Language-server intelligence for the workspace, routed by **file extension** to LSP servers declared in plugin dirs under `<asyncData>/plugins/<name>/` or `<workspace>/.async/plugins/<name>/` with **`.lsp.json`** or **`plugin.json` → `lspServers`** (each server: **command**, optional **args**, required **extensionToLanguage** map). Legacy **`lsp.servers`** in settings.json is still merged. TS/JS additionally works if **typescript-language-server** is discoverable under the app or workspace `node_modules` (optional).\n\nOperations: goToDefinition, findReferences, hover, documentSymbol, workspaceSymbol, goToImplementation, prepareCallHierarchy, incomingCalls, outgoingCalls, getDiagnostics. Use **filePath** plus 1-based **line**/**character** except **getDiagnostics**/**workspaceSymbol** (optional line/char).\n\nIf nothing matches the file extension, add a plugin or legacy server entry. If an LSP method fails, fall back to **Read** / **Grep** / **Bash**.',
+			'Language-server intelligence for the workspace, routed by **file extension** to LSP servers declared in plugin dirs under `<maiData>/plugins/<name>/` or `<workspace>/.mai/plugins/<name>/` with **`.lsp.json`** or **`plugin.json` → `lspServers`** (each server: **command**, optional **args**, required **extensionToLanguage** map). Legacy **`lsp.servers`** in settings.json is still merged. TS/JS additionally works if **typescript-language-server** is discoverable under the app or workspace `node_modules` (optional).\n\nOperations: goToDefinition, findReferences, hover, documentSymbol, workspaceSymbol, goToImplementation, prepareCallHierarchy, incomingCalls, outgoingCalls, getDiagnostics. Use **filePath** plus 1-based **line**/**character** except **getDiagnostics**/**workspaceSymbol** (optional line/char).\n\nIf nothing matches the file extension, add a plugin or legacy server entry. If an LSP method fails, fall back to **Read** / **Grep** / **Bash**.',
 		parameters: {
 			type: 'object',
 			properties: {

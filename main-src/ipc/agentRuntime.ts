@@ -32,7 +32,7 @@ export function broadcastPluginsChanged(): void {
 			continue;
 		}
 		try {
-			win.webContents.send('async-shell:pluginsChanged');
+			win.webContents.send('mai-coder:pluginsChanged');
 		} catch {
 			/* ignore */
 		}

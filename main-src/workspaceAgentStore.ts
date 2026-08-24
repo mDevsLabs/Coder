@@ -1,11 +1,12 @@
 /**
  * 当前工作区下的 Agent 片段（Rules / Skills / Subagents），与全局 settings.json 分离。
- * 持久化路径：`<workspace>/.async/agent.json`
+ * 持久化路径：`<workspace>/.mai/agent.json`
  */
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { AgentCustomization, AgentRule, AgentSkill, AgentSubagent } from './agentSettingsTypes.js';
+import { migrateWorkspaceAsyncToMai } from './migrateMai.js';
 
 export type WorkspaceAgentProjectSlice = {
 	rules?: AgentRule[];
@@ -13,7 +14,7 @@ export type WorkspaceAgentProjectSlice = {
 	subagents?: AgentSubagent[];
 };
 
-const FILE_SEGMENTS = ['.async', 'agent.json'] as const;
+const FILE_SEGMENTS = ['.mai', 'agent.json'] as const;
 
 export function workspaceAgentJsonPath(root: string): string {
 	return path.join(root, ...FILE_SEGMENTS);
@@ -177,6 +178,7 @@ export function readWorkspaceAgentProjectSlice(root: string | null): WorkspaceAg
 	if (!root) {
 		return {};
 	}
+	migrateWorkspaceAsyncToMai(root);
 	const p = workspaceAgentJsonPath(root);
 	let raw: string;
 	try {
@@ -219,6 +221,7 @@ function quarantineCorruptFile(filePath: string, _raw: string): void {
 }
 
 export function writeWorkspaceAgentProjectSlice(root: string, slice: WorkspaceAgentProjectSlice): void {
+	migrateWorkspaceAsyncToMai(root);
 	const p = workspaceAgentJsonPath(root);
 	fs.mkdirSync(path.dirname(p), { recursive: true });
 	const out: WorkspaceAgentProjectSlice = {

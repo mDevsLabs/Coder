@@ -21,7 +21,7 @@ export type AgentSkill = {
 	id: string;
 	name: string;
 	description: string;
-	/** 技能标识；也可配合仓库 `.async/skills/<slug>/SKILL.md` */
+	/** 技能标识；也可配合仓库 `.mai/skills/<slug>/SKILL.md` */
 	slug: string;
 	content: string;
 	enabled?: boolean;
@@ -134,7 +134,7 @@ export type TeamSettings = {
 export type ShellPermissionMode = 'always' | 'rules' | 'ask_every_time';
 
 export type AgentCustomization = {
-	/** 从工作区 `.async/rules`、`.cursor/rules` 等目录导入规则文本 */
+	/** 从工作区 `.mai/rules`、`.cursor/rules` 等目录导入规则文本 */
 	importThirdPartyConfigs?: boolean;
 	rules?: AgentRule[];
 	skills?: AgentSkill[];
@@ -187,12 +187,12 @@ export const defaultAgentCustomization = (): AgentCustomization => ({
 	shouldAvoidPermissionPrompts: false,
 });
 
-/** 主进程从 `.claude` / `.cursor` / `.async` 的 skills 目录扫描出的项，id 形如 `ws-skill-*`；不应写入 settings 或 `.async/agent.json`。 */
+/** 主进程从 `.claude` / `.cursor` / `.mai` 的 skills 目录扫描出的项，id 形如 `ws-skill-*`；不应写入 settings 或 `.mai/agent.json`。 */
 export function isWorkspaceDiskImportedSkill(s: { id: string }): boolean {
 	return s.id.startsWith('ws-skill-');
 }
 
-/** 从用户主目录 `~/.claude/skills/`、`~/.async/skills/` 扫描出的全局 skill，id 形如 `global-skill-*`；不应写入 settings 或 `.async/agent.json`。 */
+/** 从用户主目录 `~/.claude/skills/`、`~/.mai/skills/` 扫描出的全局 skill，id 形如 `global-skill-*`；不应写入 settings 或 `.mai/agent.json`。 */
 export function isGlobalDiskImportedSkill(s: { id: string }): boolean {
 	return s.id.startsWith('global-skill-');
 }

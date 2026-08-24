@@ -68,9 +68,9 @@ export function ModelPickerDropdown({
 	const [menuLayout, setMenuLayout] = useState<MenuLayout>({
 		placement: 'below',
 		left: 0,
-		width: 300 + OPTIONS_PANEL_W,
-		minWidth: 300 + OPTIONS_PANEL_W,
-		listMinW: 300,
+		width: 460 + OPTIONS_PANEL_W,
+		minWidth: 460 + OPTIONS_PANEL_W,
+		listMinW: 460,
 		top: 100,
 		maxHeightPx: 400,
 		minHeightPx: 160,
@@ -114,7 +114,7 @@ export function ModelPickerDropdown({
 		const r = el.getBoundingClientRect();
 		const vw = window.innerWidth;
 		const vh = window.innerHeight;
-		const listMinW = Math.max(280, Math.ceil(r.width));
+		const listMinW = Math.max(420, Math.ceil(r.width));
 		const totalW = listMinW + (optsOpen ? OPTIONS_PANEL_W : 0);
 		const estimate = Math.min(420, Math.max(160, items.length * 52 + 140));
 		const natural =

@@ -82,7 +82,7 @@ export function tagProjectOrigin<T extends { origin?: 'user' | 'project' }>(item
 /* ── Hook ── */
 
 export function useSettings(
-	shell: NonNullable<Window['asyncShell']> | undefined,
+	shell: NonNullable<Window['maiShell']> | undefined,
 	workspace: string | null,
 	t: TFunction,
 ) {

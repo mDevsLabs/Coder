@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { createPortal } from 'react-dom';
 import { computeGitBranchPopoverLayout } from './anchorPopoverLayout';
 import { useI18n } from './i18n';
-type ShellApi = NonNullable<Window['asyncShell']>;
+type ShellApi = NonNullable<Window['maiShell']>;
 
 const MENU_W = 288;
 /** 与 computeGitBranchPopoverLayout 中 chrome 预留一致量级，避免用被 maxHeight 压扁后的 scrollHeight 当 contentHeight */

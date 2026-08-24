@@ -95,14 +95,14 @@
 记忆范围对应目录：
 
 - `user` -> 用户数据目录下 `agent-memory/<agent>/`
-- `project` -> `<workspace>/.async/agent-memory/<agent>/`
-- `local` -> `<workspace>/.async/agent-memory-local/<agent>/`
+- `project` -> `<workspace>/.mai/agent-memory/<agent>/`
+- `local` -> `<workspace>/.mai/agent-memory-local/<agent>/`
 
 ## 工作区级 Agent 配置
 
 `main-src/workspaceAgentStore.ts` 说明：
 
-- 当前仓库可通过 `<workspace>/.async/agent.json` 注入项目级 `rules / skills / subagents`
+- 当前仓库可通过 `<workspace>/.mai/agent.json` 注入项目级 `rules / skills / subagents`
 - 它会与全局 `settings.agent` 合并
 - 因而这是让 Agent “优先看哪份知识”的最佳项目级入口
 

@@ -166,8 +166,8 @@ function uniqueEncodings(encodings: Array<string | null | undefined>): string[] 
 function decodeLegacy(buffer: Buffer, options: DecodeTextOptions): DecodedText {
 	const candidates = uniqueEncodings([
 		options.preferredLegacyEncoding,
-		process.env.ASYNC_SHELL_OUTPUT_ENCODING,
-		process.env.ASYNC_LEGACY_TEXT_ENCODING,
+		process.env.MAI_CODER_OUTPUT_ENCODING || process.env.ASYNC_SHELL_OUTPUT_ENCODING,
+		process.env.MAI_CODER_LEGACY_TEXT_ENCODING || process.env.ASYNC_LEGACY_TEXT_ENCODING,
 		getWindowsLegacyEncoding(),
 		...(options.fallbackEncodings ?? []),
 		'gb18030',

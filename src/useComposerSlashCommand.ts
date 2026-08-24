@@ -154,7 +154,7 @@ export function useComposerSlashCommand(
 			vv.addEventListener('resize', scheduleReposition);
 			vv.addEventListener('scroll', scheduleReposition);
 		}
-		const unsubLayout = window.asyncShell?.subscribeLayout?.(scheduleReposition);
+		const unsubLayout = window.maiShell?.subscribeLayout?.(scheduleReposition);
 		return () => {
 			cancelAnimationFrame(rafFollowUp);
 			window.removeEventListener('resize', scheduleReposition);

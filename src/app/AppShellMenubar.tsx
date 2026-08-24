@@ -14,7 +14,7 @@ export type AppShellMenubarProps = {
 	hasAgentLayout: boolean;
 	hasEditorLayout: boolean;
 	t: TFunction;
-	shell: Window['asyncShell'] | undefined;
+	shell: Window['maiShell'] | undefined;
 	workspace: string | null;
 	folderRecents: string[];
 	activeTabId: string | null;
@@ -615,7 +615,7 @@ const HELP_RELEASES_URL = 'https://github.com/ZYKJShadow/Async/releases';
 
 type HelpMenuDropdownProps = {
 	t: TFunction;
-	shell: Window['asyncShell'] | undefined;
+	shell: Window['maiShell'] | undefined;
 	onClose: () => void;
 	onOpenAutoUpdate: () => void;
 	onOpenAbout: () => void;

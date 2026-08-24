@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, startTransition } fr
 import { normalizeWorkspaceRelPathForMatch } from '../agentFileChangesFromGit';
 import type { GitPathStatusMap } from '../WorkspaceExplorer';
 
-type Shell = NonNullable<Window['asyncShell']>;
+type Shell = NonNullable<Window['maiShell']>;
 type DiffPreview = { diff: string; isBinary: boolean; additions: number; deletions: number };
 
 type StatusOk = {

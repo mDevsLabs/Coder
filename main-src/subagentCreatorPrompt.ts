@@ -27,8 +27,8 @@ export function buildSubagentCreatorSystemAppend(
 	const scopeBlock =
 		scope === 'project'
 			? lang === 'en'
-				? `**Target: this project.** Prefer adding the subagent to workspace **.async/agent.json** or project-scoped agent settings in mAI Coder. Workspace root: \`${workspaceRoot ?? '(none)'}\`.`
-				: `**目标：本项目。** 优先把 Subagent 写入工作区 **.async/agent.json**，或写入 mAI Coder 的项目级 Agent 设置。工作区根目录：\`${workspaceRoot ?? '（无）'}\`。`
+				? `**Target: this project.** Prefer adding the subagent to workspace **.mai/agent.json** or project-scoped agent settings in mAI Coder. Workspace root: \`${workspaceRoot ?? '(none)'}\`.`
+				: `**目标：本项目。** 优先把 Subagent 写入工作区 **.mai/agent.json**，或写入 mAI Coder 的项目级 Agent 设置。工作区根目录：\`${workspaceRoot ?? '（无）'}\`。`
 			: lang === 'en'
 				? '**Target: all projects (user-level).** Describe adding the subagent via mAI Coder **Settings → Agent → Subagents** for global use.'
 				: '**目标：所有项目（用户级）。** 说明如何通过 mAI Coder **设置 → Agent → Subagents** 添加全局 Subagent。';
@@ -36,11 +36,11 @@ export function buildSubagentCreatorSystemAppend(
 	const toolBlock =
 		lang === 'en'
 			? `**Execution mode:** This turn runs in **Agent** with \`Write\` and \`Edit\`.
-- If a workspace is open, you **must** persist the subagent by editing project files—typically merge into \`.async/agent.json\` \`subagents\` (or the project's agent JSON mAI Coder uses). Do **not** only paste JSON for the user to copy; use tools, then confirm paths.
+- If a workspace is open, you **must** persist the subagent by editing project files—typically merge into \`.mai/agent.json\` \`subagents\` (or the project's agent JSON mAI Coder uses). Do **not** only paste JSON for the user to copy; use tools, then confirm paths.
 - User-level / all-projects scope without workspace: tools cannot write app userData; state that clearly and give minimal manual registration steps—do not claim files were written.
 - Project scope requires workspace.`
 			: `**执行方式：** 本轮运行在 **Agent** 模式，可使用 \`Write\` 和 \`Edit\`。
-- 只要工作区已打开，就**必须**用工具把 Subagent 持久化到项目文件中，通常是合并进 \`.async/agent.json\` 的 \`subagents\`（或 mAI Coder 实际使用的项目级 agent JSON）。**不要**只贴一段 JSON 让用户自己复制；应直接改文件，并说明写入位置。
+- 只要工作区已打开，就**必须**用工具把 Subagent 持久化到项目文件中，通常是合并进 \`.mai/agent.json\` 的 \`subagents\`（或 mAI Coder 实际使用的项目级 agent JSON）。**不要**只贴一段 JSON 让用户自己复制；应直接改文件，并说明写入位置。
 - 如果是**用户级 / 所有项目**，但当前没有工作区，工具无法写入应用 userData。请明确说明这一点，只给出最小必要的手动添加步骤，不要声称已经写入。
 - **本项目**范围必须有工作区。`;
 

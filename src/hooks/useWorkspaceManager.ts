@@ -1,15 +1,28 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
 
-type Shell = NonNullable<Window['asyncShell']>;
+type Shell = NonNullable<Window['maiShell']>;
 
-const AGENT_WORKSPACE_ALIASES_KEY = 'async:agent-workspace-aliases-v1';
-const AGENT_WORKSPACE_HIDDEN_KEY = 'async:agent-workspace-hidden-v2';
-const AGENT_WORKSPACE_COLLAPSED_KEY = 'async:agent-workspace-collapsed-v2';
+const AGENT_WORKSPACE_ALIASES_KEY = 'mai-coder:agent-workspace-aliases-v1';
+const AGENT_WORKSPACE_HIDDEN_KEY = 'mai-coder:agent-workspace-hidden-v2';
+const AGENT_WORKSPACE_COLLAPSED_KEY = 'mai-coder:agent-workspace-collapsed-v2';
+const LEGACY_ALIASES_KEY = 'async:agent-workspace-aliases-v1';
+const LEGACY_HIDDEN_KEY = 'async:agent-workspace-hidden-v2';
+const LEGACY_COLLAPSED_KEY = 'async:agent-workspace-collapsed-v2';
 
 function readJsonStorage<T>(key: string, fallback: T): T {
 	try {
 		if (typeof window === 'undefined') return fallback;
-		const raw = localStorage.getItem(key);
+		let raw = localStorage.getItem(key);
+		if (!raw) {
+			const legacyMap: Record<string,string> = {
+				[AGENT_WORKSPACE_ALIASES_KEY]: LEGACY_ALIASES_KEY,
+				[AGENT_WORKSPACE_HIDDEN_KEY]: LEGACY_HIDDEN_KEY,
+				[AGENT_WORKSPACE_COLLAPSED_KEY]: LEGACY_COLLAPSED_KEY,
+			};
+			const legacy = legacyMap[key];
+			if (legacy) raw = localStorage.getItem(legacy);
+			if (raw && !localStorage.getItem(key)) try { localStorage.setItem(key, raw); } catch {}
+		}
 		if (!raw) return fallback;
 		return JSON.parse(raw) as T;
 	} catch {

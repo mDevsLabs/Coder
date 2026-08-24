@@ -6,6 +6,7 @@ import {
 	type MaiAccountUsage,
 	type MaiAccountProfile,
 	type UserModelEntry,
+	DEFAULT_MAI_MODELS,
 } from './settingsStore.js';
 
 export const MAI_API_BASE = 'https://mai.val.run';

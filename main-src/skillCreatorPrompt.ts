@@ -27,8 +27,8 @@ export function buildSkillCreatorSystemAppend(
 	const scopeBlock =
 		scope === 'project'
 			? lang === 'en'
-				? `**Target scope: this project only.** The user chose to store the new skill for the current workspace. Prefer creating or updating files under \`.async/skills/<slug>/SKILL.md\` (and mention \`.async/agent.json\` only if they also need an in-app skill entry). If no workspace is open, you should not claim files were written. Workspace root (if any): \`${workspaceRoot ?? '(none)'}\`.`
-				: `**适用范围：仅当前工作区。** 用户选择把新 Skill 存到当前项目。优先在工作区创建或更新 \`.async/skills/<slug>/SKILL.md\`（若还需出现在 Async 设置里，再说明是否同步写入 \`.async/agent.json\` 的 skills 列表）。若当前没有打开文件夹，不要假装已写入磁盘。工作区根目录：\`${workspaceRoot ?? '（无）'}\`。`
+				? `**Target scope: this project only.** The user chose to store the new skill for the current workspace. Prefer creating or updating files under \`.mai/skills/<slug>/SKILL.md\` (and mention \`.mai/agent.json\` only if they also need an in-app skill entry). If no workspace is open, you should not claim files were written. Workspace root (if any): \`${workspaceRoot ?? '(none)'}\`.`
+				: `**适用范围：仅当前工作区。** 用户选择把新 Skill 存到当前项目。优先在工作区创建或更新 \`.mai/skills/<slug>/SKILL.md\`（若还需出现在 Async 设置里，再说明是否同步写入 \`.mai/agent.json\` 的 skills 列表）。若当前没有打开文件夹，不要假装已写入磁盘。工作区根目录：\`${workspaceRoot ?? '（无）'}\`。`
 			: lang === 'en'
 				? '**Target scope: all projects (global / user-level).** The user chose a skill that should apply across repositories. Describe saving via mAI Coder **Settings → Rules / Skills** (user-level skills list), not only a single repo path. You may also mention \`~/.claude/skills/\` as an optional on-disk location when relevant.'
 				: '**适用范围：所有项目（全局 / 用户级）。** 用户选择跨仓库生效的 Skill。请说明如何通过 mAI Coder **设置 → Rules / Skills** 写入用户级 Skills 列表，而不是只写某个仓库路径。需要时也可补充 \`~/.claude/skills/\` 作为可选落盘位置。';
@@ -36,11 +36,11 @@ export function buildSkillCreatorSystemAppend(
 	const toolBlock =
 		lang === 'en'
 			? `**Execution mode:** This turn runs in **Agent** with \`Write\` and \`Edit\` on the open workspace.
-- If a workspace is open, you **must** create the skill on disk under \`.async/skills/<slug>/SKILL.md\` (and update \`.async/agent.json\` skills list with \`Edit\` when needed). Do **not** tell the user to copy-paste the full SKILL.md as the main deliverable—write it with tools, then summarize paths.
+- If a workspace is open, you **must** create the skill on disk under \`.mai/skills/<slug>/SKILL.md\` (and update \`.mai/agent.json\` skills list with \`Edit\` when needed). Do **not** tell the user to copy-paste the full SKILL.md as the main deliverable—write it with tools, then summarize paths.
 - For **user / all-projects** scope without a workspace open, you cannot write global app settings via tools; say so and either ask to open a repo to materialize files or give the minimal manual steps—never claim files were written.
 - Project scope requires a workspace: write under that root only.`
 			: `**执行方式：** 本轮为 **Agent**，可使用 \`Write\`、\`Edit\`。
-- 已打开工作区时，**必须**在磁盘创建 Skill：优先 \`.async/skills/<slug>/SKILL.md\`，必要时用 \`Edit\` 更新 \`.async/agent.json\` 的 skills 列表。**禁止**把「请用户全文复制 SKILL.md」当作主要交付；应用工具写入后再用简短文字说明路径与触发方式。
+- 已打开工作区时，**必须**在磁盘创建 Skill：优先 \`.mai/skills/<slug>/SKILL.md\`，必要时用 \`Edit\` 更新 \`.mai/agent.json\` 的 skills 列表。**禁止**把「请用户全文复制 SKILL.md」当作主要交付；应用工具写入后再用简短文字说明路径与触发方式。
 - **用户级 / 所有项目** 且未打开工作区时，无法用工具写应用全局配置，应说明限制，并请用户打开仓库以便落盘，或给出最简手动步骤；不要假装已写文件。
 - **本项目** 范围仅在有工作区时有效，路径相对工作区根目录。`;
 

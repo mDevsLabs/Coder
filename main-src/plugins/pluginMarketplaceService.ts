@@ -3,7 +3,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
-import { getCachedAsyncDataDir } from '../dataDir.js';
+import { getCachedMaiDataDir } from '../dataDir.js';
 import { normalizeGitFailureMessage } from '../gitService.js';
 import {
 	getDefaultUserPluginsRoot,
@@ -103,7 +103,7 @@ type PluginManifestFile = {
 };
 
 function getMarketplaceCacheRoot(): string {
-	const root = path.join(getCachedAsyncDataDir(), 'plugin-marketplaces');
+	const root = path.join(getCachedMaiDataDir(), 'plugin-marketplaces');
 	fs.mkdirSync(root, { recursive: true });
 	return root;
 }
@@ -120,7 +120,7 @@ function getProjectPluginsRoot(workspaceRoot: string | null | undefined): string
 	if (!workspaceRoot || !String(workspaceRoot).trim()) {
 		return null;
 	}
-	const root = path.join(path.resolve(String(workspaceRoot)), '.async', 'plugins');
+	const root = path.join(path.resolve(String(workspaceRoot)), '.mai', 'plugins');
 	fs.mkdirSync(root, { recursive: true });
 	return root;
 }

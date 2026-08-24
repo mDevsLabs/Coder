@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 /** @type {Set<string>} */
 const INVOKE_CHANNELS = new Set([
+	'mai-coder:ping',
 	'async-shell:ping',
 	'app:getPaths',
 	'app:getVersion',
@@ -259,7 +260,7 @@ let workspaceFileIndexReadySeq = 0;
 const pluginsChangedHandlers = new Map();
 let pluginsChangedSeq = 0;
 
-ipcRenderer.on('async-shell:chat', (_event, payload) => {
+ipcRenderer.on('mai-coder:chat', (_event, payload) => {
 	for (const fn of chatHandlers.values()) {
 		try {
 			fn(payload);
@@ -269,7 +270,7 @@ ipcRenderer.on('async-shell:chat', (_event, payload) => {
 	}
 });
 
-ipcRenderer.on('async-shell:layout', () => {
+ipcRenderer.on('mai-coder:layout', () => {
 	for (const fn of layoutHandlers.values()) {
 		try {
 			fn();
@@ -279,7 +280,7 @@ ipcRenderer.on('async-shell:layout', () => {
 	}
 });
 
-ipcRenderer.on('async-shell:themeMode', (_event, payload) => {
+ipcRenderer.on('mai-coder:themeMode', (_event, payload) => {
 	for (const fn of themeModeHandlers.values()) {
 		try {
 			fn(payload);
@@ -289,7 +290,7 @@ ipcRenderer.on('async-shell:themeMode', (_event, payload) => {
 	}
 });
 
-ipcRenderer.on('async-shell:workspaceFsTouched', () => {
+ipcRenderer.on('mai-coder:workspaceFsTouched', () => {
 	for (const fn of workspaceFsTouchedHandlers.values()) {
 		try {
 			fn();
@@ -299,7 +300,7 @@ ipcRenderer.on('async-shell:workspaceFsTouched', () => {
 	}
 });
 
-ipcRenderer.on('async-shell:workspaceFileIndexReady', (_event, rootNorm) => {
+ipcRenderer.on('mai-coder:workspaceFileIndexReady', (_event, rootNorm) => {
 	for (const fn of workspaceFileIndexReadyHandlers.values()) {
 		try {
 			fn(String(rootNorm ?? ''));
@@ -309,7 +310,7 @@ ipcRenderer.on('async-shell:workspaceFileIndexReady', (_event, rootNorm) => {
 	}
 });
 
-ipcRenderer.on('async-shell:pluginsChanged', () => {
+ipcRenderer.on('mai-coder:pluginsChanged', () => {
 	for (const fn of pluginsChangedHandlers.values()) {
 		try {
 			fn();
@@ -338,7 +339,7 @@ let browserNewWindowSeq = 0;
 const googleLoginExternalHandlers = new Map();
 let googleLoginExternalSeq = 0;
 
-ipcRenderer.on('async-shell:browserNewWindow', (_event, payload) => {
+ipcRenderer.on('mai-coder:browserNewWindow', (_event, payload) => {
 	for (const fn of browserNewWindowHandlers.values()) {
 		try {
 			fn(payload);
@@ -348,7 +349,7 @@ ipcRenderer.on('async-shell:browserNewWindow', (_event, payload) => {
 	}
 });
 
-ipcRenderer.on('async-shell:googleLoginExternal', (_event, payload) => {
+ipcRenderer.on('mai-coder:googleLoginExternal', (_event, payload) => {
 	for (const fn of googleLoginExternalHandlers.values()) {
 		try {
 			fn(payload);
@@ -374,7 +375,7 @@ ipcRenderer.on('mai:accountUpdated', (_event, payload) => {
 const browserControlHandlers = new Map();
 let browserControlSeq = 0;
 
-ipcRenderer.on('async-shell:browserControl', (_event, payload) => {
+ipcRenderer.on('mai-coder:browserControl', (_event, payload) => {
 	for (const fn of browserControlHandlers.values()) {
 		try {
 			fn(payload);
@@ -396,7 +397,7 @@ let captureAnalysisDispatchSeq = 0;
 const trayCommandHandlers = new Map();
 let trayCommandSeq = 0;
 
-ipcRenderer.on('async-shell:openSettingsNav', (_event, nav) => {
+ipcRenderer.on('mai-coder:openSettingsNav', (_event, nav) => {
 	for (const fn of openSettingsNavHandlers.values()) {
 		try {
 			fn(nav);
@@ -406,7 +407,7 @@ ipcRenderer.on('async-shell:openSettingsNav', (_event, nav) => {
 	}
 });
 
-ipcRenderer.on('async-shell:composerAppendDraft', (_event, payload) => {
+ipcRenderer.on('mai-coder:composerAppendDraft', (_event, payload) => {
 	for (const fn of composerAppendDraftHandlers.values()) {
 		try {
 			fn(payload);
@@ -416,7 +417,7 @@ ipcRenderer.on('async-shell:composerAppendDraft', (_event, payload) => {
 	}
 });
 
-ipcRenderer.on('async-shell:captureAnalysisDispatch', (_event, payload) => {
+ipcRenderer.on('mai-coder:captureAnalysisDispatch', (_event, payload) => {
 	for (const fn of captureAnalysisDispatchHandlers.values()) {
 		try {
 			fn(payload);
@@ -426,7 +427,7 @@ ipcRenderer.on('async-shell:captureAnalysisDispatch', (_event, payload) => {
 	}
 });
 
-ipcRenderer.on('async-shell:trayCommand', (_event, payload) => {
+ipcRenderer.on('mai-coder:trayCommand', (_event, payload) => {
 	for (const fn of trayCommandHandlers.values()) {
 		try {
 			fn(payload);
@@ -436,12 +437,55 @@ ipcRenderer.on('async-shell:trayCommand', (_event, payload) => {
 	}
 });
 
-contextBridge.exposeInMainWorld('asyncShell', {
-	invoke(channel, ...args) {
-		if (!INVOKE_CHANNELS.has(channel)) {
-			throw new Error(`async-shell: blocked IPC channel "${channel}"`);
+// Fallback compat: aussi écouter l'ancien préfixe async-shell: (migration)
+for (const [newChan, oldChan] of [
+	['mai-coder:chat', 'async-shell:chat'],
+	['mai-coder:layout', 'async-shell:layout'],
+	['mai-coder:themeMode', 'async-shell:themeMode'],
+	['mai-coder:workspaceFsTouched', 'async-shell:workspaceFsTouched'],
+	['mai-coder:workspaceFileIndexReady', 'async-shell:workspaceFileIndexReady'],
+	['mai-coder:pluginsChanged', 'async-shell:pluginsChanged'],
+	['mai-coder:browserNewWindow', 'async-shell:browserNewWindow'],
+	['mai-coder:googleLoginExternal', 'async-shell:googleLoginExternal'],
+	['mai-coder:browserControl', 'async-shell:browserControl'],
+	['mai-coder:openSettingsNav', 'async-shell:openSettingsNav'],
+	['mai-coder:composerAppendDraft', 'async-shell:composerAppendDraft'],
+	['mai-coder:captureAnalysisDispatch', 'async-shell:captureAnalysisDispatch'],
+	['mai-coder:trayCommand', 'async-shell:trayCommand'],
+]) {
+	const map = {
+		'mai-coder:chat': chatHandlers,
+		'mai-coder:layout': layoutHandlers,
+		'mai-coder:themeMode': themeModeHandlers,
+		'mai-coder:workspaceFsTouched': workspaceFsTouchedHandlers,
+		'mai-coder:workspaceFileIndexReady': workspaceFileIndexReadyHandlers,
+		'mai-coder:pluginsChanged': pluginsChangedHandlers,
+		'mai-coder:browserNewWindow': browserNewWindowHandlers,
+		'mai-coder:googleLoginExternal': googleLoginExternalHandlers,
+		'mai-coder:browserControl': browserControlHandlers,
+		'mai-coder:openSettingsNav': openSettingsNavHandlers,
+		'mai-coder:composerAppendDraft': composerAppendDraftHandlers,
+		'mai-coder:captureAnalysisDispatch': captureAnalysisDispatchHandlers,
+		'mai-coder:trayCommand': trayCommandHandlers,
+	};
+	const handlers = map[newChan];
+	if (!handlers) continue;
+	ipcRenderer.on(oldChan, (_event, payload) => {
+		for (const fn of handlers.values()) {
+			try { fn(payload); } catch (e) { console.error(e); }
 		}
-		return ipcRenderer.invoke(channel, ...args);
+	});
+}
+
+const maiShellAPI = {
+	invoke(channel, ...args) {
+		// Compat: accepter aussi l'ancien préfixe async-shell:
+		const normalized = channel.startsWith('async-shell:') ? channel.replace('async-shell:', 'mai-coder:') : channel;
+		const toCheck = normalized;
+		if (!INVOKE_CHANNELS.has(toCheck) && !INVOKE_CHANNELS.has(channel)) {
+			throw new Error(`mai-coder: blocked IPC channel "${channel}"`);
+		}
+		return ipcRenderer.invoke(toCheck, ...args);
 	},
 	setUnreadBadgeCount(count) {
 		const safe = Math.max(0, Math.min(999, Math.floor(Number(count) || 0)));
@@ -571,4 +615,6 @@ contextBridge.exposeInMainWorld('asyncShell', {
 		maiAccountHandlers.set(id, callback);
 		return () => maiAccountHandlers.delete(id);
 	},
-});
+};
+contextBridge.exposeInMainWorld('maiShell', maiShellAPI);
+contextBridge.exposeInMainWorld('asyncShell', maiShellAPI);

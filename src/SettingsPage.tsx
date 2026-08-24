@@ -216,7 +216,7 @@ function navItemsForT(t: (key: string) => string): NavItem[] {
 	];
 }
 
-const SETTINGS_SIDEBAR_KEY = 'async:settings-sidebar-w-v1';
+const SETTINGS_SIDEBAR_KEY = 'mai-coder:settings-sidebar-w-v1';
 const SETTINGS_SIDEBAR_DEFAULT = 260;
 const SETTINGS_SIDEBAR_MIN = 200;
 const SETTINGS_SIDEBAR_MAX = 480;
@@ -553,7 +553,7 @@ type Props = {
 	onStartMcpServer: (id: string) => void;
 	onStopMcpServer: (id: string) => void;
 	onRestartMcpServer: (id: string) => void;
-	shell: NonNullable<Window['asyncShell']> | null;
+	shell: NonNullable<Window['maiShell']> | null;
 	workspaceOpen: boolean;
 	colorMode: AppColorMode;
 	onChangeColorMode: (next: AppColorMode, origin?: ThemeTransitionOrigin) => void | Promise<void>;
@@ -1325,7 +1325,7 @@ export function SettingsPage({
 												options={[
 													{
 														value: 'async-default',
-														label: t('settings.general.identityPreset.async'),
+														label: t('settings.general.identityPreset.mai'),
 													},
 													{
 														value: 'claude-code',
@@ -1668,7 +1668,7 @@ export function SettingsPage({
 																	}}
 																	options={[
 																		{ value: 'inherit', label: t('settings.providerIdentityInherit') },
-																		{ value: 'async-default', label: t('settings.general.identityPreset.async') },
+																		{ value: 'async-default', label: t('settings.general.identityPreset.mai') },
 																		{ value: 'claude-code', label: t('settings.general.identityPreset.claudeCode') },
 																		{ value: 'codex', label: t('settings.general.identityPreset.codex') },
 																		{ value: 'antigravity', label: t('settings.general.identityPreset.antigravity') },

@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as fsp from 'node:fs/promises';
 import * as path from 'node:path';
 import type { AgentMemoryScope } from '../agentSettingsTypes.js';
-import { getCachedAsyncDataDir } from '../dataDir.js';
+import { getCachedMaiDataDir } from '../dataDir.js';
 import { buildMemoryLines, truncateEntrypointContent } from '../memdir/memdir.js';
 
 function sanitizeAgentTypeForPath(agentType: string): string {
@@ -17,11 +17,11 @@ export function getAgentMemoryDir(
 	const dirName = sanitizeAgentTypeForPath(agentType || 'subagent');
 	switch (scope) {
 		case 'user':
-			return path.join(getCachedAsyncDataDir(), 'agent-memory', dirName) + path.sep;
+			return path.join(getCachedMaiDataDir(), 'agent-memory', dirName) + path.sep;
 		case 'project':
-			return workspaceRoot ? path.join(workspaceRoot, '.async', 'agent-memory', dirName) + path.sep : null;
+			return workspaceRoot ? path.join(workspaceRoot, '.mai', 'agent-memory', dirName) + path.sep : null;
 		case 'local':
-			return workspaceRoot ? path.join(workspaceRoot, '.async', 'agent-memory-local', dirName) + path.sep : null;
+			return workspaceRoot ? path.join(workspaceRoot, '.mai', 'agent-memory-local', dirName) + path.sep : null;
 	}
 }
 

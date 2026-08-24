@@ -14,7 +14,7 @@ import type { UsageStatsAgentDay, UsageStatsGetResponse, UsageStatsTokenEvent } 
 import type { UserLlmProvider, UserModelEntry } from './modelCatalog';
 import { providerDisplayLabel } from './modelCatalog';
 
-type ShellApi = NonNullable<Window['asyncShell']>;
+type ShellApi = NonNullable<Window['maiShell']>;
 
 type Props = {
 	shell: ShellApi | null;

@@ -158,7 +158,7 @@ export function queueThreadTitleGeneration(params: {
 				return;
 			}
 			try {
-				params.sender.send('async-shell:chat', {
+				params.sender.send('mai-coder:chat', {
 					type: 'thread_title_updated',
 					threadId: params.threadId,
 					title,
@@ -234,7 +234,7 @@ export function runChatStream(
 	const send = (obj: unknown) => {
 		const o = (typeof obj === 'object' && obj !== null ? obj : {}) as Record<string, unknown>;
 		win.webContents.send(
-			'async-shell:chat',
+			'mai-coder:chat',
 			streamNonce !== undefined ? { ...o, streamNonce } : o
 		);
 	};

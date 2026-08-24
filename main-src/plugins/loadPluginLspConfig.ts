@@ -50,8 +50,8 @@ export function validatePathWithinPlugin(pluginPath: string, relativePath: strin
 function expandEnvPlaceholdersInString(value: string, env: Record<string, string | undefined>): string {
 	return value.replace(/\$\{([^}]+)\}/g, (_m, key: string) => {
 		const k = String(key).trim();
-		if (k === 'ASYNC_PLUGIN_ROOT' || k === 'CLAUDE_PLUGIN_ROOT') {
-			return env.ASYNC_PLUGIN_ROOT ?? env.CLAUDE_PLUGIN_ROOT ?? '';
+		if (k === 'MAI_CODER_PLUGIN_ROOT' || k === 'ASYNC_PLUGIN_ROOT' || k === 'CLAUDE_PLUGIN_ROOT') {
+			return env.MAI_CODER_PLUGIN_ROOT ?? env.ASYNC_PLUGIN_ROOT ?? env.CLAUDE_PLUGIN_ROOT ?? '';
 		}
 		const v = env[k] ?? process.env[k];
 		return v ?? '';
@@ -61,6 +61,7 @@ function expandEnvPlaceholdersInString(value: string, env: Record<string, string
 function resolveLspConfigPlaceholders(cfg: LspServerConfig, pluginRoot: string): LspServerConfig {
 	const baseEnv: Record<string, string | undefined> = {
 		...process.env,
+		MAI_CODER_PLUGIN_ROOT: pluginRoot,
 		ASYNC_PLUGIN_ROOT: pluginRoot,
 		CLAUDE_PLUGIN_ROOT: pluginRoot,
 	};
@@ -69,6 +70,7 @@ function resolveLspConfigPlaceholders(cfg: LspServerConfig, pluginRoot: string):
 		next.args = next.args.map((a) => expandEnvPlaceholdersInString(a, baseEnv));
 	}
 	const mergedEnv: Record<string, string> = {
+		MAI_CODER_PLUGIN_ROOT: pluginRoot,
 		ASYNC_PLUGIN_ROOT: pluginRoot,
 		CLAUDE_PLUGIN_ROOT: pluginRoot,
 	};
@@ -108,7 +110,7 @@ function validateServerConfig(raw: unknown, context: string): LspServerConfig | 
 		return null;
 	}
 	if (transport === 'socket') {
-		console.warn(`[lsp-plugin] ${context}: socket transport not supported in Async, skipping`);
+		console.warn(`[lsp-plugin] ${context}: socket transport not supported in mAI Coder, skipping`);
 		return null;
 	}
 	const etm = o.extensionToLanguage;

@@ -44,7 +44,7 @@ describe('workspaceAgentStore.readWorkspaceAgentProjectSlice', () => {
 	});
 
 	it('returns empty slice when agent.json is a directory, not a file', () => {
-		fs.mkdirSync(path.join(root, '.async', 'agent.json'), { recursive: true });
+		fs.mkdirSync(path.join(root, '.mai', 'agent.json'), { recursive: true });
 		expect(readWorkspaceAgentProjectSlice(root)).toEqual({});
 	});
 

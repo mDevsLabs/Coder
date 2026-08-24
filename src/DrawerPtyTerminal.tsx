@@ -14,7 +14,7 @@ export function DrawerPtyTerminal({ placeholder }: Props) {
 	useEffect(() => {
 		let cancelled = false;
 		void (async () => {
-			const sh = window.asyncShell;
+			const sh = window.maiShell;
 			if (!sh) {
 				return;
 			}
@@ -30,7 +30,7 @@ export function DrawerPtyTerminal({ placeholder }: Props) {
 			const killId = idRef.current;
 			idRef.current = null;
 			if (killId) {
-				void window.asyncShell?.invoke('term:sessionKill', killId);
+				void window.maiShell?.invoke('term:sessionKill', killId);
 			}
 		};
 	}, []);

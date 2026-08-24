@@ -76,7 +76,7 @@ describe('persistLargeToolResultIfNeeded', () => {
 		);
 
 		expect(result.content).toContain('[Large tool result persisted]');
-		expect(result.content).toContain('.async/tool-results/thread-1');
+		expect(result.content).toContain('.mai/tool-results/thread-1');
 		const match = result.content.match(/Path:\s+(.+)/);
 		expect(match?.[1]).toBeTruthy();
 		const savedPath = match?.[1] ? path.join(workspaceRoot, match[1].replace(/\//g, path.sep)) : '';

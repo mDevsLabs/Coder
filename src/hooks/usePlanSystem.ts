@@ -61,7 +61,7 @@ export function streamingMayContainAgentPlanHeading(raw: string): boolean {
 }
 
 export function usePlanSystem(
-	shell: NonNullable<Window['asyncShell']> | undefined,
+	shell: NonNullable<Window['maiShell']> | undefined,
 	currentId: string | null,
 	currentIdRef: RefObject<string | null>,
 	messages: Message[],

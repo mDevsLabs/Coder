@@ -21,7 +21,7 @@ import type {
 import type { McpClientLike } from './mcpToolResolve.js';
 
 const DEFAULT_TIMEOUT = 30_000;
-const ASYNC_SHELL_MCP_VERSION = '0.0.3';
+const MAI_CODER_MCP_VERSION = '0.0.3';
 
 function mergeStdioEnv(extra?: Record<string, string>): Record<string, string> {
 	const out: Record<string, string> = { ...getDefaultEnvironment() };
@@ -145,7 +145,7 @@ export class McpClient extends EventEmitter<McpClientEvents> implements McpClien
 
 		try {
 			const client = new Client(
-				{ name: 'async-shell', version: ASYNC_SHELL_MCP_VERSION },
+				{ name: 'mai-coder', version: MAI_CODER_MCP_VERSION },
 				{
 					capabilities: { roots: { listChanged: true } },
 					listChanged: {

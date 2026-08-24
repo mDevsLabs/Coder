@@ -229,7 +229,7 @@ Default location under Electron's `userData` directory:
 
 - `async/threads.json`: threads and chat messages.
 - `async/settings.json`: model configuration, API keys, layout, agent options, and bot integrations.
-- `.async/plans/`: Markdown plan documents generated in Plan mode.
+- `.mai/plans/`: Markdown plan documents generated in Plan mode.
 
 The renderer may use `localStorage` for lightweight UI state, but the authoritative data source for conversations is `threads.json`.
 

@@ -45,7 +45,7 @@ function buildPersistenceTarget(
 	const fileName = `${sanitizePathPart(toolName)}-${sanitizePathPart(toolUseId)}.txt`;
 	if (execCtx.workspaceRoot) {
 		const threadPart = sanitizePathPart(execCtx.threadId ?? 'thread');
-		const relPath = path.posix.join('.async', 'tool-results', threadPart, fileName);
+		const relPath = path.posix.join('.mai', 'tool-results', threadPart, fileName);
 		return {
 			fullPath: path.join(execCtx.workspaceRoot, relPath.replace(/\//g, path.sep)),
 			displayPath: relPath,

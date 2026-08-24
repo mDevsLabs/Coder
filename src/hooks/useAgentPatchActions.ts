@@ -16,7 +16,7 @@ export type AgentGitPack = {
 };
 
 export type UseAgentPatchActionsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	currentId: string | null;
 	currentIdRef: MutableRefObject<string | null>;
 	composerMode: ComposerMode;

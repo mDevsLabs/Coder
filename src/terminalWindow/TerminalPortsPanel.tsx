@@ -22,7 +22,7 @@ export const TerminalPortsPanel = memo(function TerminalPortsPanel({ t, profile,
 		void Promise.allSettled(
 			forwards.map(async (forward) => {
 				try {
-					const result = (await window.asyncShell?.invoke('term:portCheck', forward)) as
+					const result = (await window.maiShell?.invoke('term:portCheck', forward)) as
 						| { ok: true; status: PortCheckStatus }
 						| { ok: false }
 						| undefined;

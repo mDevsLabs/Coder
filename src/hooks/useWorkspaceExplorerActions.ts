@@ -9,7 +9,7 @@ import type { WorkspaceExplorerActions } from '../WorkspaceExplorer';
 import type { AgentConversationFileOpenOptions } from './useFileOperations';
 
 export type UseWorkspaceExplorerActionsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	workspace: string | null;
 	t: TFunction;
 	flashComposerAttachErr: (msg: string) => void;

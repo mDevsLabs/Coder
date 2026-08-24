@@ -41,7 +41,7 @@
 这个 hook 最重要的不是“存了一堆 state”，而是它统一了三层来源：
 
 1. 主进程 `settings.json`
-2. 工作区 `.async/agent.json`
+2. 工作区 `.mai/agent.json`
 3. 工作区磁盘扫描到的技能
 
 这让 renderer 侧最终拿到的是“可用于当前工作区”的有效设置视图，而不是单一来源的原始数据。

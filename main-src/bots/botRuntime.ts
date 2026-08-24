@@ -278,7 +278,7 @@ function parsePngDataUrl(dataUrl: string): Buffer {
 
 function buildBotBrowserAttachmentDir(session: BotSessionState): string {
 	if (session.workspaceRoot) {
-		return path.join(session.workspaceRoot, '.async', 'bot-attachments');
+		return path.join(session.workspaceRoot, '.mai', 'bot-attachments');
 	}
 	return path.join(app.getPath('userData'), 'async', 'bot-attachments');
 }

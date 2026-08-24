@@ -5,7 +5,7 @@ import type { TFunction } from '../i18n';
 export type EditActionKind = 'undo' | 'redo' | 'cut' | 'copy' | 'paste' | 'selectAll';
 
 export type UseEditCommandsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	t: TFunction;
 	monacoEditorRef: MutableRefObject<MonacoEditorNS.IStandaloneCodeEditor | null>;
 	flashComposerAttachErr: (msg: string) => void;

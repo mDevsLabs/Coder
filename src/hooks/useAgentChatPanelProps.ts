@@ -7,7 +7,7 @@ export type UseAgentChatPanelPropsParams = Omit<
 	AgentChatPanelProps,
 	'layout' | 'onOpenWorkspaceFile' | 'onRunCommand' | 'onOpenAgentConversationFile'
 > & {
-	shell: Window['asyncShell'] | undefined;
+	shell: Window['maiShell'] | undefined;
 	onExplorerOpenFile: (rel: string) => void | Promise<void>;
 	onAgentConversationOpenFile: AgentChatPanelProps['onOpenAgentConversationFile'];
 };

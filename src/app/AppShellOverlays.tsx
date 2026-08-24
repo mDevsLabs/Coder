@@ -45,7 +45,7 @@ function GitBranchPickerOverlaySection({
 	composerGitBranchAnchorRef,
 	showTransientToast,
 }: {
-	shell: Window['asyncShell'] | undefined;
+	shell: Window['maiShell'] | undefined;
 	composerGitBranchAnchorRef: RefObject<HTMLElement | null>;
 	showTransientToast: (ok: boolean, text: string, durationMs?: number) => void;
 }) {
@@ -80,7 +80,7 @@ function GitBranchPickerOverlaySection({
 
 export type AppShellOverlaysProps = {
 	t: TFunction;
-	shell: Window['asyncShell'] | undefined;
+	shell: Window['maiShell'] | undefined;
 	workspace: string | null;
 	homePath: string;
 	workspaceFileList: string[];

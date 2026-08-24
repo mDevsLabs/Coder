@@ -19,7 +19,7 @@ export type AgentConversationFileOpenOptions = {
 type DiffPreview = { diff: string; isBinary: boolean; additions: number; deletions: number };
 
 export type UseFileOperationsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	t: TFunction;
 	workspace: string | null;
 	layoutMode: ShellLayoutMode;

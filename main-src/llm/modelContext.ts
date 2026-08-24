@@ -86,7 +86,7 @@ const CAPABILITIES_STALE_MS = 7 * 24 * 60 * 60 * 1000;
 
 function capabilitiesCachePath(): string | null {
 	try {
-		return join(app.getPath('userData'), '.async', 'cache', 'model-capabilities.json');
+		return join(app.getPath('userData'), '.mai', 'cache', 'model-capabilities.json');
 	} catch {
 		return null;
 	}

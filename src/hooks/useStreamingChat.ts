@@ -62,7 +62,7 @@ export type StreamingSendOptions = {
 };
 
 type StreamingSendRuntime = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	currentId: string | null;
 	setCurrentId: (id: string) => void;
 	loadMessages: (threadId: string) => Promise<unknown>;
@@ -99,7 +99,7 @@ type StreamingSendRuntime = {
 };
 
 type StreamingSubscriptionRuntime = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	composerMode: ComposerMode;
 	streamThreadRef: MutableRefObject<string | null>;
 	ipcInFlightChatThreadIdRef: MutableRefObject<string | null>;

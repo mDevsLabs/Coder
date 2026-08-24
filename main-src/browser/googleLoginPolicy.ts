@@ -3,7 +3,7 @@ import { isGoogleLoginUrl } from './googleLoginHosts.js';
 
 export { isGoogleLoginUrl, isGoogleSensitiveHost } from './googleLoginHosts.js';
 
-export const GOOGLE_LOGIN_EXTERNAL_CHANNEL = 'async-shell:googleLoginExternal';
+export const GOOGLE_LOGIN_EXTERNAL_CHANNEL = 'mai-coder:googleLoginExternal';
 
 const GOOGLE_LOGIN_OPEN_COOLDOWN_MS = 3_000;
 

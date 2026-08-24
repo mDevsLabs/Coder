@@ -1232,7 +1232,7 @@ export const messagesEn: Record<string, string> = {
 	'settings.appearance.themeEditorDesc': 'Pick a paired light/dark preset first, then fine-tune the active palette below if needed.',
 	'settings.appearance.themePreset': 'Theme preset',
 	'settings.appearance.themePresetDesc': 'Each preset includes matching light and dark colors, and switches automatically with the appearance mode.',
-	'settings.appearance.preset.async': 'mAI Coder',
+	'settings.appearance.preset.mai': 'mAI Coder',
 	'settings.appearance.preset.cursor': 'Cursor',
 	'settings.appearance.preset.graphite': 'Graphite',
 	'settings.appearance.preset.forest': 'Forest',
@@ -1350,7 +1350,7 @@ export const messagesEn: Record<string, string> = {
 	'settings.general.identityPreset': 'Identity preset',
 	'settings.general.identityPresetHint':
 		'The preset controls how User-Agent, request headers, Anthropic metadata, and the system prompt prefix are generated together.',
-	'settings.general.identityPreset.async': 'mAI Coder default',
+	'settings.general.identityPreset.mai': 'mAI Coder default',
 	'settings.general.identityPreset.claudeCode': 'Claude Code',
 	'settings.general.identityPreset.codex': 'Codex CLI',
 	'settings.general.identityPreset.antigravity': 'Antigravity',
@@ -1924,7 +1924,7 @@ export const messagesEn: Record<string, string> = {
 	'thought.totalBlock': '\n\nTotal generation time ~{{sec}}s.',
 
 	'agentSettings.leadCursor':
-		'Rules, skills, and subagents for the agent. Filter by scope above. Workspace folders for `.cursor`, `.claude`, and `.async` are merged automatically.',
+		'Rules, skills, and subagents for the agent. Filter by scope above. Workspace folders for `.cursor`, `.claude`, and `.mai` are merged automatically.',
 	'agentBehavior.lead': 'Control execution permissions and safety prompts.',
 	'agentBehavior.executionTitle': 'Execution policy',
 	'agentBehavior.libraryTitle': 'Agent library',
@@ -1948,7 +1948,7 @@ export const messagesEn: Record<string, string> = {
 	'agentBehavior.avoidPromptsDesc': 'When prompts are unavailable, treat “ask” as deny.',
 	'agentBehavior.memoryExtractionTitle': 'Session memory extraction',
 	'agentBehavior.memoryExtractionDesc':
-		'Throttles background extraction into `.async/memory`. Turn off to stop queueing extractions.',
+		'Throttles background extraction into `.mai/memory`. Turn off to stop queueing extractions.',
 	'agentBehavior.memoryExtractionEnabled': 'Enable automatic memory extraction',
 	'agentBehavior.memFirst': 'Min messages before first extraction',
 	'agentBehavior.memBetween': 'Min new messages between runs',
@@ -1986,7 +1986,7 @@ export const messagesEn: Record<string, string> = {
 	'skillCreator.scopeAllProjects': 'All projects (user-level)',
 	'skillCreator.scopeAllHint': 'Global skills in mAI Coder settings, available in every workspace.',
 	'skillCreator.scopeThisProject': 'This project',
-	'skillCreator.scopeProjectHint': 'Workspace only, e.g. `.async/skills/<slug>/SKILL.md`.',
+	'skillCreator.scopeProjectHint': 'Workspace only, e.g. `.mai/skills/<slug>/SKILL.md`.',
 	'skillCreator.scopeProjectNeedWs': 'Open a workspace folder first',
 	'skillCreator.bubbleHeadAll': '[Create Skill · All projects]',
 	'skillCreator.bubbleHeadProject': '[Create Skill · This project]',
@@ -1997,11 +1997,11 @@ export const messagesEn: Record<string, string> = {
 	'skillInvoke.menuAria': 'Callable skills',
 	'skillInvoke.noMatch': 'No matching skills',
 	'slashCmd.createSkillDesc':
-		'Create a Skill: scope picker, then Agent mode—prefer writing `.async/skills/.../SKILL.md` with tools.',
+		'Create a Skill: scope picker, then Agent mode—prefer writing `.mai/skills/.../SKILL.md` with tools.',
 	'slashCmd.createRuleDesc':
-		'Create a Rule: after scope pick, switches to Agent so the assistant writes `.async/rules/*.mdc` (not chat-only paste).',
+		'Create a Rule: after scope pick, switches to Agent so the assistant writes `.mai/rules/*.mdc` (not chat-only paste).',
 	'slashCmd.createSubagentDesc':
-		'Create a Subagent: pick scope, then Agent mode—prefer updating `.async/agent.json` (etc.) with tools, with optional persistent memory.',
+		'Create a Subagent: pick scope, then Agent mode—prefer updating `.mai/agent.json` (etc.) with tools, with optional persistent memory.',
 	'slashCmd.helpTitle': 'Slash commands',
 	'slashCmd.helpEmpty': 'No commands',
 	'slashCmd.helpBuiltin': 'Built-in',
@@ -2011,7 +2011,7 @@ export const messagesEn: Record<string, string> = {
 	'ruleWizard.aria': 'Create rule wizard',
 	'ruleWizard.title': 'Rule scope',
 	'ruleWizard.desc':
-		'Choose how the rule is injected; sending switches to Agent so the assistant can create/update `.mdc` files under `.async/rules/` when a workspace is open.',
+		'Choose how the rule is injected; sending switches to Agent so the assistant can create/update `.mdc` files under `.mai/rules/` when a workspace is open.',
 	'ruleWizard.always': 'Always attach',
 	'ruleWizard.alwaysHint': 'Injected on every turn',
 	'ruleWizard.glob': 'Path glob',
@@ -2300,7 +2300,7 @@ export const messagesEn: Record<string, string> = {
 	'settings.usage.nextPage': 'Next',
 	'settings.usage.tablePagerAria': 'Token usage table pages',
 	'settings.indexing.lead':
-		'Inspect the project memory layer and manage the files mAI Coder uses to store durable project knowledge under `.async/memory/`.',
+		'Inspect the project memory layer and manage the files mAI Coder uses to store durable project knowledge under `.mai/memory/`.',
 	'settings.indexing.noWorkspace': 'No workspace open — no stats.',
 	'settings.indexing.statsLoading': 'Loading…',
 	'settings.indexing.statsUnavailable': 'Could not load stats.',
@@ -2310,7 +2310,7 @@ export const messagesEn: Record<string, string> = {
 		'mAI Coder now uses a file-based memory for durable project knowledge. `MEMORY.md` is the index, and individual topic files hold the actual notes.',
 	'settings.indexing.memoryLayoutTitle': 'Storage layout',
 	'settings.indexing.memoryLayoutDesc':
-		'Project memory lives under `.async/memory/`. Keep `MEMORY.md` short and link out to topic files instead of dumping everything into one file.',
+		'Project memory lives under `.mai/memory/`. Keep `MEMORY.md` short and link out to topic files instead of dumping everything into one file.',
 	'settings.indexing.memoryAgentTitle': 'How it is used',
 	'settings.indexing.memoryAgentDesc':
 		'Agent and subagents can recall relevant memory entries during a turn, and background extraction updates memory files after assistant replies.',

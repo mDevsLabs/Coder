@@ -15,7 +15,7 @@ import { broadcastPluginsChanged, senderWorkspaceRoot } from '../agentRuntime.js
 
 /**
  * `plugins:*` IPC：插件市场 + 已装插件管理。
- * 任何会变更已安装插件状态的调用都会广播 `async-shell:pluginsChanged`，
+ * 任何会变更已安装插件状态的调用都会广播 `mai-coder:pluginsChanged`，
  * 行为与原 register.ts 完全一致。
  */
 export function registerPluginsHandlers(): void {

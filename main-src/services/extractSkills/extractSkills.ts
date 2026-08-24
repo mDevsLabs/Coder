@@ -29,11 +29,11 @@ import {
 import type { RuntimeMemoryModel } from '../../memdir/findRelevantMemories.js';
 import { resolveProviderIdentityWithOverride } from '../../../src/providerIdentitySettings.js';
 function getSkillDir(workspaceRoot: string): string {
-	return path.join(workspaceRoot, '.async', 'skills');
+	return path.join(workspaceRoot, '.mai', 'skills');
 }
 
 function getSkillFilePath(workspaceRoot: string, slug: string): string {
-	return path.join(workspaceRoot, '.async', 'skills', slug, 'SKILL.md');
+	return path.join(workspaceRoot, '.mai', 'skills', slug, 'SKILL.md');
 }
 
 /** 快速读取 SKILL.md frontmatter，检查是否 auto_created */

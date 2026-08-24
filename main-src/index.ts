@@ -71,7 +71,7 @@ app.on('web-contents-created', (_event, contents) => {
 		}
 		const host = contents.hostWebContents;
 		if (host && !host.isDestroyed()) {
-			host.send('async-shell:browserNewWindow', { url, disposition });
+			host.send('mai-coder:browserNewWindow', { url, disposition });
 		}
 		return { action: 'deny' };
 	});
@@ -127,7 +127,9 @@ app.whenReady().then(async () => {
 	}
 	// 仅在显式 debug 开关下安装 React DevTools，保持 dev / dev:debug 语义与现有脚本一致。
 	const installReactDevTools =
-		process.env.ASYNC_SHELL_DEVTOOLS === '1' || process.env.VOID_SHELL_DEVTOOLS === '1';
+		process.env.MAI_CODER_DEVTOOLS === '1' ||
+		process.env.ASYNC_SHELL_DEVTOOLS === '1' ||
+		process.env.VOID_SHELL_DEVTOOLS === '1';
 	if (installReactDevTools) {
 		const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
 

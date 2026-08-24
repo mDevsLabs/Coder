@@ -3,7 +3,7 @@
  * 聊天记录里的 tool 标记不会随撤销磁盘而消失，故需单独记住用户已处理，避免重启后又弹出。
  */
 
-const STORAGE_KEY_PREFIX = 'async:agent-file-changes:v1:';
+const STORAGE_KEY_PREFIX = 'mai-coder:agent-file-changes:v1:';
 
 export type PersistedAgentFileChanges = {
 	v: 1;

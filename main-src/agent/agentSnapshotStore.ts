@@ -53,7 +53,7 @@ export function initAgentSnapshotStore(
 	userDataDir: string,
 	outMap: Map<string, Map<string, string | null>>
 ): void {
-	snapshotsDir = path.join(userDataDir, 'async', 'agent-snapshots');
+	snapshotsDir = path.join(userDataDir, 'mai', 'agent-snapshots');
 	try {
 		fs.mkdirSync(snapshotsDir, { recursive: true });
 	} catch (err) {

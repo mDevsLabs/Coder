@@ -2,7 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
 function getSkillFilePath(workspaceRoot: string, slug: string): string {
-	return path.join(workspaceRoot, '.async', 'skills', slug, 'SKILL.md');
+	return path.join(workspaceRoot, '.mai', 'skills', slug, 'SKILL.md');
 }
 
 /**

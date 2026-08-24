@@ -9,7 +9,7 @@ import { clampEditorTerminalHeight } from './useEditorTabs';
 export type RailWidths = { left: number; right: number };
 
 export type UseResizeRailsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	sidebarLayoutStorageKey: string;
 	railWidths: RailWidths;
 	setRailWidths: Dispatch<SetStateAction<RailWidths>>;

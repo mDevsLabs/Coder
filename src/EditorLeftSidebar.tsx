@@ -25,7 +25,7 @@ import type { SettingsNavId } from './SettingsPage';
 import { EditorGitScmPathList } from './GitScmVirtualLists';
 import { WorkspaceExplorer, type WorkspaceExplorerActions } from './WorkspaceExplorer';
 
-type Shell = NonNullable<Window['asyncShell']>;
+type Shell = NonNullable<Window['maiShell']>;
 type SearchResult = { rel: string; fileName: string; dir: string };
 
 /** 资源管理器 Git 刷新：仅订阅 Git Actions（稳定引用），fullStatus 大对象更新时不重渲。 */

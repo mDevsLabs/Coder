@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import { getCachedAsyncDataDir } from '../dataDir.js';
+import { getCachedMaiDataDir } from '../dataDir.js';
 import { resolveUserPluginsRoot, type ShellSettings } from '../settingsStore.js';
 import { getBuiltinTypescriptScopedServers } from './bundledTypescriptLsp.js';
 import type { ScopedLspServerConfig } from './pluginLspTypes.js';
@@ -20,15 +20,15 @@ export async function getAllLspServers(opts: GetAllLspServersOptions): Promise<R
 
 	Object.assign(merged, getBuiltinTypescriptScopedServers(opts.appPath));
 
-	const asyncDataPlugins = resolveUserPluginsRoot(opts.settings) || path.join(getCachedAsyncDataDir(), 'plugins');
-	for (const dir of await discoverPluginSubdirs(asyncDataPlugins)) {
+	const maiDataPlugins = resolveUserPluginsRoot(opts.settings) || path.join(getCachedMaiDataDir(), 'plugins');
+	for (const dir of await discoverPluginSubdirs(maiDataPlugins)) {
 		Object.assign(merged, await loadScopedServersForPluginDir(dir));
 	}
 
 	Object.assign(merged, scopedServersFromSettingsLsp(opts.settings.lsp?.servers));
 
 	const ws = path.resolve(opts.workspaceRoot);
-	const wsPlugins = path.join(ws, '.async', 'plugins');
+	const wsPlugins = path.join(ws, '.mai', 'plugins');
 	for (const dir of await discoverPluginSubdirs(wsPlugins)) {
 		Object.assign(merged, await loadScopedServersForPluginDir(dir));
 	}

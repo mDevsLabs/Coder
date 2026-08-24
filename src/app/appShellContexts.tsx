@@ -18,7 +18,7 @@ type SettingsHook = ReturnType<typeof useSettings>;
 
 /** Chrome 核心：shell / i18n — 绝大多数叶组件只订阅这三个字段 */
 export type AppShellChromeCoreValue = {
-	shell: Window['asyncShell'];
+	shell: Window['maiShell'];
 	t: TFunction;
 	setLocale: (locale: AppLocale) => void;
 	locale: AppLocale;

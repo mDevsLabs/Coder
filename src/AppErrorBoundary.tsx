@@ -22,7 +22,7 @@ function getAsyncShell(): AsyncShellLike | null {
 
 /**
  * 渲染进程根错误兜底：避免初始化时单点异常把整个窗口顶成黑屏。
- * 命中时显示故障页：重载、备份并重置当前工作区 .async/ 目录。
+ * 命中时显示故障页：重载、备份并重置当前工作区 .mai/ 目录。
  */
 export class AppErrorBoundary extends Component<Props, State> {
 	state: State = { error: null, componentStack: null, resetState: 'idle', resetMessage: null };
@@ -56,7 +56,7 @@ export class AppErrorBoundary extends Component<Props, State> {
 					resetState: 'done',
 					resetMessage: result.backupPath
 						? `Backed up to ${result.backupPath}. Reload to continue.`
-						: 'No .async folder was found. Reload to continue.',
+						: 'No .mai folder was found. Reload to continue.',
 				});
 			} else {
 				this.setState({ resetState: 'failed', resetMessage: result.error });
@@ -78,7 +78,7 @@ export class AppErrorBoundary extends Component<Props, State> {
 					<h1 className="ref-app-error-boundary-title">Async ran into a problem</h1>
 					<p className="ref-app-error-boundary-msg">
 						The window failed to initialize. This is often caused by a corrupted file under your workspace's
-						<code>.async/</code> folder (for example <code>.async/agent.json</code>). Try reloading first; if it still
+						<code>.mai/</code> folder (for example <code>.mai/agent.json</code>). Try reloading first; if it still
 						crashes, back up and reset that folder — your global settings are not affected.
 					</p>
 					<div className="ref-app-error-boundary-actions">
@@ -91,7 +91,7 @@ export class AppErrorBoundary extends Component<Props, State> {
 							onClick={() => void this.handleResetAsync()}
 							disabled={resetting || resetState === 'done'}
 						>
-							{resetting ? 'Resetting…' : 'Back up & reset .async/'}
+							{resetting ? 'Resetting…' : 'Back up & reset .mai/'}
 						</button>
 					</div>
 					{resetMessage ? (

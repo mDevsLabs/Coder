@@ -71,7 +71,7 @@
 
 工作区级 Agent 规则、skills、subagents 在：
 
-- `<workspace>/.async/agent.json`
+- `<workspace>/.mai/agent.json`
 - 对应实现：`workspaceAgentStore.ts`
 
 ## 调试建议

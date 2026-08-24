@@ -3,12 +3,12 @@ import { planExecutedKey } from './planExecutedKey';
 
 describe('planExecutedKey', () => {
 	it('prefers relative path', () => {
-		expect(planExecutedKey('/proj', '.async/plans/a.plan.md', null)).toBe('.async/plans/a.plan.md');
+		expect(planExecutedKey('/proj', '.mai/plans/a.plan.md', null)).toBe('.mai/plans/a.plan.md');
 	});
 
 	it('strips workspace root from absolute path', () => {
-		expect(planExecutedKey('D:/proj', null, 'D:/proj/.async/plans/x.plan.md')).toBe(
-			'.async/plans/x.plan.md'
+		expect(planExecutedKey('D:/proj', null, 'D:/proj/.mai/plans/x.plan.md')).toBe(
+			'.mai/plans/x.plan.md'
 		);
 	});
 });

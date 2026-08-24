@@ -42,7 +42,7 @@ type SettingsGetPayload = LoadedSettingsSnapshot & {
 };
 
 export type DesktopShellInitContext = {
-	shell: NonNullable<Window['asyncShell']>;
+	shell: NonNullable<Window['maiShell']>;
 	t: TFunction;
 	layoutPinnedBySurface: boolean;
 	shellLayoutStorageKey: string;
@@ -97,7 +97,7 @@ export async function runDesktopShellInit(ctx: DesktopShellInitContext): Promise
 		(window.location.search.includes('blank=1') || window.location.hash.includes('blank'));
 
 	const [p, w, paths, st] = await Promise.all([
-		shell.invoke('async-shell:ping') as Promise<{ ok: boolean; message: string }>,
+		shell.invoke('mai-coder:ping') as Promise<{ ok: boolean; message: string }>,
 		isBlankWindow
 			? Promise.resolve({ root: null } as { root: string | null })
 			: (shell.invoke('workspace:get') as Promise<{ root: string | null }>),

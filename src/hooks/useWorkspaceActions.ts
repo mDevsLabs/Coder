@@ -17,7 +17,7 @@ function workspacePathDisplayName(full: string): string {
 }
 
 export type UseWorkspaceActionsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	t: TFunction;
 	flashComposerAttachErr: (msg: string) => void;
 	showTransientToast: (ok: boolean, text: string) => void;
@@ -262,7 +262,7 @@ export function useWorkspaceActions(p: UseWorkspaceActionsParams) {
 		updateMenuPosition();
 		window.addEventListener('resize', scheduleUpdate);
 		document.addEventListener('scroll', scheduleUpdate, true);
-		const unsubLayout = window.asyncShell?.subscribeLayout?.(scheduleUpdate);
+		const unsubLayout = window.maiShell?.subscribeLayout?.(scheduleUpdate);
 		return () => {
 			window.removeEventListener('resize', scheduleUpdate);
 			document.removeEventListener('scroll', scheduleUpdate, true);

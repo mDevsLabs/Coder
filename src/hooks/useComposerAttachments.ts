@@ -11,7 +11,7 @@ import type { McpServerConfig, McpServerStatus } from '../mcpTypes';
 const LEADING_SKILL_INVOKE_RE = /^\s*\.\/[\w.-]+(?:\s+|$)/;
 
 export type UseComposerAttachmentsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	workspace: string | null;
 	t: TFunction;
 	flashComposerAttachErr: (msg: string) => void;

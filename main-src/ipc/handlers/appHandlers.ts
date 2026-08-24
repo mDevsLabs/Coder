@@ -28,10 +28,12 @@ function applyUnreadBadgeToWindow(win: BrowserWindow, count: number): void {
 }
 
 /**
- * `app:*`、`async-shell:ping` IPC：版本/路径/未读 badge、窗口生命周期、surface 切换。
+ * `app:*`、`mai-coder:ping` IPC：版本/路径/未读 badge、窗口生命周期、surface 切换。
  * 行为与原 register.ts 一致。
  */
 export function registerAppHandlers(): void {
+	ipcMain.handle('mai-coder:ping', () => ({ ok: true, message: 'pong' }));
+	// compat ancien préfixe
 	ipcMain.handle('async-shell:ping', () => ({ ok: true, message: 'pong' }));
 
 	ipcMain.handle('app:getPaths', () => ({

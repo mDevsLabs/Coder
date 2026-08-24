@@ -874,8 +874,8 @@ describe('runTeamSession clarification gates', () => {
 			});
 
 		const leakedSystemAppend = [
-			'#### 从项目导入的规则（.async/rules、.cursor/rules、CLAUDE.md、.claude/rules）',
-			'.async/rules/chinese-response.mdc',
+			'#### 从项目导入的规则（.mai/rules、.cursor/rules、CLAUDE.md、.claude/rules）',
+			'.mai/rules/chinese-response.mdc',
 			'Rule: 自动语言：默认使用英文回应',
 		].join('\n');
 
@@ -896,7 +896,7 @@ describe('runTeamSession clarification gates', () => {
 		expect(doneCalls[0]?.text).not.toContain('已经确认：泄漏内容来自系统提示拼接，而不是模型主动复读。');
 		expect(doneCalls[0]?.text).not.toContain('从项目导入的规则');
 		expect(doneCalls[0]?.text).not.toContain('自动语言：默认使用英文回应');
-		expect(doneCalls[0]?.text).not.toContain('.async/rules/chinese-response.mdc');
+		expect(doneCalls[0]?.text).not.toContain('.mai/rules/chinese-response.mdc');
 		expect((doneCalls[0]?.snapshot as { tasks?: Array<{ result?: string }> } | undefined)?.tasks?.[0]?.result).toBe(
 			'已经确认：泄漏内容来自系统提示拼接，而不是模型主动复读。'
 		);

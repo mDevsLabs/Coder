@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from './i18n';
 
-type AsyncShell = NonNullable<Window['asyncShell']>;
+type AsyncShell = NonNullable<Window['maiShell']>;
 
 type Row =
 	| { kind: 'recent'; path: string }

@@ -26,7 +26,7 @@ type OnSendOptions = {
 };
 
 export type UsePlanWizardActionsParams = {
-	shell: NonNullable<Window['asyncShell']> | undefined;
+	shell: NonNullable<Window['maiShell']> | undefined;
 	t: TFunction;
 	workspace: string | null;
 	currentIdRef: MutableRefObject<string | null>;

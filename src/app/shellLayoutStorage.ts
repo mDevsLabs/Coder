@@ -2,8 +2,10 @@
 
 export type ShellLayoutMode = 'agent' | 'editor';
 
-export const DEFAULT_SIDEBAR_LAYOUT_KEY = 'async:sidebar-widths-v1';
-export const DEFAULT_SHELL_LAYOUT_MODE_KEY = 'async:shell-layout-mode-v1';
+export const DEFAULT_SIDEBAR_LAYOUT_KEY = 'mai-coder:sidebar-widths-v1';
+export const DEFAULT_SHELL_LAYOUT_MODE_KEY = 'mai-coder:shell-layout-mode-v1';
+export const LEGACY_SIDEBAR_LAYOUT_KEY = 'async:sidebar-widths-v1';
+export const LEGACY_SHELL_LAYOUT_MODE_KEY = 'async:shell-layout-mode-v1';
 
 export const RESIZE_HANDLE_PX = 5;
 export const AGENT_RESIZE_HANDLE_PX = 1;
@@ -37,7 +39,7 @@ export function defaultQuarterRailWidths(): { left: number; right: number } {
 }
 
 export function syncDesktopSidebarLayout(
-	shell: NonNullable<Window['asyncShell']> | undefined,
+	shell: NonNullable<Window['maiShell']> | undefined,
 	c: { left: number; right: number }
 ): void {
 	if (!shell) {
@@ -48,10 +50,27 @@ export function syncDesktopSidebarLayout(
 	});
 }
 
+function getItemWithLegacy(key: string): string | null {
+	try {
+		if (typeof window === 'undefined') return null;
+		const v = localStorage.getItem(key);
+		if (v !== null) return v;
+		// fallback legacy async:
+		if (key === DEFAULT_SIDEBAR_LAYOUT_KEY) return localStorage.getItem(LEGACY_SIDEBAR_LAYOUT_KEY);
+		if (key === DEFAULT_SHELL_LAYOUT_MODE_KEY) return localStorage.getItem(LEGACY_SHELL_LAYOUT_MODE_KEY);
+		// générique: remplacer mai-coder: par async:
+		if (key.startsWith('mai-coder:')) {
+			const legacy = key.replace('mai-coder:', 'async:');
+			return localStorage.getItem(legacy);
+		}
+	} catch {}
+	return null;
+}
+
 export function readStoredShellLayoutModeFromKey(storageKey: string): ShellLayoutMode {
 	try {
 		if (typeof window !== 'undefined') {
-			const v = localStorage.getItem(storageKey);
+			const v = getItemWithLegacy(storageKey);
 			if (v === 'agent' || v === 'editor') {
 				return v;
 			}
@@ -71,7 +90,7 @@ export function writeStoredShellLayoutMode(m: ShellLayoutMode, storageKey: strin
 }
 
 export function syncDesktopShellLayoutMode(
-	shell: NonNullable<Window['asyncShell']> | undefined,
+	shell: NonNullable<Window['maiShell']> | undefined,
 	m: ShellLayoutMode
 ): void {
 	if (!shell) {
@@ -83,7 +102,7 @@ export function syncDesktopShellLayoutMode(
 export function readSidebarLayout(storageKey: string = DEFAULT_SIDEBAR_LAYOUT_KEY): { left: number; right: number } {
 	try {
 		if (typeof window !== 'undefined') {
-			const raw = localStorage.getItem(storageKey);
+			const raw = getItemWithLegacy(storageKey);
 			if (raw) {
 				const j = JSON.parse(raw) as { left?: unknown; right?: unknown };
 				if (
@@ -92,6 +111,8 @@ export function readSidebarLayout(storageKey: string = DEFAULT_SIDEBAR_LAYOUT_KE
 					Number.isFinite(j.left) &&
 					Number.isFinite(j.right)
 				) {
+					// migrer silencieusement vers nouvelle clé
+					try { if (!localStorage.getItem(storageKey)) localStorage.setItem(storageKey, raw); } catch {}
 					return { left: j.left, right: j.right };
 				}
 			}

@@ -470,7 +470,7 @@ function ProfilesSettingsStage({
 			: false;
 
 	const loadPasswordState = useCallback(async (profileId: string) => {
-		const shell = window.asyncShell;
+		const shell = window.maiShell;
 		if (!shell || !profileId) {
 			setEditorHasSavedPassword(false);
 			return;
@@ -503,7 +503,7 @@ function ProfilesSettingsStage({
 		if (!passwordModal.open || !editorDraft?.id) {
 			return;
 		}
-		const shell = window.asyncShell;
+		const shell = window.maiShell;
 		if (!shell) {
 			closeProfilePasswordModal();
 			return;
@@ -554,7 +554,7 @@ function ProfilesSettingsStage({
 			editorDraft &&
 			!settings.profiles.some((profile) => profile.id === editorDraft.id)
 		) {
-			void window.asyncShell?.invoke('term:profilePasswordClear', editorDraft.id);
+			void window.maiShell?.invoke('term:profilePasswordClear', editorDraft.id);
 		}
 		setEditorDraft(null);
 		setDefaultsKind(null);
@@ -747,7 +747,7 @@ function ProfilesSettingsStage({
 			multi?: boolean;
 			filters?: Array<{ name: string; extensions: string[] }>;
 		}): Promise<string[]> => {
-			const shell = window.asyncShell;
+			const shell = window.maiShell;
 			if (!shell) {
 				return [];
 			}
@@ -874,7 +874,7 @@ function ProfilesSettingsStage({
 			profiles: remaining,
 			defaultProfileId: nextDefaultProfileId,
 		});
-		void window.asyncShell?.invoke('term:profilePasswordClear', editorDraft.id);
+		void window.maiShell?.invoke('term:profilePasswordClear', editorDraft.id);
 		onSelectProfile(remaining[0].id);
 		setEditorDraft(null);
 		setDefaultsKind(null);
@@ -1196,7 +1196,7 @@ function ProfilesSettingsStage({
 																							profiles: remaining,
 																							defaultProfileId: nextDefaultProfileId,
 																						});
-																						void window.asyncShell?.invoke('term:profilePasswordClear', profile.id);
+																						void window.maiShell?.invoke('term:profilePasswordClear', profile.id);
 																						if (isActive) {
 																							setEditorDraft(null);
 																							onSelectProfile(remaining[0]?.id ?? DEFAULT_PROFILE_ID);

@@ -237,7 +237,7 @@ Async/
 
 - `async/threads.json`：线程和聊天消息。
 - `async/settings.json`：模型配置、密钥、布局、Agent 选项，以及机器人集成配置。
-- `.async/plans/`：Plan 模式生成的 Markdown 计划文件。
+- `.mai/plans/`：Plan 模式生成的 Markdown 计划文件。
 
 渲染进程可能会用 `localStorage` 存一些轻量 UI 状态，但对话的权威数据源还是 `threads.json`。
 

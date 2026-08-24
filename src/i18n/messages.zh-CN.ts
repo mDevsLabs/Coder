@@ -1207,7 +1207,7 @@ export const messagesZhCN: Record<string, string> = {
 	'settings.appearance.themeEditorDesc': '先选择一套同时适配浅色/深色的主题预设，再按需微调当前模式下的配色。',
 	'settings.appearance.themePreset': '主题预设',
 	'settings.appearance.themePresetDesc': '每套预设都包含成对的浅色/深色配色，切换外观模式时会自动匹配。',
-	'settings.appearance.preset.async': 'mAI Coder',
+	'settings.appearance.preset.mai': 'mAI Coder',
 	'settings.appearance.preset.cursor': 'Cursor',
 	'settings.appearance.preset.graphite': '石墨',
 	'settings.appearance.preset.forest': '森林',
@@ -1324,7 +1324,7 @@ export const messagesZhCN: Record<string, string> = {
 		'为请求选择一套身份信号预设。你可以直接使用 mAI Coder 默认方案，也可以切换到 Claude Code 源码同款方案；只有在选择“自定义”时才需要手动填写具体值。',
 	'settings.general.identityPreset': '标识预设',
 	'settings.general.identityPresetHint': '预设会同时决定 User-Agent、请求头、Anthropic metadata 与系统提示前缀的生成方式。',
-	'settings.general.identityPreset.async': 'mAI Coder 默认',
+	'settings.general.identityPreset.mai': 'mAI Coder 默认',
 	'settings.general.identityPreset.claudeCode': 'Claude Code',
 	'settings.general.identityPreset.codex': 'Codex CLI',
 	'settings.general.identityPreset.antigravity': 'Antigravity',
@@ -1898,7 +1898,7 @@ export const messagesZhCN: Record<string, string> = {
 
 	// agent settings (Rules / Skills panel)
 	'agentSettings.leadCursor':
-		'用于智能体的规则、技能与子代理。可用上方按存储范围筛选。工作区中的 `.cursor`、`.claude` 与 `.async` 目录会自动合并读取。',
+		'用于智能体的规则、技能与子代理。可用上方按存储范围筛选。工作区中的 `.cursor`、`.claude` 与 `.mai` 目录会自动合并读取。',
 	'agentBehavior.lead': '控制执行权限与安全确认。',
 	'agentBehavior.executionTitle': '执行策略',
 	'agentBehavior.libraryTitle': '智能体库',
@@ -1922,7 +1922,7 @@ export const messagesZhCN: Record<string, string> = {
 	'agentBehavior.avoidPromptsDesc': '后台无法弹窗时，把“询问”视为拒绝。',
 	'agentBehavior.memoryExtractionTitle': '会话记忆抽取',
 	'agentBehavior.memoryExtractionDesc':
-		'控制向 `.async/memory` 写入前的后台抽取频率。关闭后不再排队抽取。',
+		'控制向 `.mai/memory` 写入前的后台抽取频率。关闭后不再排队抽取。',
 	'agentBehavior.memoryExtractionEnabled': '启用自动记忆抽取',
 	'agentBehavior.memFirst': '首次抽取最少消息条数',
 	'agentBehavior.memBetween': '两次抽取间新增消息条数',
@@ -1960,7 +1960,7 @@ export const messagesZhCN: Record<string, string> = {
 	'skillCreator.scopeAllProjects': '所有项目（用户级）',
 	'skillCreator.scopeAllHint': '写入全局 Skills，各仓库可用（mAI Coder 设置中的用户 Skills）。',
 	'skillCreator.scopeThisProject': '当前项目',
-	'skillCreator.scopeProjectHint': '仅本工作区：`.async/skills/<slug>/SKILL.md` 等。',
+	'skillCreator.scopeProjectHint': '仅本工作区：`.mai/skills/<slug>/SKILL.md` 等。',
 	'skillCreator.scopeProjectNeedWs': '请先打开工作区文件夹',
 	'skillCreator.bubbleHeadAll': '[创建 Skill · 所有项目]',
 	'skillCreator.bubbleHeadProject': '[创建 Skill · 本项目]',
@@ -1970,10 +1970,10 @@ export const messagesZhCN: Record<string, string> = {
 	'slashCmd.noMatch': '无匹配命令',
 	'skillInvoke.menuAria': '可调用技能',
 	'skillInvoke.noMatch': '无匹配技能',
-	'slashCmd.createSkillDesc': '创建 Skill：选范围后走 Agent，尽量在工作区落盘 .async/skills/…/SKILL.md。',
+	'slashCmd.createSkillDesc': '创建 Skill：选范围后走 Agent，尽量在工作区落盘 .mai/skills/…/SKILL.md。',
 	'slashCmd.createRuleDesc':
-		'引导创建 Rule：选作用域后自动切到 Agent，并由助手用工具写入 `.async/rules/*.mdc`（非仅聊天内粘贴）。',
-	'slashCmd.createSubagentDesc': '创建 Subagent：选范围后走 Agent，尽量写入 .async/agent.json 等配置，并可附带持久记忆范围。',
+		'引导创建 Rule：选作用域后自动切到 Agent，并由助手用工具写入 `.mai/rules/*.mdc`（非仅聊天内粘贴）。',
+	'slashCmd.createSubagentDesc': '创建 Subagent：选范围后走 Agent，尽量写入 .mai/agent.json 等配置，并可附带持久记忆范围。',
 	'slashCmd.helpTitle': '可用斜杠命令',
 	'slashCmd.helpEmpty': '暂无命令',
 	'slashCmd.helpBuiltin': '内置',
@@ -1983,7 +1983,7 @@ export const messagesZhCN: Record<string, string> = {
 	'ruleWizard.aria': '创建 Rule 向导',
 	'ruleWizard.title': 'Rule 作用域',
 	'ruleWizard.desc':
-		'选择规则如何注入；发送后将切换到 Agent 模式，助手会尽量在 `.async/rules/` 下创建或更新 `.mdc` 规则文件。',
+		'选择规则如何注入；发送后将切换到 Agent 模式，助手会尽量在 `.mai/rules/` 下创建或更新 `.mdc` 规则文件。',
 	'ruleWizard.always': '始终附加',
 	'ruleWizard.alwaysHint': '每轮对话都注入该规则',
 	'ruleWizard.glob': '路径 Glob',
@@ -2269,7 +2269,7 @@ export const messagesZhCN: Record<string, string> = {
 	'settings.usage.nextPage': '下一页',
 	'settings.usage.tablePagerAria': 'Token 用量明细分页',
 	'settings.indexing.lead':
-		'查看项目记忆层，并管理 mAI Coder 用来沉淀长期项目知识的 `.async/memory/` 文件。',
+		'查看项目记忆层，并管理 mAI Coder 用来沉淀长期项目知识的 `.mai/memory/` 文件。',
 	'settings.indexing.noWorkspace': '未打开工作区，无统计数据。',
 	'settings.indexing.statsLoading': '正在读取…',
 	'settings.indexing.statsUnavailable': '无法获取统计。',
@@ -2279,7 +2279,7 @@ export const messagesZhCN: Record<string, string> = {
 		'mAI Coder 现在使用文件式记忆来保存长期项目知识。`MEMORY.md` 只作为索引，具体内容保存在各个主题文件中。',
 	'settings.indexing.memoryLayoutTitle': '存储结构',
 	'settings.indexing.memoryLayoutDesc':
-		'项目记忆位于 `.async/memory/`。应保持 `MEMORY.md` 简短，只放索引行，把实际内容拆分到主题文件里。',
+		'项目记忆位于 `.mai/memory/`。应保持 `MEMORY.md` 简短，只放索引行，把实际内容拆分到主题文件里。',
 	'settings.indexing.memoryAgentTitle': '使用方式',
 	'settings.indexing.memoryAgentDesc':
 		'主 Agent 和 Subagent 在对话中都可以召回相关记忆；助手回复完成后，后台提炼流程会继续更新这些记忆文件。',
