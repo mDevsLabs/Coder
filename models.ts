@@ -440,7 +440,7 @@ export function registerModelRoutes(app: Hono) {
           ON CONFLICT (user_id, week_start)
           DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
         `;
-      } catch (e) {}
+      } catch (_e) {}
 
       const openRouterRes = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -555,7 +555,7 @@ export function registerModelRoutes(app: Hono) {
           ON CONFLICT (user_id, week_start)
           DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
         `;
-      } catch (e) {}
+      } catch (_e) {}
 
       const openRouterRes = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -677,7 +677,7 @@ export function registerModelRoutes(app: Hono) {
           ON CONFLICT (user_id, week_start)
           DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
         `;
-      } catch (e) {}
+      } catch (_e) {}
 
       const openRouterPayload = {
         ...body,
