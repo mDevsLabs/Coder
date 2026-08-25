@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { minimatch } from 'minimatch';
 import type { AgentCustomization, AgentCommand, AgentSkill, AgentRule, AgentSubagent } from '../agentSettingsTypes.js';
+import type { AppLocale } from '../../src/i18n/types.js';
 import { buildAutoReplyLanguageRuleBlock } from '../../src/autoReplyLanguageRule.js';
 import { collectAtWorkspacePathsInText } from './workspaceContextExpand.js';
 
@@ -529,7 +530,7 @@ function buildEnabledAlwaysRuleBlocks(agent: AgentCustomization | undefined): st
 
 export function buildAgentGlobalRuleAppend(
 	agent: AgentCustomization | undefined,
-	uiLanguage: 'zh-CN' | 'en'
+	uiLanguage: AppLocale
 ): string {
 	const parts = buildEnabledAlwaysRuleBlocks(agent);
 	parts.push(buildAutoReplyLanguageRuleBlock(uiLanguage, uiLanguage));
@@ -539,7 +540,7 @@ export function buildAgentGlobalRuleAppend(
 export function buildThreadTitleRuleAppend(opts: {
 	agent: AgentCustomization | undefined;
 	workspaceRoot: string | null;
-	uiLanguage: 'zh-CN' | 'en';
+	uiLanguage: AppLocale;
 }): string {
 	const parts: string[] = [];
 	const importedRules = [
@@ -568,7 +569,7 @@ export function buildAgentSystemAppend(opts: {
 	skillSystemBlock: string;
 	slashCommandSystemBlock: string;
 	thirdPartyRules: string;
-	uiLanguage: 'zh-CN' | 'en';
+	uiLanguage: AppLocale;
 	/** 来自 `@rule:` 的 Manual 规则块（已含标题） */
 	manualRuleBlocks?: string[];
 }): string {
@@ -647,7 +648,7 @@ export function prepareUserTurnForChat(
 	agent: AgentCustomization | undefined,
 	workspaceRoot: string | null,
 	workspaceFiles: string[],
-	uiLanguage: 'zh-CN' | 'en'
+	uiLanguage: AppLocale
 ): PreparedUserTurn {
 	const { userText: afterCmd, slashSystemBlock, readableRoots: slashReadableRoots } = applySlashCommands(rawText, agent?.commands);
 	const { userText: afterManual, manualBlocks } = applyManualRuleInvocations(afterCmd, agent?.rules);

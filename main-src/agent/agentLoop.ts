@@ -1291,6 +1291,18 @@ async function runOpenAILoop(
 	}
 
 	console.log(`[AgentLoop] OpenAI loop ended — calling onDone`);
+	if (!accUsage || ((accUsage.inputTokens ?? 0) === 0 && (accUsage.outputTokens ?? 0) === 0)) {
+		let inputChars = systemContent.length;
+		for (const m of conversation) {
+			if (typeof m.content === 'string') inputChars += m.content.length;
+			else if (Array.isArray(m.content)) inputChars += JSON.stringify(m.content).length;
+		}
+		const serialized = structured.serialize();
+		accUsage = {
+			inputTokens: Math.max(1, Math.ceil(inputChars / 4)),
+			outputTokens: Math.max(1, Math.ceil(serialized.length / 4)),
+		};
+	}
 	handlers.onDone(structured.serialize(), accUsage);
 }
 
@@ -1975,5 +1987,17 @@ async function runAnthropicLoop(
 	}
 
 	console.log(`[AgentLoop/A] Anthropic loop ended — calling onDone`);
+	if (!accUsage || ((accUsage.inputTokens ?? 0) === 0 && (accUsage.outputTokens ?? 0) === 0)) {
+		let inputChars = systemPrompt.length;
+		for (const m of conversation) {
+			if (typeof m.content === 'string') inputChars += m.content.length;
+			else if (Array.isArray(m.content)) inputChars += JSON.stringify(m.content).length;
+		}
+		const serialized = structured.serialize();
+		accUsage = {
+			inputTokens: Math.max(1, Math.ceil(inputChars / 4)),
+			outputTokens: Math.max(1, Math.ceil(serialized.length / 4)),
+		};
+	}
 	handlers.onDone(structured.serialize(), accUsage);
 }

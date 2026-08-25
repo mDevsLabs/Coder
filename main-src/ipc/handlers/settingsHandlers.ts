@@ -453,7 +453,7 @@ export function registerSettingsHandlers(): void {
 		if (!integration || typeof integration !== 'object' || typeof integration.id !== 'string' || typeof integration.platform !== 'string') {
 			return { ok: false as const, message: 'Invalid bot integration payload.' };
 		}
-		const lang = getSettings().language === 'en' ? 'en' : 'zh-CN';
+		const lang = getSettings().language ?? 'fr';
 		return await testBotIntegrationConnection(integration, lang);
 	});
 

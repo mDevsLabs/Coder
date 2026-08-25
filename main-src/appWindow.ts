@@ -181,6 +181,11 @@ export function createAppWindow(opts?: {
 		},
 		show: false,
 	});
+	if (appIconPath && process.platform === 'win32') {
+		try {
+			win.setIcon(appIconPath);
+		} catch (_err) {}
+	}
 	applyThemeChromeToWindow(win, initialThemeChrome.scheme, initialThemeChrome.override);
 	installDevToolsShortcut(win);
 	let shown = false;

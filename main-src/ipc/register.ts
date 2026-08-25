@@ -1284,7 +1284,7 @@ export function registerIpc(): void {
 					mergeAgentWithProjectSlice(settings.agent, projectAgent),
 					root
 				);
-				const lang = settings.language === 'en' ? 'en' : 'zh-CN';
+				const lang = settings.language ?? 'fr';
 				const threadTitleRuleContext = buildThreadTitleRuleAppend({
 					agent: agentForTurn,
 					workspaceRoot: root,
@@ -1360,7 +1360,7 @@ export function registerIpc(): void {
 				finalSystemAppend = appendPlanExecuteToSystem(finalSystemAppend, payload.planExecute, root);
 				finalSystemAppend = appendRuleCreatorPathLock(
 					finalSystemAppend,
-					settings.language === 'en' ? 'en' : 'zh-CN',
+					lang,
 					Boolean(root)
 				);
 				const t = appendMessage(threadId, { role: 'user', content: visible });
@@ -1545,7 +1545,7 @@ export function registerIpc(): void {
 					mergeAgentWithProjectSlice(settings.agent, projectAgent),
 					root
 				);
-				const lang = settings.language === 'en' ? 'en' : 'zh-CN';
+				const lang = settings.language ?? 'fr';
 				const threadTitleRuleContext = buildThreadTitleRuleAppend({
 					agent: agentForTurn,
 					workspaceRoot: root,

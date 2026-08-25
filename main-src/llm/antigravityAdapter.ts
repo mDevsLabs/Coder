@@ -278,9 +278,21 @@ export async function streamAntigravityOAuth(
 				}
 			}
 		}
+		if (!usage || ((usage.inputTokens ?? 0) === 0 && (usage.outputTokens ?? 0) === 0)) {
+			usage = {
+				inputTokens: Math.max(1, Math.ceil(JSON.stringify(contents).length / 4)),
+				outputTokens: Math.max(1, Math.ceil(full.length / 4)),
+			};
+		}
 		handlers.onDone(full, usage);
 	} catch (error) {
 		if (options.signal.aborted || timeoutAc.signal.aborted) {
+			if (!usage || ((usage.inputTokens ?? 0) === 0 && (usage.outputTokens ?? 0) === 0)) {
+				usage = {
+					inputTokens: 1,
+					outputTokens: Math.max(1, Math.ceil(full.length / 4)),
+				};
+			}
 			handlers.onDone(full, usage);
 			return;
 		}

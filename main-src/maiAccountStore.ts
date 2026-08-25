@@ -256,14 +256,25 @@ export async function maiLogUsage(jwtToken: string, tokensUsed: number): Promise
 			body: JSON.stringify({ tokensUsed }),
 		});
 		const json = await res.json().catch(() => ({}));
-		if (res.ok && json.success) {
+		if (res.ok && (json.success || json.ok !== false)) {
+			const rawWeekly =
+				json.weeklyUsed ?? json.weekly_used ?? json.tokensUsed ?? json.tokens_used ?? json.used;
+			const parsedWeekly = typeof rawWeekly === 'number' ? rawWeekly : Number(rawWeekly);
+			const weeklyUsed = Number.isFinite(parsedWeekly) && parsedWeekly >= 0 ? parsedWeekly : undefined;
+
+			const rawLimit =
+				json.limit ?? json.maxTokens ?? json.max_tokens ?? json.tokenLimit ?? json.token_limit;
+			const parsedLimit = typeof rawLimit === 'number' ? rawLimit : Number(rawLimit);
+			const limit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : undefined;
+
 			// Mettre à jour l'état local dans settingsStore
 			const current = getSettings().maiAccount;
-			if (current?.usage) {
+			if (current) {
+				const prevUsage = current.usage || { tokensUsed: 0, limit: 5_000_000 };
 				const nextUsage: MaiAccountUsage = {
-					...current.usage,
-					tokensUsed: typeof json.weeklyUsed === 'number' ? json.weeklyUsed : (current.usage.tokensUsed + tokensUsed),
-					limit: typeof json.limit === 'number' ? json.limit : current.usage.limit,
+					...prevUsage,
+					tokensUsed: weeklyUsed !== undefined ? weeklyUsed : (prevUsage.tokensUsed + tokensUsed),
+					limit: limit !== undefined ? limit : prevUsage.limit,
 				};
 				const nextAccount: MaiAccountState = {
 					...current,
@@ -272,13 +283,25 @@ export async function maiLogUsage(jwtToken: string, tokensUsed: number): Promise
 				};
 				patchSettings({ maiAccount: nextAccount });
 				broadcastMaiAccountUpdate(nextAccount);
-				updateMaiAccountUsage(nextUsage);
 			}
-			return { ok: true, weeklyUsed: json.weeklyUsed, limit: json.limit };
+			return { ok: true, weeklyUsed, limit };
 		}
 		return { ok: false };
 	} catch {
 		return { ok: false };
+	}
+}
+
+export async function recordMaiTokenUsage(tokensUsed: number): Promise<void> {
+	if (tokensUsed <= 0) return;
+	try {
+		const s = getSettings();
+		const jwt = s.maiAccount?.jwtToken?.trim() || s.maiAccount?.apiKey?.trim();
+		if (jwt) {
+			await maiLogUsage(jwt, tokensUsed);
+		}
+	} catch (err) {
+		console.warn('[maiAccount] recordMaiTokenUsage failed:', err);
 	}
 }
 
@@ -302,9 +325,13 @@ export function updateMaiAccountUsage(usage: MaiAccountUsage): void {
  * Synchronise entièrement le compte mAI à partir du token JWT
  */
 export async function syncMaiAccountWithToken(jwtToken: string): Promise<MaiAccountState> {
-	const usageRes = await maiFetchUsage(jwtToken);
+	const [usageRes, userApiKey] = await Promise.all([
+		maiFetchUsage(jwtToken),
+		maiFetchApiKey(jwtToken),
+	]);
 
-	const effectiveApiKey = jwtToken.trim();
+	const chosenApiKey = userApiKey ? userApiKey.trim() : undefined;
+	const effectiveApiKey = (chosenApiKey || jwtToken).trim();
 	const userProfile: MaiAccountProfile | undefined = usageRes.ok
 		? {
 				id: usageRes.email || 'mai-user',
@@ -329,11 +356,12 @@ export async function syncMaiAccountWithToken(jwtToken: string): Promise<MaiAcco
 		jwtToken,
 		user: userProfile,
 		apiKey: effectiveApiKey,
+		chosenApiKey,
 		usage,
 		lastSyncedAt: Date.now(),
 	};
 
-	// Mettre à jour le provider mAI dans settings.models.providers avec le token JWT
+	// Mettre à jour le provider mAI dans settings.models.providers avec la clé effective (clé API mprojects_api_keys ou token JWT)
 	const curSettings = getSettings();
 	const curProviders = curSettings.models?.providers ?? [];
 	const hasMai = curProviders.some((p) => p.id === 'mai');

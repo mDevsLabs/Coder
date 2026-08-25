@@ -19,6 +19,7 @@ import { modeExpandsWorkspaceFileContext } from '../llm/workspaceContextExpand.j
 import { resolveMessagesForSend } from '../llm/sendResolved.js';
 import { loadMemoryPrompt } from '../memdir/memdir.js';
 import { type ShellSettings, getRecentWorkspaces, updateBotIntegrationFeishuTokens } from '../settingsStore.js';
+import { recordMaiTokenUsage } from '../maiAccountStore.js';
 import { queueExtractMemories } from '../services/extractMemories/extractMemories.js';
 import {
 	recordSkillUsage,
@@ -162,13 +163,15 @@ function buildBotSkillAppend(settings: ShellSettings, integration: BotIntegratio
 	if (skills.length === 0) {
 		return '';
 	}
-	const language = settings.language === 'en' ? 'en' : 'zh-CN';
+	const language = settings.language ?? 'fr';
 	const intro =
-		language === 'en'
-			? 'These are bot-exclusive skills. They belong only to this integration. Treat them as built-in playbooks for this bot, and if the user explicitly writes `./slug`, prioritize that matching skill.'
-			: '以下是当前 Bot 独占的 Skills，只对这个接入生效。把它们当作这个 Bot 自带的专项工作流；如果用户显式写出 `./slug`，优先执行对应 Skill。';
+		language === 'zh-CN'
+			? '以下是当前 Bot 独占的 Skills，只对这个接入生效。把它们当作这个 Bot 自带的专项工作流；如果用户显式写出 `./slug`，优先执行对应 Skill。'
+			: language === 'fr'
+			? 'Voici les compétences exclusives au bot. Elles appartiennent uniquement à cette intégration. Traitez-les comme des guides intégrés pour ce bot, et si l\'utilisateur écrit explicitement `./slug`, donnez la priorité à cette compétence correspondante.'
+			: 'These are bot-exclusive skills. They belong only to this integration. Treat them as built-in playbooks for this bot, and if the user explicitly writes `./slug`, prioritize that matching skill.';
 	return [
-		language === 'en' ? '## Bot-exclusive Skills' : '## Bot 专属 Skills',
+		language === 'zh-CN' ? '## Bot 专属 Skills' : language === 'fr' ? '## Compétences exclusives au Bot' : '## Bot-exclusive Skills',
 		intro,
 		...skills.map((skill) =>
 			[
@@ -356,9 +359,11 @@ export function looksLikeQrLoginScreenshotResendRequest(text: string): boolean {
 }
 
 function defaultQrLoginReplyText(language: ShellSettings['language']): string {
-	return language === 'en'
-		? 'The QR login page has been sent. Please scan it with your phone, then reply "logged in" here and I will continue.'
-		: '二维码登录页面已经发给你了，请用手机扫码登录；完成后在这里回复“已登录”，我会继续执行。';
+	return language === 'zh-CN'
+		? '二维码登录页面已经发给你了，请用手机扫码登录；完成后在这里回复“已登录”，我会继续执行。'
+		: language === 'fr'
+		? 'La page de connexion par QR code vous a été envoyée. Veuillez la scanner avec votre téléphone, puis répondez « connecté » ici pour continuer.'
+		: 'The QR login page has been sent. Please scan it with your phone, then reply "logged in" here and I will continue.';
 }
 
 export function buildQrLoginResumeUserTurn(
@@ -366,20 +371,29 @@ export function buildQrLoginResumeUserTurn(
 	userText: string,
 	language: ShellSettings['language']
 ): string {
-	const followup = String(userText ?? '').trim() || (language === 'en' ? 'logged in' : '已登录');
+	const followup =
+		String(userText ?? '').trim() ||
+		(language === 'zh-CN' ? '已登录' : language === 'fr' ? 'connecté' : 'logged in');
 	const lines =
-		language === 'en'
+		language === 'zh-CN'
 			? [
-					'[System] QR login was previously paused for manual user confirmation.',
-					`Screenshot path: ${pending.screenshotPath}`,
-					pending.pageUrl ? `Last page URL: ${pending.pageUrl}` : '',
-					'The user has now confirmed the QR login step is complete. Continue from the existing browser session instead of reopening the login page.',
-			  ]
-			: [
 					'[系统] 之前已经因为二维码登录而暂停。',
 					`截图路径：${pending.screenshotPath}`,
 					pending.pageUrl ? `上次页面 URL：${pending.pageUrl}` : '',
 					'用户现在已经确认二维码登录完成。请继续使用现有浏览器会话，不要重新打开登录页。',
+			  ]
+			: language === 'fr'
+			? [
+					'[Système] La connexion par QR code a été mise en pause pour confirmation manuelle.',
+					`Chemin de capture : ${pending.screenshotPath}`,
+					pending.pageUrl ? `Dernière URL de page : ${pending.pageUrl}` : '',
+					'L\'utilisateur a confirmé que la connexion par QR code est effectuée. Continuez à partir de la session de navigateur existante.',
+			  ]
+			: [
+					'[System] QR login was previously paused for manual user confirmation.',
+					`Screenshot path: ${pending.screenshotPath}`,
+					pending.pageUrl ? `Last page URL: ${pending.pageUrl}` : '',
+					'The user has now confirmed the QR login step is complete. Continue from the existing browser session instead of reopening the login page.',
 			  ];
 	return `${lines.filter(Boolean).join('\n')}\n\n[User follow-up]\n${followup}`;
 }
@@ -789,25 +803,33 @@ export function buildBotOrchestratorPrompt(
 	session: BotSessionState,
 	inbound: BotInboundMessage
 ): string {
-	const language = settings.language === 'en' ? 'en' : 'zh-CN';
+	const language = settings.language ?? 'fr';
 	const sessionBlock = renderSessionSnapshot(settings, integration, session);
 	const userName = inbound.senderName?.trim() || inbound.senderId?.trim() || 'user';
 	const extraPrompt = integration.systemPrompt?.trim();
 	const botSkillAppend = buildBotSkillAppend(settings, integration);
 	const globalRuleAppend = buildAgentGlobalRuleAppend(settings.agent, language);
 	const lines = [
-		language === 'en'
-			? 'You are the mAI Coder global leader bot. You directly manage the mAI Coder app, its tools, and its worker sessions.'
-			: '你是 mAI Coder 的全局 Leader Bot。你直接管理整个 mAI Coder 应用、它的工具能力以及内部 worker 会话。',
-		language === 'en'
-			? 'This leader loop is for app-level orchestration. It can directly use app/browser controls plus the custom bot session tools below.'
-			: '这个 Leader 循环用于应用级调度。它可以直接使用应用/浏览器控制工具，以及下面的 bot 会话工具。',
-		language === 'en'
-			? 'Your priority is fast, direct answers. Default to using your own tools (Read, Grep, Glob, Browser, BrowserCapture, Terminal) to answer the user without spawning a worker. Use the Task* family (TaskCreate / TaskList / TaskGet / TaskOutput / TaskUpdate / TaskStop) when the user explicitly asks to fire a sub-agent task that runs asynchronously.'
-			: '你的首要目标是快速、直接地回答用户。默认优先使用自己的工具（Read、Grep、Glob、Browser、BrowserCapture、Terminal）直接回答，不要动不动就派 worker。当用户明确要求派发一个异步子任务时，使用 Task* 系列（TaskCreate / TaskList / TaskGet / TaskOutput / TaskUpdate / TaskStop）。',
-		language === 'en'
-			? 'Use run_async_task ONLY when the task requires Writes/Edits, builds/tests, multi-file refactors, or long-running workflows. Direct shell or SSH session work may use Terminal in-place.'
-			: '只有在任务需要写文件、改文件、跑构建/测试、多文件重构、或长链路流程时，才使用 run_async_task。直接的 shell 或 SSH 会话操作可以直接用 Terminal 在当前回合完成。',
+		language === 'zh-CN'
+			? '你是 mAI Coder 的全局 Leader Bot。你直接管理整个 mAI Coder 应用、它的工具能力以及内部 worker 会话。'
+			: language === 'fr'
+			? 'Vous êtes le bot Leader global de mAI Coder. Vous gérez directement l\'application mAI Coder, ses outils et ses sessions de travail.'
+			: 'You are the mAI Coder global leader bot. You directly manage the mAI Coder app, its tools, and its worker sessions.',
+		language === 'zh-CN'
+			? '这个 Leader 循环用于应用级调度。它可以直接使用应用/浏览器控制工具，以及下面的 bot 会话工具。'
+			: language === 'fr'
+			? 'Cette boucle Leader est dédiée à l\'orchestration au niveau de l\'application. Elle peut utiliser directement les outils de l\'application/navigateur ainsi que les outils de session bot ci-dessous.'
+			: 'This leader loop is for app-level orchestration. It can directly use app/browser controls plus the custom bot session tools below.',
+		language === 'zh-CN'
+			? '你的首要目标是快速、直接地回答用户。默认优先使用自己的工具（Read、Grep、Glob、Browser、BrowserCapture、Terminal）直接回答，不要动不动就派 worker。当用户明确要求派发一个异步子任务时，使用 Task* 系列（TaskCreate / TaskList / TaskGet / TaskOutput / TaskUpdate / TaskStop）。'
+			: language === 'fr'
+			? 'Votre priorité est de répondre rapidement et directement à l\'utilisateur. Utilisez par défaut vos propres outils (Read, Grep, Glob, Browser, BrowserCapture, Terminal) pour répondre sans lancer un worker. Utilisez la famille Task* (TaskCreate / TaskList / TaskGet / TaskOutput / TaskUpdate / TaskStop) lorsque l\'utilisateur demande explicitement une tâche asynchrone.'
+			: 'Your priority is fast, direct answers. Default to using your own tools (Read, Grep, Glob, Browser, BrowserCapture, Terminal) to answer the user without spawning a worker. Use the Task* family (TaskCreate / TaskList / TaskGet / TaskOutput / TaskUpdate / TaskStop) when the user explicitly asks to fire a sub-agent task that runs asynchronously.',
+		language === 'zh-CN'
+			? '只有在任务需要写文件、改文件、跑构建/测试、多文件重构、或长链路流程时，才使用 run_async_task。直接的 shell 或 SSH 会话操作可以直接用 Terminal 在当前回合完成。'
+			: language === 'fr'
+			? 'Utilisez run_async_task UNIQUEMENT lorsque la tâche nécessite des écritures/modifications, des builds/tests, des refactorisations multi-fichiers ou des flux longs. Les opérations shell directes peuvent utiliser Terminal sur place.'
+			: 'Use run_async_task ONLY when the task requires Writes/Edits, builds/tests, multi-file refactors, or long-running workflows. Direct shell or SSH session work may use Terminal in-place.',
 		language === 'en'
 			? 'For saved SSH profiles, prefer Terminal exec for one-shot remote commands. Use open + write/read only when you need a persistent interactive terminal session.'
 			: '对于已保存的 SSH profile，单次远程命令优先使用 Terminal exec；只有在需要持续交互的终端会话时，才使用 open + write/read。',
@@ -1073,7 +1095,7 @@ async function runBotAsyncTask(args: RunBotAsyncTaskArgs): Promise<string> {
 			),
 			integration
 		);
-		const uiLanguage = effectiveSettings.language === 'en' ? 'en' : 'zh-CN';
+		const uiLanguage = effectiveSettings.language ?? 'fr';
 		const prepared = prepareUserTurnForChat(task, agentForTurn, session.workspaceRoot, workspaceFiles, uiLanguage);
 		let finalSystemAppend = prepared.agentSystemAppend;
 
@@ -1128,6 +1150,10 @@ async function runBotAsyncTask(args: RunBotAsyncTaskArgs): Promise<string> {
 		const finish = (full: string, usage?: { inputTokens?: number; outputTokens?: number }) => {
 			updateLastAssistant(threadId, full);
 			accumulateTokenUsage(threadId, usage?.inputTokens, usage?.outputTokens);
+			const turnTokens = (usage?.inputTokens ?? 0) + (usage?.outputTokens ?? 0);
+			if (turnTokens > 0) {
+				void recordMaiTokenUsage(turnTokens);
+			}
 			// Skill self-improve: 记录使用并更新 stats
 			if (usedSkillSlug && session.workspaceRoot) {
 				void recordSkillUsage(usedSkillSlug, session.workspaceRoot);
@@ -1544,9 +1570,11 @@ export async function runBotOrchestratorTurn(args: RunBotOrchestratorArgs): Prom
 					toolCallId: call.id,
 					name: call.name,
 					content:
-						settings.language === 'en'
-							? `QR login screenshot sent to the user at ${screenshot.path}. Stop now and wait for the user to confirm login is complete.`
-							: `已将二维码登录截图发送给用户：${screenshot.path}。现在请停止后续操作，等待用户确认“已登录”。`,
+						settings.language === 'zh-CN'
+							? `已将二维码登录截图发送给用户：${screenshot.path}。现在请停止后续操作，等待用户确认“已登录”。`
+							: settings.language === 'fr'
+							? `La capture d'écran de connexion QR a été envoyée à l'utilisateur : ${screenshot.path}. Arrêtez-vous maintenant et attendez que l'utilisateur confirme qu'il est connecté.`
+							: `QR login screenshot sent to the user at ${screenshot.path}. Stop now and wait for the user to confirm login is complete.`,
 					isError: false,
 				};
 			} catch (error) {

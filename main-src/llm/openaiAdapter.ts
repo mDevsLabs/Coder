@@ -235,13 +235,36 @@ export async function streamOpenAICompatible(
 		timeoutMgr.stop();
 		const cleaned = stripLegacyToolCallMarkup(full);
 
-		// Q3/Q7 : comptage des tokens confié au backend (/v1/chat/completions → weekly_usage)
-		// Le backend parse le SSE/JSON et enregistre input+output confondus ; pas de double comptage côté renderer
+		if (!usage || ((usage.inputTokens ?? 0) === 0 && (usage.outputTokens ?? 0) === 0)) {
+			let inputChars = systemContent.length;
+			for (const m of apiMessages) {
+				if (typeof m.content === 'string') {
+					inputChars += m.content.length;
+				} else if (Array.isArray(m.content)) {
+					inputChars += JSON.stringify(m.content).length;
+				}
+			}
+			const outputChars = cleaned.length;
+			usage = {
+				inputTokens: Math.max(1, Math.ceil(inputChars / 4)),
+				outputTokens: Math.max(1, Math.ceil(outputChars / 4)),
+			};
+		}
 
 		handlers.onDone(cleaned, usage);
 	} catch (e: unknown) {
 		timeoutMgr.stop();
 		if (options.signal.aborted) {
+			if (!usage || ((usage.inputTokens ?? 0) === 0 && (usage.outputTokens ?? 0) === 0)) {
+				let inputChars = systemContent.length;
+				for (const m of apiMessages) {
+					if (typeof m.content === 'string') inputChars += m.content.length;
+				}
+				usage = {
+					inputTokens: Math.max(1, Math.ceil(inputChars / 4)),
+					outputTokens: Math.max(1, Math.ceil(full.length / 4)),
+				};
+			}
 			handlers.onDone(full, usage);
 			return;
 		}

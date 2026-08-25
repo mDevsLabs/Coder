@@ -1,5 +1,6 @@
 import { session } from 'electron';
 import * as lark from '@larksuiteoapi/node-sdk';
+import type { AppLocale } from '../../src/i18n/types.js';
 import type { BotIntegrationConfig } from '../botSettingsTypes.js';
 import { createJsonHttpInstance, electronProxyRulesFromUrl, requestJson, resolveIntegrationProxyUrl } from './platforms/common.js';
 
@@ -8,8 +9,8 @@ export type BotConnectivityResult = {
 	message: string;
 };
 
-function t(lang: 'zh-CN' | 'en', zh: string, en: string): string {
-	return lang === 'en' ? en : zh;
+function t(lang: AppLocale, zh: string, en: string, fr?: string): string {
+	return lang === 'en' ? en : lang === 'fr' ? (fr || en) : zh;
 }
 
 function normalizeErrorMessage(error: unknown): string {
@@ -19,7 +20,7 @@ function normalizeErrorMessage(error: unknown): string {
 	return String(error ?? 'Unknown error');
 }
 
-async function testTelegram(integration: BotIntegrationConfig, lang: 'zh-CN' | 'en'): Promise<BotConnectivityResult> {
+async function testTelegram(integration: BotIntegrationConfig, lang: AppLocale): Promise<BotConnectivityResult> {
 	const token = integration.telegram?.botToken?.trim() ?? '';
 	if (!token) {
 		return { ok: false, message: t(lang, '缺少 Bot Token。', 'Bot Token is required.') };
@@ -75,43 +76,38 @@ async function testTelegram(integration: BotIntegrationConfig, lang: 'zh-CN' | '
 	}
 }
 
-async function testSlack(integration: BotIntegrationConfig, lang: 'zh-CN' | 'en'): Promise<BotConnectivityResult> {
+async function testSlack(integration: BotIntegrationConfig, lang: AppLocale): Promise<BotConnectivityResult> {
 	const botToken = integration.slack?.botToken?.trim() ?? '';
 	const appToken = integration.slack?.appToken?.trim() ?? '';
 	if (!botToken || !appToken) {
 		return {
 			ok: false,
-			message: t(lang, '缺少 Bot Token 或 App Token。', 'Bot Token and App Token are required.'),
+			message: t(lang, '缺少 Slack Bot Token 或 App Token。', 'Slack Bot Token and App Token are required.'),
 		};
 	}
 	const proxyUrl = resolveIntegrationProxyUrl(integration);
 	try {
-		const auth = await requestJson<{ ok?: boolean; error?: string; user_id?: string }>('https://slack.com/api/auth.test', {
-			method: 'GET',
-			headers: { authorization: `Bearer ${botToken}` },
-			timeoutMs: 20_000,
-			proxyUrl,
-		});
-		if (!auth.ok) {
-			throw new Error(auth.error || 'auth.test failed');
-		}
-		const open = await requestJson<{ ok?: boolean; error?: string; url?: string }>('https://slack.com/api/apps.connections.open', {
-			method: 'POST',
-			headers: { authorization: `Bearer ${appToken}`, 'content-type': 'application/json' },
-			body: {},
-			timeoutMs: 20_000,
-			proxyUrl,
-		});
-		if (!open.ok || !String(open.url ?? '').trim()) {
-			throw new Error(open.error || 'Socket Mode URL missing');
+		const json = await requestJson<{ ok?: boolean; error?: string }>(
+			'https://slack.com/api/auth.test',
+			{
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${botToken}`,
+					'Content-Type': 'application/json; charset=utf-8',
+				},
+				body: '{}',
+			},
+			proxyUrl
+		);
+		if (!json.ok) {
+			return {
+				ok: false,
+				message: t(lang, `Slack 鉴权失败：${json.error || 'unknown_error'}`, `Slack auth failed: ${json.error || 'unknown_error'}`),
+			};
 		}
 		return {
 			ok: true,
-			message: t(
-				lang,
-				`Slack 已连接${auth.user_id ? `：bot 用户 ${auth.user_id}` : ''}。`,
-				`Slack connected${auth.user_id ? `: bot user ${auth.user_id}` : ''}.`
-			),
+			message: t(lang, 'Slack 连接成功（auth.test 通过）。', 'Slack connection successful (auth.test passed).'),
 		};
 	} catch (error) {
 		return {
@@ -121,32 +117,36 @@ async function testSlack(integration: BotIntegrationConfig, lang: 'zh-CN' | 'en'
 	}
 }
 
-async function testDiscord(integration: BotIntegrationConfig, lang: 'zh-CN' | 'en'): Promise<BotConnectivityResult> {
+async function testDiscord(integration: BotIntegrationConfig, lang: AppLocale): Promise<BotConnectivityResult> {
 	const token = integration.discord?.botToken?.trim() ?? '';
 	if (!token) {
-		return { ok: false, message: t(lang, '缺少 Bot Token。', 'Bot Token is required.') };
+		return { ok: false, message: t(lang, '缺少 Discord Bot Token。', 'Discord Bot Token is required.') };
 	}
 	const proxyUrl = resolveIntegrationProxyUrl(integration);
 	try {
-		const me = await requestJson<{ id?: string; username?: string; global_name?: string }>('https://discord.com/api/v10/users/@me', {
-			method: 'GET',
-			headers: { authorization: `Bot ${token}`, 'content-type': 'application/json' },
-			timeoutMs: 20_000,
-			proxyUrl,
-		});
-		const gateway = await requestJson<{ url?: string }>('https://discord.com/api/v10/gateway/bot', {
-			method: 'GET',
-			headers: { authorization: `Bot ${token}`, 'content-type': 'application/json' },
-			timeoutMs: 20_000,
-			proxyUrl,
-		});
-		const name = String(me.global_name ?? me.username ?? '').trim();
-		if (!String(gateway.url ?? '').trim()) {
-			throw new Error('Gateway URL missing');
+		const json = await requestJson<{ id?: string; username?: string; message?: string }>(
+			'https://discord.com/api/v10/users/@me',
+			{
+				method: 'GET',
+				headers: {
+					Authorization: `Bot ${token}`,
+				},
+			},
+			proxyUrl
+		);
+		if (!json.id) {
+			return {
+				ok: false,
+				message: t(lang, `Discord 鉴权失败：${json.message || 'invalid token'}`, `Discord auth failed: ${json.message || 'invalid token'}`),
+			};
 		}
 		return {
 			ok: true,
-			message: t(lang, `Discord 已连接${name ? `：${name}` : ''}。`, `Discord connected${name ? `: ${name}` : ''}.`),
+			message: t(
+				lang,
+				`Discord 连接成功（Bot: ${json.username ?? 'ok'}）。`,
+				`Discord connection successful (Bot: ${json.username ?? 'ok'}).`
+			),
 		};
 	} catch (error) {
 		return {
@@ -156,27 +156,41 @@ async function testDiscord(integration: BotIntegrationConfig, lang: 'zh-CN' | 'e
 	}
 }
 
-async function testFeishu(integration: BotIntegrationConfig, lang: 'zh-CN' | 'en'): Promise<BotConnectivityResult> {
+async function testFeishu(integration: BotIntegrationConfig, lang: AppLocale): Promise<BotConnectivityResult> {
 	const appId = integration.feishu?.appId?.trim() ?? '';
 	const appSecret = integration.feishu?.appSecret?.trim() ?? '';
 	if (!appId || !appSecret) {
-		return { ok: false, message: t(lang, '缺少 App ID 或 App Secret。', 'App ID and App Secret are required.') };
+		return {
+			ok: false,
+			message: t(lang, '缺少飞书 App ID 或 App Secret。', 'Feishu App ID and App Secret are required.'),
+		};
 	}
 	try {
 		const client = new lark.Client({
 			appId,
 			appSecret,
-			httpInstance: createJsonHttpInstance(resolveIntegrationProxyUrl(integration)),
+			appType: lark.AppType.SelfBuild,
+			domain: lark.Domain.Feishu,
 		});
-		const result = await client.auth.v3.appAccessToken.internal({
-			data: { app_id: appId, app_secret: appSecret },
+		const res = await client.auth.tenantAccessToken.internal({
+			data: {
+				app_id: appId,
+				app_secret: appSecret,
+			},
 		});
-		if (Number(result.code ?? -1) !== 0) {
-			throw new Error(String(result.msg ?? 'appAccessToken.internal failed'));
+		if (res.code !== 0) {
+			return {
+				ok: false,
+				message: t(
+					lang,
+					`飞书鉴权失败：${res.msg || `code ${res.code}`}`,
+					`Feishu auth failed: ${res.msg || `code ${res.code}`}`
+				),
+			};
 		}
 		return {
 			ok: true,
-			message: t(lang, '飞书已连接，应用凭据有效。', 'Feishu connected. App credentials are valid.'),
+			message: t(lang, '飞书连接成功（获取 tenant_access_token 成功）。', 'Feishu connection successful (tenant_access_token obtained).'),
 		};
 	} catch (error) {
 		return {
@@ -188,7 +202,7 @@ async function testFeishu(integration: BotIntegrationConfig, lang: 'zh-CN' | 'en
 
 export async function testBotIntegrationConnection(
 	integration: BotIntegrationConfig,
-	lang: 'zh-CN' | 'en'
+	lang: AppLocale
 ): Promise<BotConnectivityResult> {
 	switch (integration.platform) {
 		case 'telegram':

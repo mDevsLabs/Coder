@@ -28,20 +28,21 @@ import {
 import { disposePlaywrightBridge } from './browser/playwrightBridge.js';
 
 function resolveAppIconPath(): string | undefined {
-	const iconSearchRoots =
-		process.platform === 'darwin'
-			? [
-					process.resourcesPath,
-					path.join(process.resourcesPath, 'resources', 'icons'),
-					path.join(app.getAppPath(), 'resources', 'icons'),
-				]
-			: [path.join(app.getAppPath(), 'resources', 'icons')];
+	const iconSearchRoots = [
+		path.join(app.getAppPath(), 'resources', 'icons'),
+		path.join(process.resourcesPath, 'resources', 'icons'),
+		path.join(process.resourcesPath, 'icons'),
+		path.join(process.resourcesPath),
+		path.join(process.cwd(), 'resources', 'icons'),
+		path.join(__dirname, '..', 'resources', 'icons'),
+		path.join(__dirname, '..', '..', 'resources', 'icons'),
+	];
 	const names =
 		process.platform === 'win32'
 			? ['icon.ico', 'icon.png']
 			: process.platform === 'darwin'
 				? ['icon.icns', 'icon.png']
-				: ['icon.png'];
+				: ['icon.png', 'icon.ico'];
 	for (const root of iconSearchRoots) {
 		for (const name of names) {
 			const full = path.join(root, name);

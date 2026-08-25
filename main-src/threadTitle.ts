@@ -67,14 +67,27 @@ function clipRuleContext(input: string): string {
 	return sliceByCodePoints(normalized, MAX_RULE_CONTEXT_CODEPOINTS);
 }
 
-function buildThreadTitleSystemPrompt(ruleContext: string): string {
+function buildThreadTitleSystemPrompt(ruleContext: string, language?: string): string {
 	const clippedRules = clipRuleContext(ruleContext);
+	const lang = language ?? 'fr';
+	const langInstruction =
+		lang === 'fr'
+			? 'Générez le titre en français (ou dans la langue principale de la requête de l\'utilisateur si elle est différente).'
+			: lang === 'zh-CN'
+			? '请使用简体中文生成标题（除非用户明确使用其他语言提问）。'
+			: 'Generate the title in English (or the primary language of the user prompt).';
+
 	if (!clippedRules) {
-		return THREAD_TITLE_SYSTEM_PROMPT;
+		return [
+			THREAD_TITLE_SYSTEM_PROMPT,
+			'',
+			langInstruction,
+		].join('\n');
 	}
 	return [
 		THREAD_TITLE_SYSTEM_PROMPT,
 		'',
+		langInstruction,
 		'Follow the language and style requirements in the rules below when deciding the title language and wording.',
 		'If the rules specify a default reply language, generate the title in that language unless the user explicitly switched languages in the current request.',
 		'',
@@ -167,6 +180,8 @@ export async function generateThreadTitle(
 		return null;
 	}
 
+	const threadLang = settings.language ?? 'fr';
+
 	try {
 		if (resolved.paradigm === 'openai-compatible') {
 			if (resolved.oauthAuth?.provider === 'codex') {
@@ -178,7 +193,7 @@ export async function generateThreadTitle(
 					baseURL: resolved.baseURL,
 					instructions: prependProviderIdentitySystemPrompt(
 						settings,
-						buildThreadTitleSystemPrompt(ruleContext),
+						buildThreadTitleSystemPrompt(ruleContext, threadLang),
 						requestProviderIdentity
 					),
 					input: userPrompt,
@@ -207,7 +222,7 @@ export async function generateThreadTitle(
 						role: 'system',
 						content: prependProviderIdentitySystemPrompt(
 							settings,
-							buildThreadTitleSystemPrompt(ruleContext),
+							buildThreadTitleSystemPrompt(ruleContext, threadLang),
 							resolved.providerIdentity
 						),
 					},
@@ -236,7 +251,7 @@ export async function generateThreadTitle(
 				model: resolved.requestModelId,
 				system: prependProviderIdentitySystemPrompt(
 					settings,
-					buildThreadTitleSystemPrompt(ruleContext),
+					buildThreadTitleSystemPrompt(ruleContext, threadLang),
 					requestProviderIdentity
 				),
 				max_tokens: 120,
@@ -254,7 +269,7 @@ export async function generateThreadTitle(
 			model: resolved.requestModelId,
 			systemInstruction: prependProviderIdentitySystemPrompt(
 				settings,
-				buildThreadTitleSystemPrompt(ruleContext),
+				buildThreadTitleSystemPrompt(ruleContext, threadLang),
 				resolved.providerIdentity
 			),
 			generationConfig: {

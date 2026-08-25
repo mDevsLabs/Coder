@@ -1,30 +1,37 @@
 /** /create-rule 向导：注入系统提示，引导在 mAI Coder 中编写 Rule */
 
 import type { AgentRuleScope } from './agentSettingsTypes.js';
+import type { AppLocale } from '../src/i18n/types.js';
 
 export function formatRuleCreatorUserBubble(
 	ruleScope: AgentRuleScope,
 	globPattern: string | undefined,
-	lang: 'zh-CN' | 'en',
+	lang: AppLocale,
 	userNote: string
 ): string {
 	const scopeLabel =
 		ruleScope === 'always'
-			? lang === 'en'
-				? '[Create Rule · Always]'
-				: '[创建 Rule · 始终附加]'
+			? lang === 'zh-CN'
+				? '[创建 Rule · 始终附加]'
+				: lang === 'fr'
+				? '[Créer une Règle · Toujours active]'
+				: '[Create Rule · Always]'
 			: ruleScope === 'glob'
-				? lang === 'en'
-					? '[Create Rule · Glob]'
-					: '[创建 Rule · 路径 Glob]'
-				: lang === 'en'
-					? '[Create Rule · Manual @]'
-					: '[创建 Rule · 手动 @]';
+				? lang === 'zh-CN'
+					? '[创建 Rule · 路径 Glob]'
+					: lang === 'fr'
+					? '[Créer une Règle · Glob de chemin]'
+					: '[Create Rule · Glob]'
+				: lang === 'zh-CN'
+					? '[创建 Rule · 手动 @]'
+					: lang === 'fr'
+					? '[Créer une Règle · Manuel @]'
+					: '[Create Rule · Manual @]';
 	const globLine =
 		ruleScope === 'glob' && globPattern?.trim()
-			? lang === 'en'
-				? `Glob: ${globPattern.trim()}`
-				: `Glob：${globPattern.trim()}`
+			? lang === 'zh-CN'
+				? `Glob：${globPattern.trim()}`
+				: `Glob: ${globPattern.trim()}`
 			: '';
 	const b = userNote.trim();
 	const parts = [scopeLabel, globLine, b].filter((x) => x.length > 0);
@@ -34,7 +41,7 @@ export function formatRuleCreatorUserBubble(
 export function buildRuleCreatorSystemAppend(
 	ruleScope: AgentRuleScope,
 	globPattern: string | undefined,
-	lang: 'zh-CN' | 'en',
+	lang: AppLocale,
 	workspaceRoot: string | null
 ): string {
 	const globHint =
@@ -179,17 +186,21 @@ ${scopeBlock}`;
  */
 export function appendRuleCreatorPathLock(
 	systemAppend: string,
-	lang: 'zh-CN' | 'en',
+	lang: AppLocale,
 	workspaceOpen: boolean
 ): string {
 	const lock =
-		lang === 'en'
+		lang === 'zh-CN'
 			? workspaceOpen
-				? `### [Path lock — mAI Coder /create-rule]\n\nThis chat was started by **mAI Coder’s Create Rule wizard**. **You MUST persist rule files under \`.mai/rules/\`** (e.g. \`.mai/rules/my-rule.mdc\`) using \`Write\`. **Ignore** generic create-rule skills or docs that say \`.cursor/rules/\`; **unless** the user explicitly asks for that path in this conversation, always use \`.mai/rules/\`. \`Write\` creates parent directories; do not skip writing because the folder is new. End by stating the exact relative path(s) you wrote.`
-				: `### [Path lock — mAI Coder /create-rule]\n\nNo workspace folder is open — **do not** claim you wrote files under \`.mai/rules/\`. Explain that the user must open a folder first, or add the rule in **Settings → Agent → Rules**.`
-			: workspaceOpen
 				? `### 【路径锁定 — mAI Coder /create-rule】\n\n本条对话由 **mAI Coder「创建 Rule」向导** 触发。**必须使用 \`Write\` 将规则保存到 \`.mai/rules/\` 下**（例如 \`.mai/rules/my-rule.mdc\`）。**忽略** Skill 或通用说明里的 \`.cursor/rules/\`；**除非**用户在本对话中明确要求写到该路径，否则一律使用 \`.mai/rules/\`。 \`Write\` 会自动创建目录；**不要**因目录尚不存在而只粘贴内容让用户保存。结束时用一两句说明写入的相对路径。`
-				: `### 【路径锁定 — mAI Coder /create-rule】\n\n当前**未打开工作区文件夹**，**禁止**声称已写入 \`.mai/rules/\`。说明需先打开工作区，或在 **设置 → Agent → Rules** 中手动添加。`;
+				: `### 【路径锁定 — mAI Coder /create-rule】\n\n当前**未打开工作区文件夹**，**禁止**声称已写入 \`.mai/rules/\`。说明需先打开工作区，或在 **设置 → Agent → Rules** 中手动添加。`
+			: lang === 'fr'
+			? workspaceOpen
+				? `### [Verrouillage de chemin — mAI Coder /create-rule]\n\nCette conversation a été initiée par l'assistant de création de règle de mAI Coder. **Vous DEVEZ enregistrer les fichiers de règles sous \`.mai/rules/\`** (ex: \`.mai/rules/ma-regle.mdc\`) à l'aide de l'outil \`Write\`. **Ignorez** les compétences ou documentations génériques mentionnant \`.cursor/rules/\` ; sauf demande explicite de l'utilisateur, utilisez toujours \`.mai/rules/\`. \`Write\` crée automatiquement les répertoires parents. Terminez en indiquant le chemin relatif créé.`
+				: `### [Verrouillage de chemin — mAI Coder /create-rule]\n\nAucun dossier d'espace de travail n'est ouvert — **n'affirmez pas** avoir écrit des fichiers sous \`.mai/rules/\`. Indiquez que l'utilisateur doit d'abord ouvrir un dossier ou ajouter la règle dans **Paramètres → Agent → Rules**.`
+			: workspaceOpen
+				? `### [Path lock — mAI Coder /create-rule]\n\nThis chat was started by **mAI Coder’s Create Rule wizard**. **You MUST persist rule files under \`.mai/rules/\`** (e.g. \`.mai/rules/my-rule.mdc\`) using \`Write\`. **Ignore** generic create-rule skills or docs that say \`.cursor/rules/\`; **unless** the user explicitly asks for that path in this conversation, always use \`.mai/rules/\`. \`Write\` creates parent directories; do not skip writing because the folder is new. End by stating the exact relative path(s) you wrote.`
+				: `### [Path lock — mAI Coder /create-rule]\n\nNo workspace folder is open — **do not** claim you wrote files under \`.mai/rules/\`. Explain that the user must open a folder first, or add the rule in **Settings → Agent → Rules**.`;
 	const base = systemAppend.trim();
 	return base ? `${base}\n\n---\n\n${lock}` : lock;
 }

@@ -307,7 +307,7 @@ function normalizeTeamAgentSummary(raw: string, fallback: string): string {
 }
 
 function appendTeamLanguageRule(settings: ShellSettings, prompt?: string): string {
-	const lang = settings.language === 'en' ? 'en' : 'zh-CN';
+	const lang = settings.language ?? 'fr';
 	const ruleBlock = buildAutoReplyLanguageRuleBlock(lang, lang);
 	const extra = String(prompt ?? '').trim();
 	return extra ? `${ruleBlock}\n\n---\n\n${extra}` : ruleBlock;

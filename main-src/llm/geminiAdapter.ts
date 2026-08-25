@@ -134,9 +134,25 @@ export async function streamGemini(
 				};
 			}
 		}
+		if (!usage || ((usage.inputTokens ?? 0) === 0 && (usage.outputTokens ?? 0) === 0)) {
+			let inputChars = (options.systemInstruction ?? '').length;
+			for (const c of contents) {
+				inputChars += JSON.stringify(c).length;
+			}
+			usage = {
+				inputTokens: Math.max(1, Math.ceil(inputChars / 4)),
+				outputTokens: Math.max(1, Math.ceil(full.length / 4)),
+			};
+		}
 		handlers.onDone(full, usage);
 	} catch (e: unknown) {
 		if (options.signal.aborted) {
+			if (!usage || ((usage.inputTokens ?? 0) === 0 && (usage.outputTokens ?? 0) === 0)) {
+				usage = {
+					inputTokens: 1,
+					outputTokens: Math.max(1, Math.ceil(full.length / 4)),
+				};
+			}
 			handlers.onDone(full, usage);
 			return;
 		}

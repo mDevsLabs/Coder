@@ -50,7 +50,7 @@ import { getWorkspaceRootForWebContents } from '../workspace.js';
 import { getWorkspaceLspManagerForWebContents } from '../lspSessionsByWebContents.js';
 import { queueExtractMemories } from '../services/extractMemories/extractMemories.js';
 import { generateThreadTitle } from '../threadTitle.js';
-import { maiFetchUsage, syncMaiAccountWithToken, updateMaiAccountUsage } from '../maiAccountStore.js';
+import { maiFetchUsage, recordMaiTokenUsage, syncMaiAccountWithToken, updateMaiAccountUsage } from '../maiAccountStore.js';
 import type { WebContents } from 'electron';
 
 /**
@@ -363,6 +363,10 @@ export function runChatStream(
 							updateLastAssistant(threadId, full);
 							accumulateTokenUsage(threadId, usage?.inputTokens, usage?.outputTokens);
 							recordTurnTokenUsageStats(modelSelection, mode, usage);
+							const turnTokens = (usage?.inputTokens ?? 0) + (usage?.outputTokens ?? 0);
+							if (turnTokens > 0) {
+								void recordMaiTokenUsage(turnTokens);
+							}
 							if (teamSnapshot) {
 								saveTeamSession(threadId, teamSnapshot);
 							}
@@ -577,6 +581,10 @@ export function runChatStream(
 								updateLastAssistant(threadId, full);
 								accumulateTokenUsage(threadId, usage?.inputTokens, usage?.outputTokens);
 								recordTurnTokenUsageStats(modelSelection, mode, usage);
+								const turnTokens = (usage?.inputTokens ?? 0) + (usage?.outputTokens ?? 0);
+								if (turnTokens > 0) {
+									void recordMaiTokenUsage(turnTokens);
+								}
 								queueExtractMemories({
 									threadId,
 									workspaceRoot,
@@ -627,6 +635,10 @@ export function runChatStream(
 						updateLastAssistant(threadId, full);
 						accumulateTokenUsage(threadId, usage?.inputTokens, usage?.outputTokens);
 						recordTurnTokenUsageStats(modelSelection, mode, usage);
+						const turnTokens = (usage?.inputTokens ?? 0) + (usage?.outputTokens ?? 0);
+						if (turnTokens > 0) {
+							void recordMaiTokenUsage(turnTokens);
+						}
 						queueExtractMemories({
 							threadId,
 							workspaceRoot,

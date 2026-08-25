@@ -227,6 +227,16 @@ export async function streamAnthropic(
 			}
 		}
 		timeoutMgr.stop();
+		if (!usage || ((usage.inputTokens ?? 0) === 0 && (usage.outputTokens ?? 0) === 0)) {
+			let inputChars = JSON.stringify(system).length;
+			for (const m of anthropicMessages) {
+				inputChars += JSON.stringify(m).length;
+			}
+			usage = {
+				inputTokens: Math.max(1, Math.ceil(inputChars / 4)),
+				outputTokens: Math.max(1, Math.ceil(full.length / 4)),
+			};
+		}
 		observeAnthropicPromptCacheUsage({
 			source: `chat:${options.mode}`,
 			model,
@@ -236,6 +246,12 @@ export async function streamAnthropic(
 		});
 		handlers.onDone(full, usage);
 	} catch (e: unknown) {
+		if (!usage || ((usage.inputTokens ?? 0) === 0 && (usage.outputTokens ?? 0) === 0)) {
+			usage = {
+				inputTokens: 1,
+				outputTokens: Math.max(1, Math.ceil(full.length / 4)),
+			};
+		}
 		timeoutMgr.stop();
 		if (options.signal.aborted) {
 			handlers.onDone(full, usage);

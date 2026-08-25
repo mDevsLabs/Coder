@@ -1,11 +1,13 @@
 /**
- * Rasterize docs/assets/async-logo.svg into:
- * - resources/icons/icon.png
+ * Export and sync application icons:
+ * - resources/icons/icon.png (source of truth)
  * - resources/icons/icon.ico
  * - resources/icons/icon.icns (macOS only)
  * - public/favicon.png
+ * - public/logo.png
  */
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
@@ -13,50 +15,59 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
-const svgPath = path.join(root, 'docs', 'assets', 'async-logo.svg');
 const outDir = path.join(root, 'resources', 'icons');
 const outPng = path.join(outDir, 'icon.png');
 const outIco = path.join(outDir, 'icon.ico');
 const outIcns = path.join(outDir, 'icon.icns');
 const publicDir = path.join(root, 'public');
 const faviconPng = path.join(publicDir, 'favicon.png');
+const logoPng = path.join(publicDir, 'logo.png');
 
 const sharp = (await import('sharp')).default;
 const pngToIco = (await import('png-to-ico')).default;
 
 await mkdir(outDir, { recursive: true });
 await mkdir(publicDir, { recursive: true });
-const svg = await readFile(svgPath);
 
-const size = 1024;
-const cornerRadius = Math.round(size * 0.156);
-const logoPx = Math.round(size * 0.86);
+let appIconPng;
+if (existsSync(outPng)) {
+	appIconPng = await readFile(outPng);
+} else {
+	const svgPath = path.join(root, 'docs', 'assets', 'async-logo.svg');
+	const svg = await readFile(svgPath);
+	const size = 1024;
+	const cornerRadius = Math.round(size * 0.156);
+	const logoPx = Math.round(size * 0.86);
+	const roundedPlateSvg = Buffer.from(
+		`<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+			<rect width="${size}" height="${size}" rx="${cornerRadius}" ry="${cornerRadius}" fill="#0c0c0e"/>
+		</svg>`,
+	);
+	const plate = await sharp(roundedPlateSvg).ensureAlpha().png().toBuffer();
+	const logo = await sharp(svg).resize(logoPx, logoPx).png().toBuffer();
+	appIconPng = await sharp(plate)
+		.composite([{ input: logo, gravity: 'center' }])
+		.png()
+		.toBuffer();
+	await writeFile(outPng, appIconPng);
+}
 
-const roundedPlateSvg = Buffer.from(
-	`<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-		<rect width="${size}" height="${size}" rx="${cornerRadius}" ry="${cornerRadius}" fill="#0c0c0e"/>
-	</svg>`,
-);
+// Generate icon.ico if not already present or update
+if (!existsSync(outIco)) {
+	const icoSizes = [16, 24, 32, 48, 64, 128, 256];
+	const icoFrames = await Promise.all(
+		icoSizes.map((sizePx) => sharp(appIconPng).resize(sizePx, sizePx).png().toBuffer()),
+	);
+	await writeFile(outIco, await pngToIco(icoFrames));
+}
 
-const plate = await sharp(roundedPlateSvg).ensureAlpha().png().toBuffer();
-const logo = await sharp(svg).resize(logoPx, logoPx).png().toBuffer();
-const appIconPng = await sharp(plate)
-	.composite([{ input: logo, gravity: 'center' }])
-	.png()
-	.toBuffer();
-
-await writeFile(outPng, appIconPng);
-
-const icoSizes = [16, 24, 32, 48, 64, 128, 256];
-const icoFrames = await Promise.all(
-	icoSizes.map((sizePx) => sharp(appIconPng).resize(sizePx, sizePx).png().toBuffer()),
-);
-await writeFile(outIco, await pngToIco(icoFrames));
+// Sync public/favicon.png and public/logo.png directly from resources/icons/icon.png
+await writeFile(faviconPng, appIconPng);
+await writeFile(logoPng, appIconPng);
 
 await maybeWriteMacIcon(appIconPng);
-await sharp(appIconPng).resize(32, 32).png().toFile(faviconPng);
 
-console.log('[export-app-icon] wrote', outPng, outIco, 'and', faviconPng);
+console.log('[export-app-icon] synced', outPng, outIco, 'and', faviconPng, logoPng);
 
 async function maybeWriteMacIcon(appIconBuffer) {
 	if (process.platform !== 'darwin') {
