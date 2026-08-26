@@ -2,6 +2,7 @@ import { BrowserWindow } from 'electron';
 import {
 	getSettings,
 	patchSettings,
+	type ShellSettings,
 	type MaiAccountState,
 	type MaiAccountUsage,
 	type MaiAccountProfile,
@@ -319,6 +320,81 @@ export function updateMaiAccountUsage(usage: MaiAccountUsage): void {
 		patchSettings({ maiAccount: nextAccount });
 		broadcastMaiAccountUpdate(nextAccount);
 	}
+}
+
+/**
+ * 9. Vérifie si le quota mAI de l'utilisateur est disponible avant de lancer une requête d'IA.
+ * Retourne { available: false, message: '...' } si le quota est épuisé.
+ */
+export async function checkMaiQuotaAvailable(
+	settings: ShellSettings,
+	forceFresh = false
+): Promise<{ available: boolean; message?: string; usage?: MaiAccountUsage }> {
+	const maiAccount = settings.maiAccount;
+	const jwt = maiAccount?.jwtToken?.trim() || maiAccount?.apiKey?.trim();
+
+	// Si aucun compte mAI n'est connecté ou pas de token, on ne bloque pas
+	if (!jwt) {
+		return { available: true };
+	}
+
+	// 1. Vérification rapide du cache local
+	const localUsage = maiAccount?.usage;
+	if (
+		!forceFresh &&
+		localUsage &&
+		typeof localUsage.limit === 'number' &&
+		localUsage.limit > 0 &&
+		typeof localUsage.tokensUsed === 'number' &&
+		localUsage.tokensUsed >= localUsage.limit
+	) {
+		const resetStr = localUsage.resetAt
+			? new Date(localUsage.resetAt).toLocaleDateString('fr-FR', {
+					weekday: 'long',
+					day: 'numeric',
+					month: 'long',
+			  })
+			: 'prochainement';
+		return {
+			available: false,
+			message: `Votre quota hebdomadaire mAI est épuisé (${localUsage.tokensUsed.toLocaleString('fr-FR')} / ${localUsage.limit.toLocaleString('fr-FR')} tokens). Réinitialisation : ${resetStr}.`,
+			usage: localUsage,
+		};
+	}
+
+	// 2. Vérification fraîche auprès de l'API /usage
+	try {
+		const usageRes = await maiFetchUsage(jwt);
+		if (usageRes.ok) {
+			const nextUsage: MaiAccountUsage = {
+				tokensUsed: usageRes.tokensUsed,
+				limit: usageRes.limit,
+				resetAt: usageRes.resetAt,
+				weekStart: usageRes.weekStart,
+			};
+			updateMaiAccountUsage(nextUsage);
+
+			if (usageRes.limit > 0 && usageRes.tokensUsed >= usageRes.limit) {
+				const resetStr = usageRes.resetAt
+					? new Date(usageRes.resetAt).toLocaleDateString('fr-FR', {
+							weekday: 'long',
+							day: 'numeric',
+							month: 'long',
+					  })
+					: 'prochainement';
+				return {
+					available: false,
+					message: `Votre quota hebdomadaire mAI est épuisé (${usageRes.tokensUsed.toLocaleString('fr-FR')} / ${usageRes.limit.toLocaleString('fr-FR')} tokens). Réinitialisation : ${resetStr}.`,
+					usage: nextUsage,
+				};
+			}
+			return { available: true, usage: nextUsage };
+		}
+	} catch (err) {
+		console.warn('[maiAccount] checkMaiQuotaAvailable error:', err);
+	}
+
+	return { available: true, usage: localUsage };
 }
 
 /**

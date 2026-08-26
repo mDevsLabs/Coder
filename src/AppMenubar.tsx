@@ -62,6 +62,8 @@ export interface AppMenubarProps {
 	spawnEditorTerminal: () => void;
 	// Settings
 	openSettingsPage: (nav: SettingsNavId) => void;
+	maiAccount?: import('./ipcTypes').MaiAccountState;
+	onOpenMaiAccount?: () => void;
 }
 
 /**
@@ -87,6 +89,7 @@ export const AppMenubar = memo(function AppMenubar(props: AppMenubarProps) {
 		zoomInUi, zoomOutUi, resetUiZoom, toggleFullscreen,
 		windowMaximized, onMinimize, onToggleMaximize, onCloseWindow,
 		spawnEditorTerminal, openSettingsPage,
+		maiAccount, onOpenMaiAccount,
 	} = props;
 
 	// ── Menu open/close state (local to this component) ──
@@ -342,6 +345,71 @@ export const AppMenubar = memo(function AppMenubar(props: AppMenubarProps) {
 				) : null}
 			</div>
 			<div className="ref-menubar-right">
+				{onOpenMaiAccount ? (
+					<button
+						type="button"
+						className="ref-menubar-account-btn"
+						onClick={onOpenMaiAccount}
+						title={maiAccount?.jwtToken ? `${maiAccount.user?.username || 'mAI Coder'} (${maiAccount.user?.tier || 'Free'})` : t('mai.login')}
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							gap: 7,
+							padding: '3px 9px',
+							borderRadius: 7,
+							background: maiAccount?.jwtToken ? 'rgba(59, 130, 246, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+							border: maiAccount?.jwtToken ? '1px solid rgba(59, 130, 246, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)',
+							color: 'var(--fg-default, #fff)',
+							fontSize: 12,
+							fontWeight: 500,
+							cursor: 'pointer',
+							height: 26,
+							transition: 'all 0.15s ease',
+						}}
+					>
+						{maiAccount?.user?.avatarUrl ? (
+							<img
+								src={maiAccount.user.avatarUrl}
+								alt="Avatar"
+								style={{ width: 16, height: 16, borderRadius: '50%', objectFit: 'cover' }}
+							/>
+						) : (
+							<div
+								style={{
+									width: 16,
+									height: 16,
+									borderRadius: '50%',
+									background: maiAccount?.jwtToken ? 'linear-gradient(135deg, #3b82f6, #8b5cf6)' : 'rgba(255, 255, 255, 0.2)',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									fontSize: 9,
+									fontWeight: 700,
+									color: '#fff',
+								}}
+							>
+								{maiAccount?.user?.username ? maiAccount.user.username.charAt(0).toUpperCase() : 'm'}
+							</div>
+						)}
+						<span style={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+							{maiAccount?.user?.username || (maiAccount?.jwtToken ? 'mAI' : t('mai.login'))}
+						</span>
+						{maiAccount?.usage ? (
+							<span
+								style={{
+									fontSize: 10,
+									fontWeight: 600,
+									padding: '1px 5px',
+									borderRadius: 4,
+									background: 'rgba(59, 130, 246, 0.2)',
+									color: '#60a5fa',
+								}}
+							>
+								{Math.min(100, Math.round((maiAccount.usage.tokensUsed / (maiAccount.usage.limit || 1)) * 100))}%
+							</span>
+						) : null}
+					</button>
+				) : null}
 				<button
 					type="button"
 					className="ref-icon-tile ref-settings-btn"

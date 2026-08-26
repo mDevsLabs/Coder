@@ -50,7 +50,7 @@ import { getWorkspaceRootForWebContents } from '../workspace.js';
 import { getWorkspaceLspManagerForWebContents } from '../lspSessionsByWebContents.js';
 import { queueExtractMemories } from '../services/extractMemories/extractMemories.js';
 import { generateThreadTitle } from '../threadTitle.js';
-import { maiFetchUsage, recordMaiTokenUsage, syncMaiAccountWithToken, updateMaiAccountUsage } from '../maiAccountStore.js';
+import { checkMaiQuotaAvailable, recordMaiTokenUsage, syncMaiAccountWithToken } from '../maiAccountStore.js';
 import type { WebContents } from 'electron';
 
 /**
@@ -263,36 +263,12 @@ export function runChatStream(
 				return;
 			}
 
-			// Vérification du quota en direct pour le compte mAI
+			// Vérification du quota disponible avant de lancer la requête
 			if (resolved.providerId === 'mai' || resolved.baseURL?.includes('mai.val.run')) {
-				const jwt = settings.maiAccount?.jwtToken?.trim() || resolved.apiKey?.trim();
-				if (jwt) {
-					try {
-						const usage = await maiFetchUsage(jwt);
-						if (usage.ok) {
-							updateMaiAccountUsage({
-								tokensUsed: usage.tokensUsed,
-								limit: usage.limit,
-								resetAt: usage.resetAt,
-								weekStart: usage.weekStart,
-							});
-							if (usage.limit > 0 && usage.tokensUsed >= usage.limit) {
-								const resetStr = usage.resetAt
-									? new Date(usage.resetAt).toLocaleDateString('fr-FR', {
-											weekday: 'long',
-											day: 'numeric',
-											month: 'long',
-									  })
-									: 'prochainement';
-								emitStreamError(
-									`Votre quota hebdomadaire mAI est épuisé (${usage.tokensUsed.toLocaleString('fr-FR')} / ${usage.limit.toLocaleString('fr-FR')} tokens). Réinitialisation : ${resetStr}.`
-								);
-								return;
-							}
-						}
-					} catch (_) {
-						/* ignore network check errors to allow stream retry */
-					}
+				const quota = await checkMaiQuotaAvailable(settings, true);
+				if (!quota.available) {
+					emitStreamError(quota.message || 'Votre quota hebdomadaire mAI est épuisé.');
+					return;
 				}
 			}
 

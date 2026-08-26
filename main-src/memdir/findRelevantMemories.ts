@@ -5,6 +5,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import type { ShellSettings } from '../settingsStore.js';
 import { resolveModelRequest } from '../llm/modelResolve.js';
+import { checkMaiQuotaAvailable } from '../maiAccountStore.js';
 import {
 	applyAnthropicProviderIdentity,
 	applyOpenAIProviderIdentity,
@@ -300,7 +301,12 @@ export async function findRelevantMemories(
 		return [];
 	}
 	const resolved = resolveModelRequest(settings, modelSelection);
-	const runtime = resolved.ok
+	let isQuotaAvailable = true;
+	if (resolved.ok && (resolved.providerId === 'mai' || resolved.baseURL?.includes('mai.val.run'))) {
+		const quota = await checkMaiQuotaAvailable(settings, false);
+		isQuotaAvailable = quota.available;
+	}
+	const runtime = resolved.ok && isQuotaAvailable
 		? {
 			requestModelId: resolved.requestModelId,
 			paradigm: resolved.paradigm,
@@ -357,7 +363,12 @@ export async function buildRelevantMemoryContextBlock(params: {
 }): Promise<string> {
 	throwIfAborted(params.signal);
 	const resolved = resolveModelRequest(params.settings, params.modelSelection);
-	const runtime = resolved.ok
+	let isQuotaAvailable = true;
+	if (resolved.ok && (resolved.providerId === 'mai' || resolved.baseURL?.includes('mai.val.run'))) {
+		const quota = await checkMaiQuotaAvailable(params.settings, false);
+		isQuotaAvailable = quota.available;
+	}
+	const runtime = resolved.ok && isQuotaAvailable
 		? {
 			requestModelId: resolved.requestModelId,
 			paradigm: resolved.paradigm,

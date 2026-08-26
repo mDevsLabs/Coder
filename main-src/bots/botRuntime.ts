@@ -19,7 +19,7 @@ import { modeExpandsWorkspaceFileContext } from '../llm/workspaceContextExpand.j
 import { resolveMessagesForSend } from '../llm/sendResolved.js';
 import { loadMemoryPrompt } from '../memdir/memdir.js';
 import { type ShellSettings, getRecentWorkspaces, updateBotIntegrationFeishuTokens } from '../settingsStore.js';
-import { recordMaiTokenUsage } from '../maiAccountStore.js';
+import { checkMaiQuotaAvailable, recordMaiTokenUsage } from '../maiAccountStore.js';
 import { queueExtractMemories } from '../services/extractMemories/extractMemories.js';
 import {
 	recordSkillUsage,
@@ -1070,6 +1070,14 @@ async function runBotAsyncTask(args: RunBotAsyncTaskArgs): Promise<string> {
 			throw new Error(resolved.message);
 		}
 
+		// Vérification préventive du quota avant de lancer la tâche bot
+		if (resolved.providerId === 'mai' || resolved.baseURL?.includes('mai.val.run')) {
+			const quota = await checkMaiQuotaAvailable(settings, true);
+			if (!quota.available) {
+				throw new Error(quota.message || 'Votre quota hebdomadaire mAI est épuisé.');
+			}
+		}
+
 		const effectiveSettings: ShellSettings = {
 			...settings,
 			team: {
@@ -1386,6 +1394,14 @@ export async function runBotOrchestratorTurn(args: RunBotOrchestratorArgs): Prom
 	}
 	if (resolved.paradigm === 'gemini') {
 		throw new Error('当前机器人桥接层需要支持工具调用的模型。请为机器人切换到 OpenAI 兼容或 Anthropic 模型。');
+	}
+
+	// Vérification préventive du quota avant de lancer le tour d'orchestration
+	if (resolved.providerId === 'mai' || resolved.baseURL?.includes('mai.val.run')) {
+		const quota = await checkMaiQuotaAvailable(settings, true);
+		if (!quota.available) {
+			throw new Error(quota.message || 'Votre quota hebdomadaire mAI est épuisé.');
+		}
 	}
 
 	const handlers: Record<

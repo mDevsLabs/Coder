@@ -19,6 +19,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { MessageParam, ContentBlockParam } from '@anthropic-ai/sdk/resources/messages';
 import type { DeferredToolState } from '../threadStore.js';
 import type { ShellSettings, ModelRequestParadigm, ThinkingLevel } from '../settingsStore.js';
+import { checkMaiQuotaAvailable } from '../maiAccountStore.js';
 import {
 	assembleAgentToolPool,
 	assembleVisibleAgentToolPool,
@@ -563,6 +564,15 @@ export async function runAgentLoop(
 	console.log(
 		`[AgentLoop] after MCP prepare, before ${options.paradigm === 'anthropic' ? 'Anthropic' : 'OpenAI'} loop (${Date.now() - loopT0}ms since runAgentLoop enter) thread=${tid}`
 	);
+	// Vérification préventive du quota avant d'initier la boucle agent
+	if (options.requestProviderId === 'mai' || options.requestBaseURL?.includes('mai.val.run')) {
+		const quota = await checkMaiQuotaAvailable(settings, false);
+		if (!quota.available) {
+			handlers.onError(quota.message || 'Votre quota hebdomadaire mAI est épuisé.');
+			return;
+		}
+	}
+
 	switch (options.paradigm) {
 		case 'anthropic':
 			return runAnthropicLoop(settings, messagesForApi, options, handlers);
@@ -1988,7 +1998,7 @@ async function runAnthropicLoop(
 
 	console.log(`[AgentLoop/A] Anthropic loop ended — calling onDone`);
 	if (!accUsage || ((accUsage.inputTokens ?? 0) === 0 && (accUsage.outputTokens ?? 0) === 0)) {
-		let inputChars = systemPrompt.length;
+		let inputChars = typeof system === 'string' ? system.length : JSON.stringify(system).length;
 		for (const m of conversation) {
 			if (typeof m.content === 'string') inputChars += m.content.length;
 			else if (Array.isArray(m.content)) inputChars += JSON.stringify(m.content).length;

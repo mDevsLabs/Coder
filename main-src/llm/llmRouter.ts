@@ -6,6 +6,7 @@ import { streamOpenAICompatible } from './openaiAdapter.js';
 import type { StreamHandlers, UnifiedChatOptions } from './types.js';
 import { modeExpandsWorkspaceFileContext } from './workspaceContextExpand.js';
 import { resolveMessagesForSend, type SendableMessage } from './sendResolved.js';
+import { checkMaiQuotaAvailable } from '../maiAccountStore.js';
 
 /**
  * Agent 模式的多轮工具循环已由 agent/agentLoop.ts 实现。
@@ -19,6 +20,14 @@ export async function streamChatUnified(
 	options: UnifiedChatOptions,
 	handlers: StreamHandlers
 ): Promise<void> {
+	if (options.requestProviderId === 'mai' || options.requestBaseURL?.includes('mai.val.run')) {
+		const quota = await checkMaiQuotaAvailable(settings, false);
+		if (!quota.available) {
+			handlers.onError(quota.message || 'Votre quota hebdomadaire mAI est épuisé.');
+			return;
+		}
+	}
+
 	const forModel: SendableMessage[] = modeExpandsWorkspaceFileContext(options.mode)
 		? await resolveMessagesForSend(messages, options.workspaceRoot ?? null)
 		: messages.map((m) => ({ ...m }));

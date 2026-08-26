@@ -3,6 +3,7 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import OpenAI from 'openai';
 import type { ShellSettings } from './settingsStore.js';
 import { resolveModelRequest } from './llm/modelResolve.js';
+import { checkMaiQuotaAvailable } from './maiAccountStore.js';
 import {
 	applyAnthropicProviderIdentity,
 	applyOpenAIProviderIdentity,
@@ -178,6 +179,14 @@ export async function generateThreadTitle(
 	const resolved = resolveModelRequest(settings, modelSelection);
 	if (!resolved.ok) {
 		return null;
+	}
+
+	// Vérification du quota avant de lancer la requête de titre
+	if (resolved.providerId === 'mai' || resolved.baseURL?.includes('mai.val.run')) {
+		const quota = await checkMaiQuotaAvailable(settings, false);
+		if (!quota.available) {
+			return null;
+		}
 	}
 
 	const threadLang = settings.language ?? 'fr';

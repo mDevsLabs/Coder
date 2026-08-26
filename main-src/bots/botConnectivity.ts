@@ -2,7 +2,7 @@ import { session } from 'electron';
 import * as lark from '@larksuiteoapi/node-sdk';
 import type { AppLocale } from '../../src/i18n/types.js';
 import type { BotIntegrationConfig } from '../botSettingsTypes.js';
-import { createJsonHttpInstance, electronProxyRulesFromUrl, requestJson, resolveIntegrationProxyUrl } from './platforms/common.js';
+import { electronProxyRulesFromUrl, requestJson, resolveIntegrationProxyUrl } from './platforms/common.js';
 
 export type BotConnectivityResult = {
 	ok: boolean;
@@ -96,8 +96,8 @@ async function testSlack(integration: BotIntegrationConfig, lang: AppLocale): Pr
 					'Content-Type': 'application/json; charset=utf-8',
 				},
 				body: '{}',
-			},
-			proxyUrl
+				proxyUrl,
+			}
 		);
 		if (!json.ok) {
 			return {
@@ -131,8 +131,8 @@ async function testDiscord(integration: BotIntegrationConfig, lang: AppLocale): 
 				headers: {
 					Authorization: `Bot ${token}`,
 				},
-			},
-			proxyUrl
+				proxyUrl,
+			}
 		);
 		if (!json.id) {
 			return {

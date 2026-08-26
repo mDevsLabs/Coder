@@ -380,7 +380,7 @@ class BrowserCaptureMitmProxyService {
 		const target = resolveProxyTarget(clientReq, fallbackTarget);
 		if (!target) {
 			clientRes.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' });
-			clientRes.end('Async proxy could not resolve the target URL.');
+			clientRes.end('mAI Coder proxy could not resolve the target URL.');
 			return;
 		}
 		const hostId = this.ownerHostId;
@@ -453,7 +453,7 @@ class BrowserCaptureMitmProxyService {
 			recordCapture(null, {}, null, message);
 			if (!clientRes.headersSent) {
 				clientRes.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
-				clientRes.end('Async proxy upstream request failed.');
+				clientRes.end('mAI Coder proxy upstream request failed.');
 			} else {
 				clientRes.destroy();
 			}

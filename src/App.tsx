@@ -4457,6 +4457,8 @@ function AppMainWorkspaceInner() {
 				onEnterEditorLayout={() => void handleOpenEditorLayoutWindow()}
 				handleOpenSettingsGeneral={handleOpenSettingsGeneral}
 				handleOpenAutoUpdate={handleOpenAutoUpdate}
+				maiAccount={maiAccount}
+				onOpenMaiAccount={openMaiAccountModal}
 			/>
 
 			{isEditorHomeMode ? (
@@ -4465,6 +4467,8 @@ function AppMainWorkspaceInner() {
 					homeRecents={homeRecents}
 					onOpenWorkspacePicker={() => setWorkspacePickerOpen(true)}
 					onOpenWorkspacePath={(p) => void openWorkspaceByPath(p)}
+					maiAccount={maiAccount}
+					onOpenMaiAccount={openMaiAccountModal}
 				/>
 			) : (
 				<ShellWorkspaceGrid

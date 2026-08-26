@@ -105,12 +105,12 @@ function bindServerWithFallback(
 
 const SUCCESS_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Authorized</title>
 <style>body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#0f172a;color:#e2e8f0}main{text-align:center;padding:32px}</style>
-</head><body><main><h1>✓ Authorization complete</h1><p>You can close this window and return to Async.</p></main></body></html>`;
+</head><body><main><h1>✓ Authorization complete</h1><p>You can close this window and return to mAI Coder.</p></main></body></html>`;
 
 function errorHtml(reason: string): string {
 	return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Authorization failed</title>
 <style>body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#0f172a;color:#fecaca}main{text-align:center;padding:32px;max-width:600px}</style>
-</head><body><main><h1>Authorization failed</h1><p>${reason.replace(/[<>&]/g, '')}</p><p>You can close this window and try again from Async.</p></main></body></html>`;
+</head><body><main><h1>Authorization failed</h1><p>${reason.replace(/[<>&]/g, '')}</p><p>You can close this window and try again from mAI Coder.</p></main></body></html>`;
 }
 
 export async function runFeishuOauth(integration: BotIntegrationConfig): Promise<FeishuOauthResult> {

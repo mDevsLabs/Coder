@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import type { ShellSettings } from '../../settingsStore.js';
 import { resolveModelRequest } from '../../llm/modelResolve.js';
+import { checkMaiQuotaAvailable } from '../../maiAccountStore.js';
 import {
 	applyAnthropicProviderIdentity,
 	applyOpenAIProviderIdentity,
@@ -210,6 +211,12 @@ async function dialecticWithModel(
 ): Promise<ReturnType<typeof parseDialecticResponse>> {
 	const resolved = resolveModelRequest(settings, modelSelection);
 	if (!resolved.ok) return null;
+	if (resolved.providerId === 'mai' || resolved.baseURL?.includes('mai.val.run')) {
+		const quota = await checkMaiQuotaAvailable(settings, false);
+		if (!quota.available) {
+			return null;
+		}
+	}
 	return dialecticWithRuntimeModel(
 		{
 			requestModelId: resolved.requestModelId,

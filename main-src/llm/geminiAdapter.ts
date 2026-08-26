@@ -135,7 +135,7 @@ export async function streamGemini(
 			}
 		}
 		if (!usage || ((usage.inputTokens ?? 0) === 0 && (usage.outputTokens ?? 0) === 0)) {
-			let inputChars = (options.systemInstruction ?? '').length;
+			let inputChars = (systemInstruction ?? '').length;
 			for (const c of contents) {
 				inputChars += JSON.stringify(c).length;
 			}

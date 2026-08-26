@@ -114,7 +114,7 @@ export function SettingsTeamPanel({ value, onChange, modelEntries, modelProvider
 				ok: false,
 				repoPath: FALLBACK_BUILTIN_REPO_PATH,
 				experts: [],
-				error: 'Async shell is unavailable.',
+				error: 'mAI Coder shell is unavailable.',
 				loadedAt: Date.now(),
 			});
 			return () => {
