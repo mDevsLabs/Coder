@@ -7,8 +7,10 @@
     <link rel="icon" type="image/png" href="./favicon.png" />
     <script>
       (() => {
-        const COLOR_MODE_STORAGE_KEY = 'async:color-mode-v1';
-        const INITIAL_WINDOW_THEME_STORAGE_KEY = 'async:initial-window-theme-v1';
+        const COLOR_MODE_STORAGE_KEY = 'mai-coder:color-mode-v1';
+        const LEGACY_COLOR_MODE_STORAGE_KEY = 'async:color-mode-v1';
+        const INITIAL_WINDOW_THEME_STORAGE_KEY = 'mai-coder:initial-window-theme-v1';
+        const LEGACY_INITIAL_WINDOW_THEME_STORAGE_KEY = 'async:initial-window-theme-v1';
         const INITIAL_WINDOW_THEME_QUERY_PARAM = 'initialWindowTheme';
         const DEFAULTS = {
           dark: { backgroundColor: '#111111', foregroundColor: '#FCFCFC', accentColor: '#0169CC' },
@@ -72,7 +74,8 @@
             const params = new URLSearchParams(window.location.search);
             return (
               parseThemePayload(params.get(INITIAL_WINDOW_THEME_QUERY_PARAM)) ||
-              parseThemePayload(window.localStorage.getItem(INITIAL_WINDOW_THEME_STORAGE_KEY))
+              parseThemePayload(window.localStorage.getItem(INITIAL_WINDOW_THEME_STORAGE_KEY)) ||
+              parseThemePayload(window.localStorage.getItem(LEGACY_INITIAL_WINDOW_THEME_STORAGE_KEY))
             );
           } catch {
             return null;
@@ -83,7 +86,7 @@
         let colorMode = normalizeColorMode(payload?.colorMode);
         if (!payload) {
           try {
-            colorMode = normalizeColorMode(window.localStorage.getItem(COLOR_MODE_STORAGE_KEY));
+            colorMode = normalizeColorMode(window.localStorage.getItem(COLOR_MODE_STORAGE_KEY) || window.localStorage.getItem(LEGACY_COLOR_MODE_STORAGE_KEY));
           } catch {
             colorMode = 'dark';
           }
@@ -213,7 +216,7 @@
       @keyframes boot-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       @keyframes boot-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
     </style>
-    <script type="module" crossorigin src="./assets/index-CactmtTT.js"></script>
+    <script type="module" crossorigin src="./assets/index-2K3YONwf.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/markdown-BdcIOpox.js">
     <link rel="modulepreload" crossorigin href="./assets/charts-XgdcywhF.js">
     <link rel="modulepreload" crossorigin href="./assets/monaco-XTqzb4M9.js">

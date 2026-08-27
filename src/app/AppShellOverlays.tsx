@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { BrandLogo } from '../BrandLogo';
 import { ComposerAtMenu } from '../ComposerAtMenu';
+import { IconCheck } from '../icons';
 import {
 	ComposerPlusMenu,
 	type ComposerMode,
@@ -471,7 +472,11 @@ export const AppShellOverlays = memo(function AppShellOverlays({
 				onClose={closeSkillMenu}
 			/>
 
-			{saveToastVisible ? <div key={saveToastKey} className="ref-save-toast">Saved ✓</div> : null}
+			{saveToastVisible ? (
+				<div key={saveToastKey} className="ref-save-toast" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+					Saved <IconCheck />
+				</div>
+			) : null}
 			{subAgentBgToast ? (
 				subAgentBgToast.threadId && subAgentBgToast.agentId && onSubAgentToastClick ? (
 					<button

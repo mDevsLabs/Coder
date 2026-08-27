@@ -87,7 +87,7 @@ function roughTokenCount(value: unknown): number {
 }
 
 function threshold(options: AgentContextCompactionOptions): number {
-	const env = process.env.ASYNC_AGENT_CONTEXT_COMPACT_TOKENS?.trim();
+	const env = (process.env.MAI_CODER_AGENT_CONTEXT_COMPACT_TOKENS ?? process.env.ASYNC_AGENT_CONTEXT_COMPACT_TOKENS)?.trim();
 	if (env) {
 		const parsed = Number.parseInt(env, 10);
 		if (Number.isFinite(parsed) && parsed > 1_000) {

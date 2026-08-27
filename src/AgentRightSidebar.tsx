@@ -25,6 +25,7 @@ import {
 	IconSettings,
 	IconArrowUp,
 	IconArrowUpRight,
+	IconCheck,
 } from './icons';
 import type { TFunction } from './i18n';
 import type { PlanTodoItem, ParsedPlan } from './planParser';
@@ -377,7 +378,7 @@ function CommitModal({
 						>
 							<IconGitSCM />
 							<span>{t('app.commit')}</span>
-							{selectedAction === 'commit' && <span className="ref-commit-modal-check">✓</span>}
+							{selectedAction === 'commit' && <span className="ref-commit-modal-check"><IconCheck /></span>}
 						</button>
 						<button
 							type="button"
@@ -389,7 +390,7 @@ function CommitModal({
 						>
 							<IconArrowUp />
 							<span>{t('app.commitPush')}</span>
-							{selectedAction === 'commit-push' && <span className="ref-commit-modal-check">✓</span>}
+							{selectedAction === 'commit-push' && <span className="ref-commit-modal-check"><IconCheck /></span>}
 						</button>
 						<button
 							type="button"
@@ -408,7 +409,7 @@ function CommitModal({
 								<path d="M9.4 3.1 7.6 5.1l1.8 2" />
 							</svg>
 							<span>{t('app.commitAndCreatePR')}</span>
-							{selectedAction === 'commit-pr' && <span className="ref-commit-modal-check">✓</span>}
+							{selectedAction === 'commit-pr' && <span className="ref-commit-modal-check"><IconCheck /></span>}
 						</button>
 					</div>
 				</div>
@@ -608,8 +609,8 @@ const AgentRightSidebarPlanPanel = memo(function AgentRightSidebarPlanPanel({
 									{t('plan.review.build')}
 								</button>
 								{planReviewIsBuilt ? (
-									<span className="ref-agent-plan-built-chip" role="status">
-										{t('app.planEditorBuilt')}
+									<span className="ref-agent-plan-built-chip" role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+										<IconCheck /> {t('app.planEditorBuilt')}
 									</span>
 								) : null}
 							</div>

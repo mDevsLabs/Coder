@@ -23,7 +23,14 @@ function keyFor({ integrationId, conversationKey }: BotSessionPersistenceKey): s
 }
 
 export function initBotSessionStore(userData: string): void {
-	const dir = path.join(userData, 'async');
+	const dir = path.join(userData, 'mai');
+	const legacy = path.join(userData, 'async');
+	// Migration : copie legacy async -> mai si mai n'existe pas
+	if (!fs.existsSync(dir) && fs.existsSync(legacy)) {
+		try {
+			fs.cpSync(legacy, dir, { recursive: true });
+		} catch {}
+	}
 	try {
 		fs.mkdirSync(dir, { recursive: true });
 	} catch {

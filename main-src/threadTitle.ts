@@ -68,15 +68,9 @@ function clipRuleContext(input: string): string {
 	return sliceByCodePoints(normalized, MAX_RULE_CONTEXT_CODEPOINTS);
 }
 
-function buildThreadTitleSystemPrompt(ruleContext: string, language?: string): string {
+function buildThreadTitleSystemPrompt(ruleContext: string, _language?: string): string {
 	const clippedRules = clipRuleContext(ruleContext);
-	const lang = language ?? 'fr';
-	const langInstruction =
-		lang === 'fr'
-			? 'Générez le titre en français (ou dans la langue principale de la requête de l\'utilisateur si elle est différente).'
-			: lang === 'zh-CN'
-			? '请使用简体中文生成标题（除非用户明确使用其他语言提问）。'
-			: 'Generate the title in English (or the primary language of the user prompt).';
+	const langInstruction = 'Générez le titre dans la langue principale de la requête utilisateur (par défaut en français si la langue est indéterminée).';
 
 	if (!clippedRules) {
 		return [

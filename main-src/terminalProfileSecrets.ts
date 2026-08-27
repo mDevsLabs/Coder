@@ -9,7 +9,7 @@ type SecretStoreShape = {
 const runtimePasswords = new Map<string, string>();
 
 function getSecretsFilePath(): string {
-	return path.join(app.getPath('userData'), 'async', 'terminal-profile-secrets.json');
+	return path.join(app.getPath('userData'), 'mai', 'terminal-profile-secrets.json');
 }
 
 function readSecretStore(): SecretStoreShape {

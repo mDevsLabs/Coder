@@ -1,4 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { BrandLogo } from './BrandLogo';
+import {
+	IconAlertTriangle,
+	IconCalendar,
+	IconCheckCircle,
+	IconClock,
+	IconCloseSmall,
+	IconEye,
+	IconEyeOff,
+	IconLock,
+	IconLogOut,
+	IconMail,
+	IconRefresh,
+	IconUser,
+} from './icons';
 import { useI18n } from './i18n';
 import type { MaiAccountState } from './ipcTypes';
 
@@ -247,23 +262,7 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 					}}
 				>
 					<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-						<div
-							style={{
-								width: 32,
-								height: 32,
-								borderRadius: 10,
-								background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								fontWeight: 800,
-								fontSize: 15,
-								color: '#fff',
-								boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
-							}}
-						>
-							m
-						</div>
+						<BrandLogo size={32} aria-label="mAI Coder" />
 						<div>
 							<div style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.01em', color: '#fff' }}>
 								{isLoggedIn ? 'Compte mAI Coder' : 'Authentification mAI Coder'}
@@ -292,7 +291,7 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 						}}
 						title={t('common.close') || 'Fermer'}
 					>
-						✕
+						<IconCloseSmall />
 					</button>
 				</div>
 
@@ -313,7 +312,9 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 								fontSize: 13,
 							}}
 						>
-							<span style={{ fontSize: 16 }}>⚠️</span>
+							<span style={{ display: 'inline-flex', flexShrink: 0 }} aria-hidden>
+								<IconAlertTriangle />
+							</span>
 							<span style={{ flex: 1 }}>{error}</span>
 						</div>
 					) : null}
@@ -333,7 +334,9 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 								fontSize: 13,
 							}}
 						>
-							<span style={{ fontSize: 16 }}>✅</span>
+							<span style={{ display: 'inline-flex', flexShrink: 0 }} aria-hidden>
+								<IconCheckCircle />
+							</span>
 							<span style={{ flex: 1 }}>{successMsg}</span>
 						</div>
 					) : null}
@@ -466,7 +469,11 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 
 								<div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--fg-muted, #a1a1aa)', flexWrap: 'wrap', gap: 6 }}>
 									<span><strong>{formattedTokens}</strong> / {formattedLimit} tokens</span>
-									{resetDateStr ? <span>📅 Reset : {resetDateStr}</span> : null}
+									{resetDateStr ? (
+										<span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+											<IconCalendar /> Reset : {resetDateStr}
+										</span>
+									) : null}
 								</div>
 							</div>
 
@@ -490,7 +497,15 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 										gap: 6,
 									}}
 								>
-									{loading ? '⏳ Actualisation…' : '🔄 ' + (t('common.refresh') || 'Actualiser')}
+									{loading ? (
+										<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+											<IconClock /> Actualisation…
+										</span>
+									) : (
+										<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+											<IconRefresh /> {t('common.refresh') || 'Actualiser'}
+										</span>
+									)}
 								</button>
 								<button
 									type="button"
@@ -509,7 +524,7 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 										gap: 6,
 									}}
 								>
-									🚪 {t('mai.logout') || 'Se déconnecter'}
+									<IconLogOut /> {t('mai.logout') || 'Se déconnecter'}
 								</button>
 							</div>
 						</div>
@@ -532,11 +547,11 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 										display: 'flex',
 										alignItems: 'center',
 										justifyContent: 'center',
-										fontSize: 24,
+										color: '#60a5fa',
 										margin: '0 auto 14px',
 									}}
 								>
-									✉️
+									<IconMail />
 								</div>
 								<h3 style={{ fontSize: 17, fontWeight: 700, margin: '0 0 6px', color: '#fff' }}>
 									Vérification par email
@@ -691,8 +706,8 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 											{t('mai.identifier') || 'Email ou nom d\'utilisateur'}
 										</label>
 										<div style={{ position: 'relative' }}>
-											<span style={{ position: 'absolute', left: 12, top: 11, fontSize: 15, opacity: 0.6 }}>
-												✉️
+											<span style={{ position: 'absolute', left: 12, top: 11, opacity: 0.6, display: 'inline-flex', color: 'var(--fg-muted, #a1a1aa)' }}>
+												<IconMail />
 											</span>
 											<input
 												type="text"
@@ -732,14 +747,25 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 													fontSize: 12,
 													cursor: 'pointer',
 													padding: 0,
+													display: 'inline-flex',
+													alignItems: 'center',
+													gap: 4,
 												}}
 											>
-												{showPassword ? 'Masquer 🙈' : 'Afficher 👁️'}
+												{showPassword ? (
+													<span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+														Masquer <IconEyeOff />
+													</span>
+												) : (
+													<span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+														Afficher <IconEye />
+													</span>
+												)}
 											</button>
 										</div>
 										<div style={{ position: 'relative' }}>
-											<span style={{ position: 'absolute', left: 12, top: 11, fontSize: 15, opacity: 0.6 }}>
-												🔒
+											<span style={{ position: 'absolute', left: 12, top: 11, opacity: 0.6, display: 'inline-flex', color: 'var(--fg-muted, #a1a1aa)' }}>
+												<IconLock />
 											</span>
 											<input
 												type={showPassword ? 'text' : 'password'}
@@ -790,8 +816,8 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 											{t('mai.email') || 'Adresse email'}
 										</label>
 										<div style={{ position: 'relative' }}>
-											<span style={{ position: 'absolute', left: 12, top: 11, fontSize: 15, opacity: 0.6 }}>
-												✉️
+											<span style={{ position: 'absolute', left: 12, top: 11, opacity: 0.6, display: 'inline-flex', color: 'var(--fg-muted, #a1a1aa)' }}>
+												<IconMail />
 											</span>
 											<input
 												type="email"
@@ -819,8 +845,8 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 											{t('mai.username') || 'Nom d\'utilisateur'}
 										</label>
 										<div style={{ position: 'relative' }}>
-											<span style={{ position: 'absolute', left: 12, top: 11, fontSize: 15, opacity: 0.6 }}>
-												👤
+											<span style={{ position: 'absolute', left: 12, top: 11, opacity: 0.6, display: 'inline-flex', color: 'var(--fg-muted, #a1a1aa)' }}>
+												<IconUser />
 											</span>
 											<input
 												type="text"
@@ -858,14 +884,25 @@ export function MaiAccountModal({ open, onClose, shell, account, onAccountChange
 													fontSize: 12,
 													cursor: 'pointer',
 													padding: 0,
+													display: 'inline-flex',
+													alignItems: 'center',
+													gap: 4,
 												}}
 											>
-												{showPassword ? 'Masquer 🙈' : 'Afficher 👁️'}
+												{showPassword ? (
+													<span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+														Masquer <IconEyeOff />
+													</span>
+												) : (
+													<span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+														Afficher <IconEye />
+													</span>
+												)}
 											</button>
 										</div>
 										<div style={{ position: 'relative' }}>
-											<span style={{ position: 'absolute', left: 12, top: 11, fontSize: 15, opacity: 0.6 }}>
-												🔒
+											<span style={{ position: 'absolute', left: 12, top: 11, opacity: 0.6, display: 'inline-flex', color: 'var(--fg-muted, #a1a1aa)' }}>
+												<IconLock />
 											</span>
 											<input
 												type={showPassword ? 'text' : 'password'}

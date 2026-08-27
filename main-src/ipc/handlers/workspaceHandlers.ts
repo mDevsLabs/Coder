@@ -28,13 +28,14 @@ import { senderWorkspaceRoot } from '../agentRuntime.js';
 
 const execFileAsync = promisify(execFile);
 
-type ExternalWorkspaceTool = 'vscode' | 'cursor' | 'antigravity' | 'explorer' | 'terminal';
+type ExternalWorkspaceTool = 'vscode' | 'cursor' | 'antigravity' | 'jetbrains' | 'explorer' | 'terminal';
 
 function isExternalWorkspaceTool(value: unknown): value is ExternalWorkspaceTool {
 	return (
 		value === 'vscode' ||
 		value === 'cursor' ||
 		value === 'antigravity' ||
+		value === 'jetbrains' ||
 		value === 'explorer' ||
 		value === 'terminal'
 	);
@@ -53,7 +54,7 @@ async function commandOnPath(command: string): Promise<boolean> {
 	}
 }
 
-function windowsEditorExecutableFallbacks(tool: Extract<ExternalWorkspaceTool, 'vscode' | 'cursor' | 'antigravity'>): string[] {
+function windowsEditorExecutableFallbacks(tool: Extract<ExternalWorkspaceTool, 'vscode' | 'cursor' | 'antigravity' | 'jetbrains'>): string[] {
 	if (process.platform !== 'win32') {
 		return [];
 	}
@@ -78,6 +79,22 @@ function windowsEditorExecutableFallbacks(tool: Extract<ExternalWorkspaceTool, '
 				localAppData ? path.join(localAppData, 'Programs', 'Antigravity', 'Antigravity.exe') : null,
 				programFiles ? path.join(programFiles, 'Antigravity', 'Antigravity.exe') : null,
 				programFilesX86 ? path.join(programFilesX86, 'Antigravity', 'Antigravity.exe') : null,
+			].filter((candidate): candidate is string => Boolean(candidate));
+		case 'jetbrains':
+			return [
+				// JetBrains Toolbox
+				localAppData ? path.join(localAppData, 'JetBrains', 'Toolbox', 'apps', 'IDEA-U', 'ch-0', 'bin', 'idea64.exe') : null,
+				localAppData ? path.join(localAppData, 'JetBrains', 'Toolbox', 'apps', 'WebStorm', 'ch-0', 'bin', 'webstorm64.exe') : null,
+				localAppData ? path.join(localAppData, 'JetBrains', 'Toolbox', 'apps', 'PyCharm-P', 'ch-0', 'bin', 'pycharm64.exe') : null,
+				// Installations directes
+				programFiles ? path.join(programFiles, 'JetBrains', 'IntelliJ IDEA', 'bin', 'idea64.exe') : null,
+				programFiles ? path.join(programFiles, 'JetBrains', 'WebStorm', 'bin', 'webstorm64.exe') : null,
+				programFiles ? path.join(programFiles, 'JetBrains', 'PyCharm', 'bin', 'pycharm64.exe') : null,
+				programFiles ? path.join(programFiles, 'JetBrains', 'PhpStorm', 'bin', 'phpstorm64.exe') : null,
+				programFiles ? path.join(programFiles, 'JetBrains', 'Rider', 'bin', 'rider64.exe') : null,
+				programFiles ? path.join(programFiles, 'JetBrains', 'CLion', 'bin', 'clion64.exe') : null,
+				programFiles ? path.join(programFiles, 'JetBrains', 'GoLand', 'bin', 'goland64.exe') : null,
+				programFilesX86 ? path.join(programFilesX86, 'JetBrains', 'IntelliJ IDEA', 'bin', 'idea64.exe') : null,
 			].filter((candidate): candidate is string => Boolean(candidate));
 		default:
 			return [];
@@ -129,18 +146,20 @@ async function spawnDetachedLaunch(
 }
 
 async function launchWorkspaceInExternalEditor(
-	tool: Extract<ExternalWorkspaceTool, 'vscode' | 'cursor' | 'antigravity'>,
+	tool: Extract<ExternalWorkspaceTool, 'vscode' | 'cursor' | 'antigravity' | 'jetbrains'>,
 	workspaceRoot: string,
 	targetPath?: string,
 	revealLine?: number
 ): Promise<boolean> {
-	const commandCandidates = {
+	const commandCandidates: Record<string, string[]> = {
 		vscode: ['code'],
 		cursor: ['cursor'],
 		antigravity: ['antigravity'],
-	}[tool];
+		jetbrains: ['idea', 'webstorm', 'pycharm', 'phpstorm', 'rider', 'clion', 'goland', 'jetbrains', 'jetbrains-toolbox'],
+	};
+	const candidates = commandCandidates[tool] ?? [];
 	const resolved = await resolveLaunchCommand([
-		...commandCandidates,
+		...candidates,
 		...windowsEditorExecutableFallbacks(tool),
 	]);
 	if (!resolved) {

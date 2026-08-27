@@ -127,26 +127,26 @@ describe('buildThreadTitleRuleAppend', () => {
 				],
 			},
 			workspaceRoot: null,
-			uiLanguage: 'zh-CN',
+			uiLanguage: 'fr' as unknown as string,
 		});
 
 		expect(block).toContain('Rule: Use Chinese');
 		expect(block).toContain('所有回答默认使用中文。');
-		expect(block).toContain('默认始终使用简体中文进行所有自然语言输出');
+		expect(block).toContain('Langue : suivre le prompt utilisateur');
 	});
 
 	it('includes imported workspace rule files', () => {
-		const root = mkdtempSync(join(tmpdir(), 'async-title-rules-'));
+		const root = mkdtempSync(join(tmpdir(), 'mai-title-rules-'));
 		mkdirSync(join(root, '.cursor', 'rules'), { recursive: true });
-		writeFileSync(join(root, '.cursor', 'rules', 'language.mdc'), '请默认使用日语回答。', 'utf8');
+		writeFileSync(join(root, '.cursor', 'rules', 'language.mdc'), 'Veuillez répondre en japonais par défaut.', 'utf8');
 
 		const block = buildThreadTitleRuleAppend({
 			agent: undefined,
 			workspaceRoot: root,
-			uiLanguage: 'zh-CN',
+			uiLanguage: 'fr' as unknown as string,
 		});
 
 		expect(block).toContain('Imported project rules');
-		expect(block).toContain('请默认使用日语回答。');
+		expect(block).toContain('Veuillez répondre en japonais par défaut.');
 	});
 });

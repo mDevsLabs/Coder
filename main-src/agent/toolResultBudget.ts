@@ -52,7 +52,7 @@ export function normalizeToolResultReplacementState(
 }
 
 export function resolveTurnToolResultBudgetChars(): number {
-	const raw = Number(process.env.ASYNC_TOOL_RESULT_BUDGET_CHARS ?? DEFAULT_TURN_RESULT_BUDGET_CHARS);
+	const raw = Number(process.env.MAI_CODER_TOOL_RESULT_BUDGET_CHARS ?? process.env.ASYNC_TOOL_RESULT_BUDGET_CHARS ?? DEFAULT_TURN_RESULT_BUDGET_CHARS);
 	if (!Number.isFinite(raw) || raw <= 0) {
 		return DEFAULT_TURN_RESULT_BUDGET_CHARS;
 	}

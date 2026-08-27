@@ -40,7 +40,7 @@ function isEnvTruthy(v: string | undefined): boolean {
 
 /** 对齐 CC `is1mContextDisabled`（env：`CLAUDE_CODE_DISABLE_1M_CONTEXT` → Async 前缀） */
 export function is1mContextDisabled(): boolean {
-	return isEnvTruthy(process.env.ASYNC_DISABLE_1M_CONTEXT);
+	return isEnvTruthy(process.env.MAI_CODER_DISABLE_1M_CONTEXT ?? process.env.ASYNC_DISABLE_1M_CONTEXT);
 }
 
 /** 对齐 CC `has1mContext` */
@@ -284,7 +284,7 @@ function heuristicContextWindowTokens(model: string, paradigm?: ModelRequestPara
  * 6. `MODEL_CONTEXT_WINDOW_DEFAULT`
  */
 export function getContextWindowForModel(model: string, opts?: ModelContextResolveOpts): number {
-	const envMax = process.env.ASYNC_MAX_CONTEXT_TOKENS?.trim();
+	const envMax = (process.env.MAI_CODER_MAX_CONTEXT_TOKENS ?? process.env.ASYNC_MAX_CONTEXT_TOKENS)?.trim();
 	if (envMax) {
 		const o = parseInt(envMax, 10);
 		if (!Number.isNaN(o) && o > 0) {
@@ -328,7 +328,7 @@ export function getEffectiveContextWindowSizeForCompress(
 ): number {
 	const reservedTokensForSummary = Math.min(maxOutputTokens, COMPACT_MAX_OUTPUT_TOKENS);
 	let contextWindow = getContextWindowForModel(model, opts);
-	const autoCompactWindow = process.env.ASYNC_CODE_AUTO_COMPACT_WINDOW?.trim();
+	const autoCompactWindow = (process.env.MAI_CODER_CODE_AUTO_COMPACT_WINDOW ?? process.env.ASYNC_CODE_AUTO_COMPACT_WINDOW)?.trim();
 	if (autoCompactWindow) {
 		const parsed = parseInt(autoCompactWindow, 10);
 		if (!Number.isNaN(parsed) && parsed > 0) {
@@ -353,7 +353,7 @@ export function getAutoCompactThresholdForSend(
 
 	const autocompactThreshold = effectiveContextWindow - AUTOCOMPACT_BUFFER_TOKENS;
 
-	const envPercent = process.env.ASYNC_AUTOCOMPACT_PCT_OVERRIDE?.trim();
+	const envPercent = (process.env.MAI_CODER_AUTOCOMPACT_PCT_OVERRIDE ?? process.env.ASYNC_AUTOCOMPACT_PCT_OVERRIDE)?.trim();
 	if (envPercent) {
 		const parsed = parseFloat(envPercent);
 		if (!Number.isNaN(parsed) && parsed > 0 && parsed <= 100) {

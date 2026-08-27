@@ -165,13 +165,9 @@ function buildBotSkillAppend(settings: ShellSettings, integration: BotIntegratio
 	}
 	const language = settings.language ?? 'fr';
 	const intro =
-		language === 'zh-CN'
-			? '以下是当前 Bot 独占的 Skills，只对这个接入生效。把它们当作这个 Bot 自带的专项工作流；如果用户显式写出 `./slug`，优先执行对应 Skill。'
-			: language === 'fr'
-			? 'Voici les compétences exclusives au bot. Elles appartiennent uniquement à cette intégration. Traitez-les comme des guides intégrés pour ce bot, et si l\'utilisateur écrit explicitement `./slug`, donnez la priorité à cette compétence correspondante.'
-			: 'These are bot-exclusive skills. They belong only to this integration. Treat them as built-in playbooks for this bot, and if the user explicitly writes `./slug`, prioritize that matching skill.';
+		'Voici les compétences exclusives au bot. Elles appartiennent uniquement à cette intégration. Traitez-les comme des guides intégrés pour ce bot, et si l\'utilisateur écrit explicitement `./slug`, donnez la priorité à cette compétence correspondante.';
 	return [
-		language === 'zh-CN' ? '## Bot 专属 Skills' : language === 'fr' ? '## Compétences exclusives au Bot' : '## Bot-exclusive Skills',
+		'## Compétences exclusives au Bot',
 		intro,
 		...skills.map((skill) =>
 			[
@@ -359,11 +355,7 @@ export function looksLikeQrLoginScreenshotResendRequest(text: string): boolean {
 }
 
 function defaultQrLoginReplyText(language: ShellSettings['language']): string {
-	return language === 'zh-CN'
-		? '二维码登录页面已经发给你了，请用手机扫码登录；完成后在这里回复“已登录”，我会继续执行。'
-		: language === 'fr'
-		? 'La page de connexion par QR code vous a été envoyée. Veuillez la scanner avec votre téléphone, puis répondez « connecté » ici pour continuer.'
-		: 'The QR login page has been sent. Please scan it with your phone, then reply "logged in" here and I will continue.';
+	return 'La page de connexion par QR code vous a été envoyée. Veuillez la scanner avec votre téléphone, puis répondez « connecté » ici pour continuer.';
 }
 
 export function buildQrLoginResumeUserTurn(
@@ -373,7 +365,7 @@ export function buildQrLoginResumeUserTurn(
 ): string {
 	const followup =
 		String(userText ?? '').trim() ||
-		(language === 'zh-CN' ? '已登录' : language === 'fr' ? 'connecté' : 'logged in');
+		('connecté');
 	const lines =
 		language === 'zh-CN'
 			? [
@@ -810,26 +802,10 @@ export function buildBotOrchestratorPrompt(
 	const botSkillAppend = buildBotSkillAppend(settings, integration);
 	const globalRuleAppend = buildAgentGlobalRuleAppend(settings.agent, language);
 	const lines = [
-		language === 'zh-CN'
-			? '你是 mAI Coder 的全局 Leader Bot。你直接管理整个 mAI Coder 应用、它的工具能力以及内部 worker 会话。'
-			: language === 'fr'
-			? 'Vous êtes le bot Leader global de mAI Coder. Vous gérez directement l\'application mAI Coder, ses outils et ses sessions de travail.'
-			: 'You are the mAI Coder global leader bot. You directly manage the mAI Coder app, its tools, and its worker sessions.',
-		language === 'zh-CN'
-			? '这个 Leader 循环用于应用级调度。它可以直接使用应用/浏览器控制工具，以及下面的 bot 会话工具。'
-			: language === 'fr'
-			? 'Cette boucle Leader est dédiée à l\'orchestration au niveau de l\'application. Elle peut utiliser directement les outils de l\'application/navigateur ainsi que les outils de session bot ci-dessous.'
-			: 'This leader loop is for app-level orchestration. It can directly use app/browser controls plus the custom bot session tools below.',
-		language === 'zh-CN'
-			? '你的首要目标是快速、直接地回答用户。默认优先使用自己的工具（Read、Grep、Glob、Browser、BrowserCapture、Terminal）直接回答，不要动不动就派 worker。当用户明确要求派发一个异步子任务时，使用 Task* 系列（TaskCreate / TaskList / TaskGet / TaskOutput / TaskUpdate / TaskStop）。'
-			: language === 'fr'
-			? 'Votre priorité est de répondre rapidement et directement à l\'utilisateur. Utilisez par défaut vos propres outils (Read, Grep, Glob, Browser, BrowserCapture, Terminal) pour répondre sans lancer un worker. Utilisez la famille Task* (TaskCreate / TaskList / TaskGet / TaskOutput / TaskUpdate / TaskStop) lorsque l\'utilisateur demande explicitement une tâche asynchrone.'
-			: 'Your priority is fast, direct answers. Default to using your own tools (Read, Grep, Glob, Browser, BrowserCapture, Terminal) to answer the user without spawning a worker. Use the Task* family (TaskCreate / TaskList / TaskGet / TaskOutput / TaskUpdate / TaskStop) when the user explicitly asks to fire a sub-agent task that runs asynchronously.',
-		language === 'zh-CN'
-			? '只有在任务需要写文件、改文件、跑构建/测试、多文件重构、或长链路流程时，才使用 run_async_task。直接的 shell 或 SSH 会话操作可以直接用 Terminal 在当前回合完成。'
-			: language === 'fr'
-			? 'Utilisez run_async_task UNIQUEMENT lorsque la tâche nécessite des écritures/modifications, des builds/tests, des refactorisations multi-fichiers ou des flux longs. Les opérations shell directes peuvent utiliser Terminal sur place.'
-			: 'Use run_async_task ONLY when the task requires Writes/Edits, builds/tests, multi-file refactors, or long-running workflows. Direct shell or SSH session work may use Terminal in-place.',
+		'Vous êtes le bot Leader global de mAI Coder. Vous gérez directement l\'application mAI Coder, ses outils et ses sessions de travail.',
+		'Cette boucle Leader est dédiée à l\'orchestration au niveau de l\'application. Elle peut utiliser directement les outils de l\'application/navigateur ainsi que les outils de session bot ci-dessous.',
+		'Votre priorité est de répondre rapidement et directement à l\'utilisateur. Utilisez par défaut vos propres outils (Read, Grep, Glob, Browser, BrowserCapture, Terminal) pour répondre sans lancer un worker. Utilisez la famille Task* (TaskCreate / TaskList / TaskGet / TaskOutput / TaskUpdate / TaskStop) lorsque l\'utilisateur demande explicitement une tâche asynchrone.',
+		'Utilisez run_async_task UNIQUEMENT lorsque la tâche nécessite des écritures/modifications, des builds/tests, des refactorisations multi-fichiers ou des flux longs. Les opérations shell directes peuvent utiliser Terminal sur place.',
 		language === 'en'
 			? 'For saved SSH profiles, prefer Terminal exec for one-shot remote commands. Use open + write/read only when you need a persistent interactive terminal session.'
 			: '对于已保存的 SSH profile，单次远程命令优先使用 Terminal exec；只有在需要持续交互的终端会话时，才使用 open + write/read。',

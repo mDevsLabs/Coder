@@ -1,30 +1,47 @@
 import { memo, useState } from 'react';
 import type { ToolCallSegment } from './agentChatSegments';
 import { useI18n } from './i18n';
+import {
+	IconBookOpen,
+	IconDoc,
+	IconPencil,
+	IconFolderOpen,
+	IconExplorer,
+	IconSearch,
+	IconTerminal,
+	IconPlug,
+	IconTeam,
+	IconMessageCircle,
+	IconListFilter,
+	IconWrench,
+	IconGlobe,
+	IconCheck,
+	IconX,
+} from './icons';
 
-const TOOL_ICONS: Record<string, string> = {
-	Read: '📖',
-	read_file: '📖',
-	Write: '📝',
-	write_to_file: '📝',
-	Edit: '✏️',
-	str_replace: '✏️',
-	Glob: '📂',
-	list_dir: '📁',
-	Grep: '🔍',
-	LSP: '🔎',
-	get_diagnostics: '🔎',
-	search_files: '🔍',
-	Bash: '⚡',
-	execute_command: '⚡',
-	ListMcpResourcesTool: '📎',
-	ReadMcpResourceTool: '📎',
-	ToolSearch: '🧭',
-	Agent: '🤖',
-	delegate_task: '🤖',
-	Task: '🤖',
-	request_user_input: '💬',
-	TodoWrite: '📋',
+const TOOL_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+	Read: IconBookOpen,
+	read_file: IconBookOpen,
+	Write: IconDoc,
+	write_to_file: IconDoc,
+	Edit: IconPencil,
+	str_replace: IconPencil,
+	Glob: IconFolderOpen,
+	list_dir: IconExplorer,
+	Grep: IconSearch,
+	LSP: IconSearch,
+	get_diagnostics: IconSearch,
+	search_files: IconSearch,
+	Bash: IconTerminal,
+	execute_command: IconTerminal,
+	ListMcpResourcesTool: IconPlug,
+	ReadMcpResourceTool: IconPlug,
+	ToolSearch: IconGlobe,
+	Agent: IconTeam,
+	delegate_task: IconTeam,
+	Task: IconTeam,
+	request_user_input: IconMessageCircle,
+	TodoWrite: IconListFilter,
 };
 
 function summarizeArgs(name: string, args: Record<string, unknown>): string {
@@ -92,7 +109,7 @@ type Props = {
 export const AgentToolCard = memo(function AgentToolCard({ segment }: Props) {
 	const { t } = useI18n();
 	const [expanded, setExpanded] = useState(false);
-	const icon = TOOL_ICONS[segment.name] ?? '🔧';
+	const IconComp = TOOL_ICON_MAP[segment.name] ?? IconWrench;
 	const toolKey = `agent.tool.${segment.name}`;
 	const translated = t(toolKey);
 	const label = translated !== toolKey ? translated : segment.name;
@@ -108,12 +125,14 @@ export const AgentToolCard = memo(function AgentToolCard({ segment }: Props) {
 				onClick={() => setExpanded((e) => !e)}
 				aria-expanded={expanded}
 			>
-				<span className="ref-tool-card-icon">{icon}</span>
+				<span className="ref-tool-card-icon" aria-hidden>
+					<IconComp />
+				</span>
 				<span className="ref-tool-card-label">{label}</span>
 				<span className="ref-tool-card-summary" title={summary}>{summary}</span>
 				{hasResult && (
-					<span className={`ref-tool-card-status ${isSuccess ? 'ref-tool-card-status--ok' : 'ref-tool-card-status--err'}`}>
-						{isSuccess ? '✓' : '✗'}
+					<span className={`ref-tool-card-status ${isSuccess ? 'ref-tool-card-status--ok' : 'ref-tool-card-status--err'}`} aria-label={isSuccess ? 'success' : 'error'}>
+						{isSuccess ? <IconCheck /> : <IconX />}
 					</span>
 				)}
 				{!hasResult && <span className="ref-tool-card-spinner" />}

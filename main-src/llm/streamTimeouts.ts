@@ -22,7 +22,7 @@ export type StreamTimeoutConfig = {
 };
 
 export function resolveStreamTimeouts(settings: ShellSettings): StreamTimeoutConfig {
-	const w = process.env.ASYNC_AGENT_STREAM_WATCHDOG?.trim().toLowerCase();
+	const w = (process.env.MAI_CODER_AGENT_STREAM_WATCHDOG ?? process.env.ASYNC_AGENT_STREAM_WATCHDOG)?.trim().toLowerCase();
 	let idleWatchdogEnabled: boolean;
 	if (w !== undefined && w !== '') {
 		idleWatchdogEnabled = !(w === '0' || w === 'false' || w === 'off' || w === 'no');
@@ -30,7 +30,7 @@ export function resolveStreamTimeouts(settings: ShellSettings): StreamTimeoutCon
 		idleWatchdogEnabled = settings.agent?.streamIdleWatchdogEnabled !== false;
 	}
 
-	const idleEnv = parseInt(process.env.ASYNC_AGENT_STREAM_IDLE_MS || '', 10);
+	const idleEnv = parseInt((process.env.MAI_CODER_AGENT_STREAM_IDLE_MS ?? process.env.ASYNC_AGENT_STREAM_IDLE_MS) || '', 10);
 	const idleMs =
 		Number.isFinite(idleEnv) && idleEnv > 0
 			? idleEnv
@@ -38,7 +38,7 @@ export function resolveStreamTimeouts(settings: ShellSettings): StreamTimeoutCon
 				? settings.agent.streamIdleTimeoutMs
 				: DEFAULT_STREAM_IDLE_MS;
 
-	const hardEnv = parseInt(process.env.ASYNC_AGENT_ROUND_HARD_MS || '', 10);
+	const hardEnv = parseInt((process.env.MAI_CODER_AGENT_ROUND_HARD_MS ?? process.env.ASYNC_AGENT_ROUND_HARD_MS) || '', 10);
 	const hardMsRaw =
 		Number.isFinite(hardEnv) && hardEnv > 0
 			? hardEnv

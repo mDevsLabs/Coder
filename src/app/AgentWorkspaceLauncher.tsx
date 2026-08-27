@@ -11,8 +11,9 @@ import {
 
 const launcherImageByTool: Partial<Record<WorkspaceLauncherTool, string>> = {
 	vscode: new URL('../../resources/icons/vscode_icon.png', import.meta.url).href,
-	cursor: new URL('../../resources/icons/cursor_icon.png', import.meta.url).href,
-	antigravity: new URL('../../resources/icons/antigravity_icon.png', import.meta.url).href,
+	cursor: new URL('../../resources/icons/cursor.png', import.meta.url).href,
+	antigravity: new URL('../../resources/icons/antigravity.png', import.meta.url).href,
+	jetbrains: new URL('../../resources/icons/jetbrains.png', import.meta.url).href,
 	explorer: new URL('../../resources/icons/file_explore_icon.png', import.meta.url).href,
 };
 
@@ -54,6 +55,15 @@ function IconAntigravityApp({ className }: { className?: string }) {
 	);
 }
 
+function IconJetBrainsApp({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+			<rect x="4.5" y="4.5" width="15" height="15" rx="2" fill="currentColor" />
+			<path d="M7.5 12h9M12 7.5v9" stroke="var(--void-bg-0)" strokeWidth="1.8" strokeLinecap="round" />
+		</svg>
+	);
+}
+
 function IconTerminalApp({ className }: { className?: string }) {
 	return (
 		<svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -82,6 +92,8 @@ function vectorIconForTool(tool: WorkspaceLauncherTool) {
 			return IconCursorApp;
 		case 'antigravity':
 			return IconAntigravityApp;
+		case 'jetbrains':
+			return IconJetBrainsApp;
 		case 'explorer':
 			return IconExplorer;
 		case 'terminal':

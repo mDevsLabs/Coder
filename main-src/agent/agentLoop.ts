@@ -161,7 +161,7 @@ function yieldForToolInputStreamUi(toolName: string): Promise<void> {
 const DEFAULT_MAX_STREAMING_TOOL_ARG_CHARS = 2_000_000;
 
 function maxStreamingToolArgChars(): number {
-	const raw = process.env.ASYNC_MAX_STREAMING_TOOL_ARG_CHARS?.trim();
+	const raw = (process.env.MAI_CODER_MAX_STREAMING_TOOL_ARG_CHARS ?? process.env.ASYNC_MAX_STREAMING_TOOL_ARG_CHARS)?.trim();
 	const n = raw ? Number.parseInt(raw, 10) : NaN;
 	return Number.isFinite(n) && n > 10_000 ? n : DEFAULT_MAX_STREAMING_TOOL_ARG_CHARS;
 }
@@ -170,7 +170,7 @@ function maxStreamingToolArgChars(): number {
  * 未配置时为 `null`（不限制）。
  */
 function resolveAgentMaxRounds(settings: ShellSettings): number | null {
-	const raw = process.env.ASYNC_AGENT_MAX_ROUNDS?.trim();
+	const raw = (process.env.MAI_CODER_AGENT_MAX_ROUNDS ?? process.env.ASYNC_AGENT_MAX_ROUNDS)?.trim();
 	if (raw !== undefined && raw !== '') {
 		const lower = raw.toLowerCase();
 		if (lower === '0' || lower === 'unlimited' || lower === 'off' || lower === 'infinity') {

@@ -1190,20 +1190,9 @@ export function SettingsPage({
 								<div className="ref-settings-field ref-settings-field--language">
 									<span>{t('settings.language')}</span>
 									<p className="ref-settings-proxy-hint">{t('settings.languageHint')}</p>
-									<VoidSelect
-										ariaLabel={t('settings.language')}
-										value={locale}
-										onChange={(next) => {
-											const v = next === 'en' ? 'en' : next === 'zh-CN' ? 'zh-CN' : 'fr';
-											setLocale(v);
-											onPersistLanguage?.(v);
-										}}
-										options={[
-											{ value: 'fr', label: t('settings.languageFr') },
-											{ value: 'en', label: t('settings.languageEn') },
-											{ value: 'zh-CN', label: t('settings.languageZh') },
-										]}
-									/>
+									<div className="ref-settings-language-fixed" aria-label={t('settings.language')}>
+										{t('settings.languageFr')}
+									</div>
 								</div>
 
 								{/* Section Compte mAI & Usage */}

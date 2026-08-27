@@ -67,13 +67,13 @@ export type UseSettingsPersistenceResult = {
 };
 
 /**
- * 设置项的 IPC 持久化与窗口可用性探测。
+ * Persistance IPC des paramètres et détection de disponibilité des fenêtres.
  *
- * 行为与原 App.tsx 完全一致：
- *  - colorMode 写入同时写 localStorage、IPC 与 transition origin（用户驱动 vs 系统驱动）；
- *  - persistSettings 把所有 settings slice 一次性写入 main 进程；
- *  - layout window availability 在 mount / workspace 变化 / window focus / visibilitychange 时刷新；
- *  - closeSettingsPage 先 persist 再关闭面板（finally 保证关）。
+ * Comportement identique à l'ancien App.tsx :
+ *  - colorMode écrit en localStorage, IPC et origine de transition ;
+ *  - persistSettings écrit tous les slices de settings en une fois vers le processus main ;
+ *  - disponibilité des fenêtres rafraîchie au mount / changement workspace / focus / visibilitychange ;
+ *  - closeSettingsPage ferme l'UI puis persiste sur disque.
  */
 export function useSettingsPersistence(
 	params: UseSettingsPersistenceParams
@@ -265,7 +265,7 @@ export function useSettingsPersistence(
 		[shell, setBotIntegrations]
 	);
 
-	/** 离开设置页时立即关闭 UI，再把最新设置写入磁盘。 */
+	/** Ferme la page de paramètres puis persiste les réglages sur disque. */
 	const closeSettingsPage = useCallback(async () => {
 		setSettingsPageOpen(false);
 		try {

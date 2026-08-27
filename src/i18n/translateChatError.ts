@@ -1,19 +1,17 @@
 import type { TFunction } from './types';
 
-/** 是否与 App 写入的 `app.errorPrefix` 助手气泡一致（易读样式 / 避免 Agent 解析漏字） */
+/** Vérifie si la ligne correspond à une bulle d'erreur `app.errorPrefix` (compat ancien format) */
 export function isChatAssistantErrorLine(content: string, t: TFunction): boolean {
 	const prefix = t('app.errorPrefix', { message: '' });
 	return (
 		content.startsWith(prefix) ||
 		content.startsWith('Erreur : ') ||
 		content.startsWith('Erreur: ') ||
-		content.startsWith('Error: ') ||
-		content.startsWith('错误：') ||
-		content.startsWith('错误:')
+		content.startsWith('Error: ')
 	);
 }
 
-/** 主进程 / Agent 循环发出的固定中文错误 → 词典 key */
+/** Erreurs fixes émises par le processus principal / boucle Agent (ancien texte chinois) → clé de dictionnaire */
 const CHAT_ERROR_TO_KEY: Record<string, string> = {
 	'未配置 OpenAI 兼容 API Key。请在设置 → Models → API Keys 中填写。': 'errors.noOpenAIKey',
 	'未配置 Anthropic API Key。请在设置 → Models → API Keys 中填写。': 'errors.noAnthropicKey',

@@ -7,8 +7,10 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <script>
       (() => {
-        const COLOR_MODE_STORAGE_KEY = 'async:color-mode-v1';
-        const INITIAL_WINDOW_THEME_STORAGE_KEY = 'async:initial-window-theme-v1';
+        const COLOR_MODE_STORAGE_KEY = 'mai-coder:color-mode-v1';
+        const LEGACY_COLOR_MODE_STORAGE_KEY = 'async:color-mode-v1';
+        const INITIAL_WINDOW_THEME_STORAGE_KEY = 'mai-coder:initial-window-theme-v1';
+        const LEGACY_INITIAL_WINDOW_THEME_STORAGE_KEY = 'async:initial-window-theme-v1';
         const INITIAL_WINDOW_THEME_QUERY_PARAM = 'initialWindowTheme';
         const DEFAULTS = {
           dark: { backgroundColor: '#111111', foregroundColor: '#FCFCFC', accentColor: '#0169CC' },
@@ -72,7 +74,8 @@
             const params = new URLSearchParams(window.location.search);
             return (
               parseThemePayload(params.get(INITIAL_WINDOW_THEME_QUERY_PARAM)) ||
-              parseThemePayload(window.localStorage.getItem(INITIAL_WINDOW_THEME_STORAGE_KEY))
+              parseThemePayload(window.localStorage.getItem(INITIAL_WINDOW_THEME_STORAGE_KEY)) ||
+              parseThemePayload(window.localStorage.getItem(LEGACY_INITIAL_WINDOW_THEME_STORAGE_KEY))
             );
           } catch {
             return null;
@@ -83,7 +86,7 @@
         let colorMode = normalizeColorMode(payload?.colorMode);
         if (!payload) {
           try {
-            colorMode = normalizeColorMode(window.localStorage.getItem(COLOR_MODE_STORAGE_KEY));
+            colorMode = normalizeColorMode(window.localStorage.getItem(COLOR_MODE_STORAGE_KEY) || window.localStorage.getItem(LEGACY_COLOR_MODE_STORAGE_KEY));
           } catch {
             colorMode = 'dark';
           }

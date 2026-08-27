@@ -7,7 +7,7 @@ import {
 } from './gitAvailability';
 
 describe('gitAvailability', () => {
-	const t = createTranslate('en');
+	const t = createTranslate('fr');
 
 	it('classifies missing Git distinctly', () => {
 		expect(classifyGitUnavailableReason('Git is not installed')).toBe('missing');
@@ -24,22 +24,22 @@ describe('gitAvailability', () => {
 
 	it('returns missing-git copy that tells the user to install Git first', () => {
 		expect(gitUnavailableCopy(t, 'missing')).toEqual({
-			title: 'Git is not installed',
-			body: 'Install Git first, then reopen or refresh this workspace to enable Source Control here.',
+			title: t('app.gitMissingTitle'),
+			body: t('app.gitMissingBody'),
 		});
 	});
 
 	it('returns non-repo copy that explains how to enable source control', () => {
 		expect(gitUnavailableCopy(t, 'not_repo')).toEqual({
-			title: 'This folder is not a Git repository',
-			body: 'Open a folder that already contains a Git repository, or initialize Git in this folder to use Source Control here.',
+			title: t('app.gitNotRepoTitle'),
+			body: t('app.gitNotRepoBody'),
 		});
 	});
 
 	it('returns trigger titles that match the classified state', () => {
-		expect(gitBranchTriggerTitle(t, true, 'none')).toBe('Switch or create branch');
-		expect(gitBranchTriggerTitle(t, false, 'missing')).toBe('Install Git first to enable branch features');
-		expect(gitBranchTriggerTitle(t, false, 'not_repo')).toBe('Current workspace is not a Git repository');
-		expect(gitBranchTriggerTitle(t, false, 'error')).toBe('Git features are unavailable right now');
+		expect(gitBranchTriggerTitle(t, true, 'none')).toBe(t('git.branchPicker.triggerTitle'));
+		expect(gitBranchTriggerTitle(t, false, 'missing')).toBe(t('git.branchPicker.gitMissing'));
+		expect(gitBranchTriggerTitle(t, false, 'not_repo')).toBe(t('git.branchPicker.notRepo'));
+		expect(gitBranchTriggerTitle(t, false, 'error')).toBe(t('git.branchPicker.unavailable'));
 	});
 });

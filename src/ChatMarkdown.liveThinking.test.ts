@@ -13,7 +13,7 @@ function renderChatMarkdown(props: ComponentProps<typeof ChatMarkdown>): string 
 	return renderToStaticMarkup(
 		React.createElement(
 			I18nProvider,
-			{ initialLocale: 'zh-CN' },
+			{ initialLocale: 'fr' },
 			React.createElement(ChatMarkdown, props)
 		)
 	);
@@ -62,8 +62,8 @@ describe('ChatMarkdown live thinking status', () => {
 		});
 
 		expect(html).toContain('ref-live-thinking-status');
-		expect(html).toContain('正在思考');
-		expect(html).toContain('我正在整理结果');
+		expect(html).toContain('flexion');
+		expect(html).toContain('正在整理结果');
 		expect(html).not.toContain('ref-preflight-thinking');
 		expect(html).not.toContain('ref-thought-block');
 		expect(html).not.toContain('Inspect the current UI state');
@@ -95,7 +95,7 @@ describe('ChatMarkdown live thinking status', () => {
 		});
 
 		expect(html).toContain('ref-live-thinking-status');
-		expect(html).toContain('正在思考');
+		expect(html).toContain('flexion');
 		expect(html).not.toContain('ref-thought-block');
 		expect(html).not.toContain('Inspect the current UI state');
 		expect(html).not.toContain('Prepare the final response');

@@ -17,7 +17,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 export function isAiBrowserEnabledForThisLaunch(): boolean {
-	if (process.env.ASYNC_AI_BROWSER === '0' || process.env.VOID_AI_BROWSER === '0') {
+	if ((process.env.MAI_CODER_AI_BROWSER ?? process.env.ASYNC_AI_BROWSER) === '0' || process.env.VOID_AI_BROWSER === '0') {
 		return false;
 	}
 	return true;

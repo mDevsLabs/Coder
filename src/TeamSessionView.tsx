@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import { ChatMarkdown } from './ChatMarkdown';
 import { TeamExpertCard } from './TeamExpertCard';
 import { TeamRoleAvatar } from './TeamRoleAvatar';
+import { IconAlertTriangle, IconCheckCircle } from './icons';
 import type { TFunction } from './i18n';
 import type { TeamSessionState } from './hooks/useTeamSession';
 
@@ -120,7 +121,10 @@ export const TeamSessionView = memo(function TeamSessionView({ t, session, onSel
 			{/* Review summary */}
 			{session.reviewVerdict ? (
 				<div className={`ref-team-review-summary ref-team-review--${session.reviewVerdict}`}>
-					<strong>{session.reviewVerdict === 'approved' ? '✅' : '⚠️'} {t('team.phase.reviewing')}</strong>
+					<strong style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+						{session.reviewVerdict === 'approved' ? <IconCheckCircle /> : <IconAlertTriangle />}
+						{t('team.phase.reviewing')}
+					</strong>
 					<ChatMarkdown content={session.reviewSummary} />
 				</div>
 			) : null}

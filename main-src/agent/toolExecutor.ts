@@ -3305,7 +3305,7 @@ async function executeAgentDelegate(call: ToolCall, execCtx: ToolExecutionContex
 	const prevCtx = _delegateContext!;
 	const useBackgroundFork = shouldRunAgentInBackground({
 		backgroundForkAgentSetting: prevCtx.settings.agent?.backgroundForkAgent,
-		envAsyncAgentBackgroundFork: process.env.ASYNC_AGENT_BACKGROUND_FORK,
+		envAsyncAgentBackgroundFork: (process.env.MAI_CODER_AGENT_BACKGROUND_FORK ?? process.env.ASYNC_AGENT_BACKGROUND_FORK),
 		subagentType,
 		runInBackground,
 	});

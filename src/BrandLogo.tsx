@@ -1,7 +1,7 @@
 /**
- * Logo mAI Coder : utilise resources/icons/icon.png partout (M multicolore).
+ * Logo mAI Coder : utilise public/logo.png (M multicolore) partout.
  */
-const iconUrl = new URL('../resources/icons/icon.png', import.meta.url).href;
+const iconUrl = new URL('../public/logo.png', import.meta.url).href;
 
 export function BrandLogo({
 	className,

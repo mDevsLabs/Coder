@@ -1,6 +1,6 @@
 import type { TFunction } from '../i18n';
 
-export type WorkspaceLauncherTool = 'vscode' | 'cursor' | 'antigravity' | 'explorer' | 'terminal';
+export type WorkspaceLauncherTool = 'vscode' | 'cursor' | 'antigravity' | 'jetbrains' | 'explorer' | 'terminal';
 
 export const DEFAULT_WORKSPACE_LAUNCHER: WorkspaceLauncherTool = 'vscode';
 export const AGENT_WORKSPACE_LAUNCHER_STORAGE_KEY = 'mai-coder:agent-workspace-launcher-v1';
@@ -9,6 +9,7 @@ export const WORKSPACE_LAUNCHER_ORDER: readonly WorkspaceLauncherTool[] = [
 	'vscode',
 	'cursor',
 	'antigravity',
+	'jetbrains',
 	'explorer',
 	'terminal',
 ];
@@ -18,6 +19,7 @@ export function isWorkspaceLauncherTool(value: unknown): value is WorkspaceLaunc
 		value === 'vscode' ||
 		value === 'cursor' ||
 		value === 'antigravity' ||
+		value === 'jetbrains' ||
 		value === 'explorer' ||
 		value === 'terminal'
 	);
@@ -58,6 +60,8 @@ export function workspaceLauncherLabel(t: TFunction, tool: WorkspaceLauncherTool
 			return t('app.workspaceLauncher.cursor');
 		case 'antigravity':
 			return t('app.workspaceLauncher.antigravity');
+		case 'jetbrains':
+			return t('app.workspaceLauncher.jetbrains');
 		case 'explorer':
 			return t('app.workspaceLauncher.explorer');
 		case 'terminal':

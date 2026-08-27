@@ -6,7 +6,7 @@
 export type AgentBackgroundForkInput = {
 	/** settings.agent.backgroundForkAgent */
 	backgroundForkAgentSetting?: boolean;
-	/** process.env.ASYNC_AGENT_BACKGROUND_FORK */
+	/** (process.env.MAI_CODER_AGENT_BACKGROUND_FORK ?? process.env.ASYNC_AGENT_BACKGROUND_FORK) */
 	envAsyncAgentBackgroundFork?: string;
 	subagentType?: string;
 	runInBackground: boolean;

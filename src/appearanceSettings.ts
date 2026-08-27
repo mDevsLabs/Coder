@@ -1,6 +1,6 @@
 export type UiFontPresetId = 'apple' | 'inter' | 'segoe';
 export type CodeFontPresetId = 'sfmono' | 'monospace' | 'jetbrains';
-export type ThemePresetId = 'async' | 'cursor' | 'graphite' | 'forest' | 'sunset';
+export type ThemePresetId = 'mai' | 'cursor' | 'graphite' | 'forest' | 'sunset';
 export type ThemePresetSelectionId = ThemePresetId | 'custom';
 
 type AppearanceChromeSeed = {
@@ -39,7 +39,7 @@ export const MONOSPACE_CODE_FONT_STACK =
 export const JETBRAINS_CODE_FONT_STACK =
 	'"JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace';
 
-export const THEME_PRESET_IDS: readonly ThemePresetId[] = ['async', 'cursor', 'graphite', 'forest', 'sunset'];
+export const THEME_PRESET_IDS: readonly ThemePresetId[] = ['mai', 'cursor', 'graphite', 'forest', 'sunset'];
 
 /**
  * 与 `styles/theme-dark.css` / `theme-light.css` 中 mac-codex 的 `--void-*` 一致（另补 `--void-accent` = `--void-ring`）。
@@ -249,7 +249,7 @@ export const BUILTIN_COLOR_SCHEME_APPEARANCE: Record<'light' | 'dark', Appearanc
 };
 
 export const APPEARANCE_THEME_PRESETS: Record<ThemePresetId, Record<'light' | 'dark', AppearanceChromeSeed>> = {
-	async: BUILTIN_COLOR_SCHEME_APPEARANCE,
+	mai: BUILTIN_COLOR_SCHEME_APPEARANCE,
 	/** 对齐 codex-theme-v1（codeThemeId: codex）：surface / ink / accent / contrast 与 semantic diff、skill */
 	cursor: {
 		dark: {
@@ -349,14 +349,14 @@ const LEGACY_CODEX_CHROME_SEED: AppearanceChromeSeed = {
 	translucentSidebar: true,
 };
 
-/** 与当前亮/暗模式一致的内置默认外观（配色与主题表同源） */
+/** Apparence intégrée par défaut (couleurs synchronisées avec la table de thèmes) */
 export function defaultAppearanceSettingsForScheme(colorScheme: 'light' | 'dark'): AppAppearanceSettings {
 	const seed = BUILTIN_COLOR_SCHEME_APPEARANCE[colorScheme];
 	return {
 		accentColor: seed.accentColor,
 		backgroundColor: seed.backgroundColor,
 		foregroundColor: seed.foregroundColor,
-		themePresetId: 'async',
+		themePresetId: 'mai',
 		uiFontPreset: 'apple',
 		codeFontPreset: 'sfmono',
 		translucentSidebar: seed.translucentSidebar,
@@ -413,6 +413,9 @@ function isThemePresetId(raw: unknown): raw is ThemePresetId {
 export function normalizeThemePresetId(raw: unknown): ThemePresetSelectionId {
 	if (raw === 'custom') {
 		return 'custom';
+	}
+	if (raw === 'async') {
+		return 'mai';
 	}
 	return isThemePresetId(raw) ? raw : 'custom';
 }

@@ -31,7 +31,7 @@ export function useI18n(): I18nContextValue {
 	return ctx;
 }
 
-/** 供极少数无法在 Provider 内的场景（测试等） */
+/** Utilisable hors Provider (tests, etc.) */
 export function useI18nOptional(): I18nContextValue | null {
 	return useContext(I18nContext);
 }

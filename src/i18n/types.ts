@@ -1,5 +1,5 @@
-/** Langue de l'interface : Français par défaut, avec support en et zh-CN */
-export type AppLocale = 'fr' | 'zh-CN' | 'en';
+/** Langue de l'interface : Français uniquement */
+export type AppLocale = 'fr';
 
 export type TParams = Record<string, string | number | boolean | undefined>;
 

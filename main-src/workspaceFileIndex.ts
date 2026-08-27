@@ -12,7 +12,8 @@ import {
 } from './workspaceSymbolIndex.js';
 
 const execFileAsync = promisify(execFile);
-const AUTO_ATTACH_WORKSPACE_FILE_WATCHER = process.env.ASYNC_ENABLE_WORKSPACE_FILE_WATCHER === '1';
+const AUTO_ATTACH_WORKSPACE_FILE_WATCHER =
+	process.env.MAI_CODER_ENABLE_WORKSPACE_FILE_WATCHER === '1' || process.env.ASYNC_ENABLE_WORKSPACE_FILE_WATCHER === '1';
 
 function throwIfAborted(signal?: AbortSignal, _phase?: string, _rootNorm?: string): void {
 	if (!signal?.aborted) {
@@ -21,7 +22,7 @@ function throwIfAborted(signal?: AbortSignal, _phase?: string, _rootNorm?: strin
 	throw new DOMException('Aborted', 'AbortError');
 }
 
-/** 遍历时跳过的目录名（小写比较） */
+/** Noms de dossiers ignorés lors du parcours (comparaison insensible à la casse) */
 const SKIP_DIR_NAMES = new Set([
 	'.git',
 	'node_modules',
@@ -59,7 +60,7 @@ const SKIP_RELATIVE_PREFIXES = [
 	'.async/agent-memory-local/',
 ];
 
-/** 单工作区最大文件条数（提高上限以适配大型 monorepo） */
+/** Nombre max de fichiers par workspace (plafond relevé pour gros monorepos) */
 export const MAX_WORKSPACE_FILES = 5000;
 
 type FileIndexBucket = {
@@ -76,7 +77,7 @@ type FileIndexBucket = {
 
 const buckets = new Map<string, FileIndexBucket>();
 
-/** 首次全量扫描完成后通知渲染进程（用于 @ 菜单重跑最后一次查询） */
+/** Notifie le renderer après le premier scan complet (pour rejouer la dernière requête du menu @) */
 let notifyFileIndexReady: ((rootNorm: string) => void) | null = null;
 
 export function setWorkspaceFileIndexReadyBroadcaster(cb: ((rootNorm: string) => void) | null): void {
@@ -100,14 +101,14 @@ function getBucket(rootNorm: string): FileIndexBucket {
 	return b;
 }
 
-/** 窗口打开文件夹时增加引用；同一 root 多窗共享一套索引与 watcher。 */
+/** Incrémente la référence à l'ouverture d'un dossier ; plusieurs fenêtres sur le même root partagent l'index. */
 export function acquireWorkspaceFileIndexRef(rootAbs: string): void {
 	const rootNorm = path.normalize(path.resolve(rootAbs));
 	const b = getBucket(rootNorm);
 	b.refCount++;
 }
 
-/** 关闭文件夹或销毁窗口时减少引用；到 0 时停止监听并清理该 root 的内存索引。 */
+/** Décrémente la référence à la fermeture ; à 0, arrête le watcher et nettoie l'index mémoire. */
 export function releaseWorkspaceFileIndexRef(rootAbs: string): void {
 	const rootNorm = path.normalize(path.resolve(rootAbs));
 	const b = buckets.get(rootNorm);

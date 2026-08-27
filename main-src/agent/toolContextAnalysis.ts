@@ -101,17 +101,17 @@ function isAnthropicFirstPartyHost(baseURL?: string): boolean {
 }
 
 export function providerSupportsAnthropicNativeDefer(baseURL?: string): boolean {
-	if (isEnvTruthy(process.env.ASYNC_ANTHROPIC_NATIVE_DEFER)) {
+	if (isEnvTruthy(process.env.MAI_CODER_ANTHROPIC_NATIVE_DEFER ?? process.env.ASYNC_ANTHROPIC_NATIVE_DEFER)) {
 		return true;
 	}
-	if (isEnvFalsy(process.env.ASYNC_ANTHROPIC_NATIVE_DEFER)) {
+	if (isEnvFalsy(process.env.MAI_CODER_ANTHROPIC_NATIVE_DEFER ?? process.env.ASYNC_ANTHROPIC_NATIVE_DEFER)) {
 		return false;
 	}
 	return isAnthropicFirstPartyHost(baseURL);
 }
 
 export function resolveNativeDeferThresholdRatio(): number {
-	const raw = Number(process.env.ASYNC_NATIVE_DEFER_THRESHOLD_RATIO ?? DEFAULT_NATIVE_DEFER_THRESHOLD_RATIO);
+	const raw = Number(process.env.MAI_CODER_NATIVE_DEFER_THRESHOLD_RATIO ?? process.env.ASYNC_NATIVE_DEFER_THRESHOLD_RATIO ?? DEFAULT_NATIVE_DEFER_THRESHOLD_RATIO);
 	if (!Number.isFinite(raw) || raw < 0) {
 		return DEFAULT_NATIVE_DEFER_THRESHOLD_RATIO;
 	}

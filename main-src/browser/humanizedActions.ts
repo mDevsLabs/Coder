@@ -3,9 +3,9 @@
  *
  * 流程（以 click 为例）：
  *   1. 解析 locator → 拿到目标元素的视口坐标。
- *   2. 在页面侧调用 `__asyncAiCursor.moveTo()` 让虚拟光标缓动到目标点。
+ *   2. 在页面侧调用 `__maiAiCursor.moveTo()` 让虚拟光标缓动到目标点。
  *   3. 短暂 hover（思考停顿），同时显示一行说明 label。
- *   4. 在页面侧调用 `__asyncAiCursor.click()` 触发按压 + 涟漪动画。
+ *   4. 在页面侧调用 `__maiAiCursor.click()` 触发按压 + 涟漪动画。
  *   5. 用 Playwright `page.mouse.click()` 真实派发点击事件。
  *
  * 输入文本时按字符之间随机间隔（80~180ms）来模拟人手速度，
@@ -35,8 +35,8 @@ async function safeShowLabel(page: Page, text: string | undefined, durationMs: n
 	try {
 		await page.evaluate(
 			({ t, d }) => {
-				const api = (window as unknown as { __asyncAiCursor?: { label: (t: string, d?: number) => void } })
-					.__asyncAiCursor;
+				const api = (window as unknown as { __maiAiCursor?: { label: (t: string, d?: number) => void } })
+					.__maiAiCursor;
 				if (api && typeof api.label === 'function') api.label(t, d);
 			},
 			{ t: text, d: durationMs }
@@ -51,11 +51,11 @@ async function ensureCursorAt(page: Page, x: number, y: number, durationMs: numb
 		await page.evaluate(
 			({ x, y, d }) => {
 				const api = (window as unknown as {
-					__asyncAiCursor?: {
+					__maiAiCursor?: {
 						moveTo: (x: number, y: number, d: number) => Promise<void>;
 						show: () => void;
 					};
-				}).__asyncAiCursor;
+				}).__maiAiCursor;
 				if (!api) return Promise.resolve();
 				api.show();
 				return api.moveTo(x, y, d);
@@ -72,8 +72,8 @@ async function triggerCursorClick(page: Page, x: number, y: number): Promise<voi
 		await page.evaluate(
 			({ x, y }) => {
 				const api = (window as unknown as {
-					__asyncAiCursor?: { click: (x: number, y: number) => Promise<void> };
-				}).__asyncAiCursor;
+					__maiAiCursor?: { click: (x: number, y: number) => Promise<void> };
+				}).__maiAiCursor;
 				if (api && typeof api.click === 'function') return api.click(x, y);
 				return Promise.resolve();
 			},
@@ -87,8 +87,8 @@ async function triggerCursorClick(page: Page, x: number, y: number): Promise<voi
 async function pushKeyToHud(page: Page, label: string): Promise<void> {
 	try {
 		await page.evaluate((l) => {
-			const api = (window as unknown as { __asyncAiCursor?: { key: (l: string) => void } })
-				.__asyncAiCursor;
+			const api = (window as unknown as { __maiAiCursor?: { key: (l: string) => void } })
+				.__maiAiCursor;
 			if (api && typeof api.key === 'function') api.key(l);
 		}, label);
 	} catch {

@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import '../styles/editor-layout.css';
 import { BrandLogo } from '../BrandLogo';
-import { IconExplorer, IconCloudOutline, IconServerOutline } from '../icons';
+import { IconExplorer, IconCloudOutline, IconServerOutline, IconUser, IconBarChart, IconSparkles } from '../icons';
 import type { TFunction } from '../i18n';
 
 function workspacePathDisplayName(full: string): string {
@@ -128,13 +128,11 @@ export const AppWorkspaceWelcome = memo(function AppWorkspaceWelcome({
 											display: 'flex',
 											alignItems: 'center',
 											justifyContent: 'center',
-											fontWeight: 700,
-											fontSize: 16,
 											color: 'var(--fg-muted, #a1a1aa)',
 											flexShrink: 0,
 										}}
 									>
-										👤
+										<IconUser />
 									</div>
 								)}
 
@@ -232,7 +230,15 @@ export const AppWorkspaceWelcome = memo(function AppWorkspaceWelcome({
 										gap: 6,
 									}}
 								>
-									{isLoggedIn ? 'Détails de l\'usage 📊' : 'Se connecter ✨'}
+									{isLoggedIn ? (
+										<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+											Détails de l&apos;usage <IconBarChart />
+										</span>
+									) : (
+										<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+											Se connecter <IconSparkles />
+										</span>
+									)}
 								</button>
 							</div>
 						</section>

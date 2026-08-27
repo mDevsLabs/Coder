@@ -1,12 +1,12 @@
-# Async IDE
+# mAI Coder
 
 <p align="center">
-  <img src="docs/assets/async-logo-desktop.svg" width="120" height="120" alt="Async Logo" />
+  <img src="docs/assets/async-logo-desktop.svg" width="120" height="120" alt="mAI Coder Logo" />
 </p>
 
 <p align="center">
-  <strong>An open-source, agent-first desktop workspace — Agent, Editor, Git, Terminal, all in one place.</strong><br/>
-  Own your AI workflow: local-first, BYOK, and fully hackable.
+  <strong>Un espace de travail desktop agent-first — Agent, Éditeur, Git, Terminal, tout en un.</strong><br/>
+  Maîtrisez votre workflow IA : local-first, BYOK, et entièrement personnalisable.
 </p>
 
 <p align="center">
@@ -18,273 +18,220 @@
   <img src="https://img.shields.io/badge/Monaco-0.52-0078D4?style=flat-square" alt="Monaco Editor" />
 </p>
 
+---
+
+## Qu'est-ce que mAI Coder ?
+
+mAI Coder est un **shell desktop IA natif** construit de zéro avec Electron + React + Monaco. Ce n'est pas un fork de VS Code — la codebase est volontairement légère, entièrement transparente et personnalisable.
+
+L'idée centrale est simple : **l'agent est au centre**, pas un simple panneau de chat greffé à un éditeur. Tout — accès à l'espace de travail, exécution d'outils, revue de diffs, opérations terminal — s'articule autour d'une boucle transparente **Réfléchir → Planifier → Exécuter → Observer** que vous pouvez voir, orienter et interrompre à tout moment.
+
+- **Apache 2.0** • **BYOK** pour les modèles • **Local-first** par défaut
+- **Interface 100% en français**
+
+---
+
+## Points forts
+
+- **Boucle agent-first** — Exécution multi-tours autonome avec cartes de paramètres en streaming (`Read`, `Write`, `Edit`, `Glob`, `Grep`, Shell, etc.) et garde-fous pour les opérations sensibles.
+- **Quatre modes Composer** — **Agent** (auto complet), **Plan** (revue puis exécution), **Ask** (Q&A lecture seule) et **Debug** (dépannage systématique).
+- **Mode Équipe** — Collaboration multi-agents avec planification Lead, exécution spécialiste, vérification reviewer et workflows d'approbation de plan.
+- **Multi-modèles, multi-providers** — Anthropic, OpenAI, Gemini, plus tout endpoint compatible OpenAI (Ollama, vLLM, auto-hébergé). Sélection auto incluse.
+- **Git natif** — Statut, diff, staging, commit et push intégrés à l'UI.
+- **Pont bots IM** — Connectez **Telegram**, **Slack**, **Discord** et **Feishu (Lark)** avec le même toolchain Agent/Team.
+- **Outils intégrés** — Automatisation navigateur, intelligence LSP, support MCP, index de fichiers & symboles, terminal tout-en-un partagé entre utilisateur et agent.
+- **Local et privé** — Threads, paramètres et plans vivent sur votre machine. Aucun verrouillage cloud.
+
+---
+
+## Captures d'écran
+
+### Disposition Agent
 <p align="center">
-  <a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a>
+  <img src="docs/assets/workspace_1.png" width="3062" alt="mAI Coder Agent Layout" />
+</p>
+
+### Paramètres Modèles
+<p align="center">
+  <img src="docs/assets/setting_1.png" width="1824" alt="mAI Coder Model Settings" />
+</p>
+
+### Palette Apparence
+<p align="center">
+  <img src="docs/assets/setting_2.png" width="1829" alt="mAI Coder Appearance" />
+</p>
+
+#### Thème Mac Codex
+<p align="center">
+  <img src="docs/assets/setting_3.png" width="1829" alt="mAI Coder Mac Codex Theme" />
+</p>
+
+### Outil Navigateur
+<p align="center">
+  <img src="docs/assets/browser_1.png" width="2868" alt="mAI Coder Browser Tool" />
+</p>
+
+### Groupe d'experts multi-agents
+<p align="center">
+  <img src="docs/assets/multi_agent_1.png" width="2871" alt="mAI Coder Multi-Agent" />
+</p>
+
+### Contrôle via bots externes
+<p align="center">
+  <img src="docs/assets/bot_1.png" width="2871" alt="mAI Coder Bot Integration" />
+</p>
+
+### Terminal tout-en-un
+<p align="center">
+  <img src="docs/assets/terminal_1.png" width="2859" alt="mAI Coder Terminal" />
 </p>
 
 ---
 
-## What is Async IDE?
+## Fonctionnalités principales
 
-Async IDE is an **AI-native desktop shell** built from scratch on Electron + React + Monaco. It is not a VS Code fork — the entire codebase is intentionally lean, fully transparent, and hackable.
+### Boucle Agent autonome
+- Paramètres d'outils en streaming avec cartes de trajectoire.
+- Modes Plan et Agent : révisez le plan d'abord, ou laissez l'agent s'exécuter directement.
+- Portes d'approbation pour commandes shell et écritures fichiers.
+- Synchro contexte éditeur pour cibler fichier et plage de lignes.
 
-The central idea is simple: **the agent is the center of gravity**, not a chat panel bolted onto the side of an editor. Everything — workspace access, tool execution, diff review, terminal operations — revolves around a transparent **Think → Plan → Execute → Observe** loop that you can see, steer, and interrupt at any time.
+### Support multi-modèles
+- Adaptateurs intégrés Anthropic, OpenAI et Gemini.
+- Support endpoints compatibles OpenAI (Ollama, vLLM, agrégateurs).
+- Blocs de réflexion en streaming sur modèles compatibles.
 
-- **Apache 2.0** • **BYOK** for models • **Local-first** by default
+### Expérience développeur
+- Éditeur Monaco multi-onglets, coloration syntaxique et revue de diffs.
+- Intégration Git : statut, diff, staging, commit, push depuis l'UI.
+- Terminal xterm.js partagé utilisateur/agent.
+- Composer avec mentions `@` fichiers, segments riches et threads persistants.
+- Palette Quick Open (`Ctrl/Cmd+P`) et navigation au clavier.
+- Interface entièrement en français.
+- Skills disque local, fusion config workspace et contrôles d'approbation.
 
----
+### Intégrations bots IM
+mAI Coder peut héberger des agents sur des surfaces de chat externes, pas seulement dans l'UI Electron.
 
-## Highlights
-
-- **Agent-first loop** — Autonomous multi-round tool execution with streaming parameter cards (`Read`, `Write`, `Edit`, `Glob`, `Grep`, Shell, etc.) and approval gates for sensitive operations.
-- **Four Composer modes** — **Agent** (full auto), **Plan** (review first, then run), **Ask** (read-only Q&A), and **Debug** (systematic troubleshooting).
-- **Team mode** — Multi-agent collaboration with Lead planning, specialist execution, reviewer verification, and plan-approval workflows.
-- **Multi-model, multi-provider** — Anthropic, OpenAI, Gemini, plus any OpenAI-compatible endpoint (Ollama, vLLM, self-hosted). Auto model selection included.
-- **Git-native** — Status, diff, staging, commit, and push integrated into the UI; agent-driven changes stay in sync with your real repo.
-- **IM bot bridge** — Wire **Telegram**, **Slack**, **Discord**, and **Feishu (Lark)** into the same Agent / Team toolchain as the desktop app, with per-integration model, workspace, and allowlist config.
-- **Built-in tools** — Browser automation (with custom headers / fingerprint), LSP-powered editor intelligence, MCP server support, file index & symbol search, and an all-in-one terminal shared between user and agent.
-- **Local & private** — Threads, settings, and plans live on your machine. No cloud lock-in.
-
----
-
-## Screenshots
-
-### Agent Layout
-<p align="center">
-  <img src="docs/assets/workspace_1.png" width="3062" alt="Async Agent Layout" />
-</p>
-
-### Model Settings
-<p align="center">
-  <img src="docs/assets/setting_1.png" width="1824" alt="Async Model Settings" />
-</p>
-
-### Appearance Color Palette
-<p align="center">
-  <img src="docs/assets/setting_2.png" width="1829" alt="Async Appearance Color Palette" />
-</p>
-
-#### Mac Codex Theme
-<p align="center">
-  <img src="docs/assets/setting_3.png" width="1829" alt="Async Mac Codex Theme" />
-</p>
-
-### Browser Tool Invocation (customizable request headers)
-<p align="center">
-  <img src="docs/assets/browser_1.png" width="2868" alt="Async Browser Tool" />
-</p>
-
-### Multi-Agent Collaborative Expert Group
-<p align="center">
-  <img src="docs/assets/multi_agent_1.png" width="2871" alt="Async Multi-Agent" />
-</p>
-
-### Control the App via External Chat Bots
-<p align="center">
-  <img src="docs/assets/bot_1.png" width="2871" alt="Async Bot Integration" />
-</p>
-
-### All-in-One Terminal (commands invokable by Agents and bots)
-<p align="center">
-  <img src="docs/assets/terminal_1.png" width="2859" alt="Async Terminal" />
-</p>
-
-<p align="center">
-  <img src="docs/assets/terminal_2.png" width="2871" alt="Async Terminal 2" />
-</p>
-
-<p align="center">
-  <img src="docs/assets/terminal_3.png" width="2865" alt="Async Terminal 3" />
-</p>
+- **Plateformes** — Telegram, Slack, Discord et Feishu (Lark) via `main-src/bots/platforms/`.
+- **Même runtime** — Les messages entrants passent par `botRuntime`.
+- **Par intégration** — Activation, nom d'affichage, modèle par défaut, mode Composer, racines workspace, allowlists et prompt système supplémentaire.
+- **Configuration UI** — Depuis **Paramètres → Bots** (`SettingsBotsPanel.tsx`).
 
 ---
 
-## Core Features
-
-### Autonomous Agent Loop
-- Streaming tool parameters with trajectory cards for clear execution visibility.
-- Plan and Agent dual modes: review the plan first, or let the agent run directly.
-- Approval gates for shell commands and file writes.
-- Editor context sync so agent edits can focus on the relevant file and line range.
-- Support for nested sub-agents, background execution, and timeline-style activity rendering.
-
-### Multi-Model Support
-- Built-in adapters for Anthropic, OpenAI, and Gemini.
-- Support for OpenAI-compatible endpoints like Ollama, vLLM, aggregators, or self-hosted services.
-- Streaming thinking blocks on supported models.
-- Auto mode to automatically pick the best available model.
-
-### Developer Experience
-- Monaco editor with multi-tab support, syntax highlighting, and diff review flows.
-- Git integration: status, diff, staging, commit, and push all available from the UI.
-- xterm.js terminal: for both user commands and observing agent shell operations.
-- Composer with `@` file mentions, rich segments, and persistent threads.
-- Quick Open palette (`Ctrl/Cmd+P`) and keyboard-first navigation.
-- Built-in i18n support for English and Simplified Chinese.
-- Support for local disk skills, workspace config merge, and tool approval controls.
-
-### IM / Bot Integrations
-Async can act as the **host** for coding agents on external chat surfaces, not only inside the Electron UI.
-
-- **Platforms** — Telegram, Slack, Discord, and Feishu (Lark) via dedicated adapters under `main-src/bots/platforms/`.
-- **Same runtime** — Inbound messages run through `botRuntime`: normal threads use `agentLoop`, while Team mode uses the same `teamOrchestrator` path as the desktop Composer, including worker streaming and tool status where applicable.
-- **Per integration** — Enable/disable, display name, default model, default Composer mode (`agent` / `ask` / `plan` / `team`), workspace root(s), optional allowlists for chats and users, and an extra system prompt on top of project rules.
-- **Connectivity** — Optional HTTP proxy URL per platform when vendor APIs must go through a corporate proxy.
-- **Feishu** — App credentials, optional encryption, streaming interactive cards for long-running replies, and session hygiene when integration settings change.
-- **Configuration UI** — Managed from **Settings → Bots** (`SettingsBotsPanel.tsx`).
-
-For a deeper module-level walkthrough, see the maintainer-oriented notes under [`docs/llm-wiki/`](./docs/llm-wiki/).
-
----
-
-## Technical Architecture
+## Architecture technique
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
-│                    Renderer Process                    │
+│                    Processus Renderer                   │
 │  React + Vite  │  Monaco Editor  │  xterm.js Terminal  │
 │  Composer / Chat / Plan / Agent UI                     │
 └──────────────────────────┬──────────────────────────────┘
                            │  contextBridge (IPC)
 ┌──────────────────────────▼──────────────────────────────┐
-│                      Main Process                      │
-│  agentLoop.ts  │  toolExecutor.ts  │  LLM Adapters     │
+│                      Processus Main                     │
+│  agentLoop.ts  │  toolExecutor.ts  │  Adaptateurs LLM  │
 │  gitService    │  threadStore      │  settingsStore    │
-│  workspace     │  LSP session      │  PTY terminal     │
+│  workspace     │  session LSP      │  Terminal PTY     │
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Tech Stack
+### Stack technique
 
-| Technology | Version | Purpose |
+| Technologie | Version | Usage |
 |------------|---------|---------|
-| **React** | ^19.2.4 | UI framework |
-| **Electron** | 41.1.0 | Desktop app shell |
-| **Vite** | ^6.0.3 | Build tool & dev server |
-| **TypeScript** | ^5.9.3 | Type-safe development |
-| **Monaco Editor** | ^0.52.0 | Code editor component |
-| **xterm.js** | ^5.5.0 | Terminal emulator |
-| **OpenAI SDK** | ^4.96.0 | OpenAI API client |
-| **Anthropic SDK** | ^0.39.0 | Claude API client |
-| **Google Generative AI** | ^0.21.0 | Gemini API client |
+| **React** | ^19.2.4 | Framework UI |
+| **Electron** | 41.1.0 | Shell desktop |
+| **Vite** | ^6.0.3 | Build & dev server |
+| **TypeScript** | ^5.9.3 | Développement typé |
+| **Monaco Editor** | ^0.52.0 | Éditeur de code |
+| **xterm.js** | ^5.5.0 | Émulateur terminal |
+| **OpenAI SDK** | ^4.96.0 | Client OpenAI |
+| **Anthropic SDK** | ^0.39.0 | Client Claude |
+| **Google Generative AI** | ^0.21.0 | Client Gemini |
 | **MCP SDK** | ^1.29.0 | Model Context Protocol |
-| **node-pty** | ^1.1.0 | PTY terminal support |
+| **node-pty** | ^1.1.0 | Support PTY |
 
-- **Built from scratch** on Electron + React + Monaco — not a VS Code fork. The architecture is intentionally lean: two processes (main + renderer), clear IPC boundaries, and no inherited extension ecosystem to maintain.
-- `agentLoop.ts` handles multi-round tool calls, partial JSON streaming, tool repair, and aborts.
-- Structured assistant messages are persisted locally and expanded to provider-native tool formats when needed.
-- Local persistence stores threads, settings, and plans as JSON / Markdown under user data.
-- `gitService` provides the Git layer used by the UI for status, diff, staging, commit, and push.
-- LSP integration uses TypeScript Language Server for in-editor intelligence.
-
-## Project Structure
+## Structure du projet
 
 ```text
-Async/
-├── main-src/                  # Bundled -> electron/main.bundle.cjs (Node / Electron main)
-│   ├── index.ts               # App entry: windows, userData, IPC registration
-│   ├── agent/                 # agentLoop.ts, toolExecutor.ts, agentTools.ts, toolApprovalGate.ts
-│   ├── llm/                   # OpenAI / Anthropic / Gemini adapters & streaming
-│   ├── lsp/                   # TypeScript LSP session
-│   ├── mcp/                   # Model Context Protocol integration
-│   ├── memdir/                # Memory directory management
-│   ├── bots/                  # IM bot controller, runtime, connectivity, platform adapters
-│   ├── ipc/register.ts        # Core IPC handlers (chat, threads, agent, plan)
-│   ├── ipc/handlers/          # Domain-specific IPC handlers (git, fs, mcp, settings, ...)
-│   ├── shell/                 # Shell command execution
-│   ├── threadStore.ts         # Persistent threads + messages (JSON)
+mAI-Coder/
+├── main-src/                  # Bundlé -> electron/main.bundle.cjs
+│   ├── index.ts               # Entrée app : fenêtres, userData, IPC
+│   ├── agent/                 # agentLoop.ts, toolExecutor.ts, ...
+│   ├── llm/                   # Adaptateurs OpenAI / Anthropic / Gemini
+│   ├── lsp/                   # Session LSP TypeScript
+│   ├── mcp/                   # Intégration MCP
+│   ├── bots/                  # Contrôleur bots, runtime, plateformes
+│   ├── ipc/register.ts        # Handlers IPC principaux
+│   ├── ipc/handlers/          # Handlers IPC par domaine
+│   ├── threadStore.ts         # Threads persistants (JSON)
 │   ├── settingsStore.ts       # settings.json
-│   ├── gitService.ts          # Porcelain status, diff previews, commit/push
-│   ├── workspace.ts           # Open-folder root & safe path resolution
-│   ├── workspaceFileIndex.ts  # File indexing for workspace
-│   ├── workspaceSymbolIndex.ts    # Symbol indexing
-│   └── workspaceUsageStats.ts     # Workspace usage statistics
-├── src/                       # Vite + React renderer
-│   ├── App.tsx                # Shell layout, chat, composer modes, Git / explorer
-│   ├── AgentChatPanel.tsx     # Agent chat interface
-│   ├── AgentLeftSidebar.tsx   # Agent activity sidebar
-│   ├── AgentRightSidebar.tsx  # Agent tools and results
-│   ├── ChatComposer.tsx       # Message composer component
-│   ├── EditorMainPanel.tsx    # Monaco editor panel
-│   ├── SettingsPage.tsx       # Settings UI
-│   ├── SettingsBotsPanel.tsx  # IM bot integrations (Telegram / Slack / Discord / Feishu)
-│   ├── WorkspaceExplorer.tsx  # File explorer
-│   ├── hooks/                 # Custom React hooks
-│   ├── i18n/                  # Locale messages (en / zh-CN)
-│   └── ...                    # Agent UI, Plan review, Monaco, terminal, ...
+│   └── workspace.ts           # Racine workspace & résolution chemins
+├── src/                       # Renderer Vite + React
+│   ├── App.tsx                # Layout shell, chat, modes composer
+│   ├── AgentChatPanel.tsx
+│   ├── EditorMainPanel.tsx
+│   ├── SettingsPage.tsx
+│   ├── WorkspaceExplorer.tsx
+│   ├── hooks/
+│   ├── i18n/                  # Messages français
+│   └── ...
 ├── electron/
-│   ├── main.bundle.cjs        # esbuild output (do not edit by hand)
-│   └── preload.cjs            # contextBridge -> window.asyncShell
-├── docs/assets/               # Logo, screenshots
-├── scripts/
-│   └── export-app-icon.mjs    # Rasterize SVG -> resources/icons/icon.png
-├── esbuild.main.mjs           # Builds main process
-├── vite.config.ts             # Renderer build
+│   ├── main.bundle.cjs
+│   └── preload.cjs            # contextBridge -> window.maiShell
+├── docs/assets/               # Logo, captures
+├── esbuild.main.mjs
+├── vite.config.ts
 └── package.json
 ```
 
-## Data Storage
+## Stockage des données
 
-Default location under Electron's `userData` directory:
+Emplacement par défaut sous `userData` d'Electron :
 
-- `async/threads.json`: threads and chat messages.
-- `async/settings.json`: model configuration, API keys, layout, agent options, and bot integrations.
-- `.mai/plans/`: Markdown plan documents generated in Plan mode.
+- `mai/threads.json` : threads et messages.
+- `mai/settings.json` : configuration modèles, clés API, layout, options agent et bots.
+- `.mai/plans/` : documents plans Markdown générés en mode Plan.
 
-The renderer may use `localStorage` for lightweight UI state, but the authoritative data source for conversations is `threads.json`.
+Le renderer peut utiliser `localStorage` pour l'état UI léger, mais la source de vérité reste `threads.json`.
 
 ---
 
-## Getting Started
+## Démarrage
 
-### Prerequisites
+### Prérequis
 
 - **Node.js** >= 18
 - **npm** >= 9
-- **Git** (recommended)
+- **Git** recommandé
 
-### Install and Run
+### Installation et lancement
 
 ```bash
-git clone https://github.com/ZYKJShadow/Async.git
-cd Async
+git clone https://github.com/mDevsLabs/Coder.git
+cd Coder
 npm install
 npm run desktop
 ```
 
-If you prefer Gitee:
+### Développement
 
 ```bash
-git clone https://gitee.com/shadowsocks_z/Async.git
-cd Async
-npm install
-npm run desktop
-```
-
-### Development
-
-```bash
-npm run dev          # Dev server with hot reload
-npm run dev:debug    # Same, with DevTools open
-npm run icons        # Generate app icons from SVG
+npm run dev          # Serveur dev avec hot reload
+npm run dev:debug    # Avec DevTools ouvert
+npm run icons        # Génère les icônes depuis SVG
 ```
 
 ---
 
-## Acknowledgements
+## Remerciements
 
-We are grateful to the open-source community and projects like Claude Code that helped demonstrate the power of agent-driven development — Async IDE builds on that momentum with its own take on transparent, local-first AI workflows.
-
----
-
-## Community
-
-Have questions, ideas, or just want to chat with a community of developers?
-
-- **Forum**: [linux.do](https://linux.do/) — Join the discussion, share your setup, report issues, and stick around.
+Merci à la communauté open-source et aux projets comme Claude Code qui ont démontré la puissance du développement piloté par agents — mAI Coder s'appuie sur cet élan avec sa propre vision transparente et local-first.
 
 ---
 
-## License
+## Licence
 
-This project is open-sourced under the [Apache License 2.0](./LICENSE).
+Ce projet est open-source sous [Apache License 2.0](./LICENSE).

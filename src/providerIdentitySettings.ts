@@ -1,4 +1,5 @@
 export type ProviderIdentityPreset =
+	| 'mai-default'
 	| 'async-default'
 	| 'antigravity'
 	| 'claude-code'
@@ -24,7 +25,7 @@ export type ResolvedProviderIdentitySettings = {
 	clientAppValue: string;
 	sessionHeaderName: string;
 	systemPromptPrefix: string;
-	anthropicMetadataMode: 'async' | 'claude-code';
+	anthropicMetadataMode: 'mai' | 'claude-code';
 	/** Optional value for the upstream `originator` header (used by Codex). */
 	originatorHeaderValue?: string;
 };
@@ -43,17 +44,19 @@ export const ANTIGRAVITY_EMULATED_VERSION = '1.21.9';
 export const CODEX_ORIGINATOR = 'codex-tui';
 export const ANTIGRAVITY_USER_AGENT = `antigravity/${ANTIGRAVITY_EMULATED_VERSION} darwin/arm64`;
 
-const ASYNC_DEFAULT_IDENTITY: ResolvedProviderIdentitySettings = {
-	preset: 'async-default',
+const MAI_DEFAULT_IDENTITY: ResolvedProviderIdentitySettings = {
+	preset: 'mai-default',
 	userAgentMode: 'generic',
 	userAgentProduct: 'mai-coder',
 	entrypoint: 'desktop',
 	appHeaderValue: 'desktop',
 	clientAppValue: 'mai-coder',
-	sessionHeaderName: 'X-Async-Session-Id',
+	sessionHeaderName: 'X-Mai-Session-Id',
 	systemPromptPrefix: 'You are mAI Coder, the AI coding assistant running inside mAI Coder.',
-	anthropicMetadataMode: 'async',
+	anthropicMetadataMode: 'mai',
 };
+// Alias pour compatibilité ascendante
+const ASYNC_DEFAULT_IDENTITY = MAI_DEFAULT_IDENTITY;
 
 const CLAUDE_CODE_IDENTITY: ResolvedProviderIdentitySettings = {
 	preset: 'claude-code',
@@ -82,7 +85,7 @@ const CODEX_IDENTITY: ResolvedProviderIdentitySettings = {
 	sessionHeaderName: '',
 	systemPromptPrefix:
 		'You are a coding agent running in the Codex CLI, a terminal-based coding assistant. Codex CLI is an open source project led by OpenAI. You are expected to be precise, safe, and helpful.',
-	anthropicMetadataMode: 'async',
+	anthropicMetadataMode: 'mai',
 	originatorHeaderValue: CODEX_ORIGINATOR,
 };
 
@@ -96,7 +99,7 @@ const ANTIGRAVITY_IDENTITY: ResolvedProviderIdentitySettings = {
 	sessionHeaderName: '',
 	systemPromptPrefix:
 		'You are Antigravity, a powerful agentic AI coding assistant designed by the Google Deepmind team working on Advanced Agentic Coding.',
-	anthropicMetadataMode: 'async',
+	anthropicMetadataMode: 'mai',
 };
 
 function cleanToken(value: unknown, fallback: string): string {
@@ -106,6 +109,7 @@ function cleanToken(value: unknown, fallback: string): string {
 
 function isPreset(value: unknown): value is ProviderIdentityPreset {
 	return (
+		value === 'mai-default' ||
 		value === 'async-default' ||
 		value === 'antigravity' ||
 		value === 'claude-code' ||
@@ -117,23 +121,26 @@ function isPreset(value: unknown): value is ProviderIdentityPreset {
 
 function inferPreset(raw?: ProviderIdentitySettings | null): ProviderIdentityPreset {
 	if (isPreset(raw?.preset)) {
+		if (raw?.preset === 'async-default') {
+			return 'mai-default';
+		}
 		return raw.preset;
 	}
 	const legacyValues = {
-		userAgentProduct: cleanToken(raw?.userAgentProduct, ASYNC_DEFAULT_IDENTITY.userAgentProduct),
-		entrypoint: cleanToken(raw?.entrypoint, ASYNC_DEFAULT_IDENTITY.entrypoint),
-		appHeaderValue: cleanToken(raw?.appHeaderValue, ASYNC_DEFAULT_IDENTITY.appHeaderValue),
-		clientAppValue: cleanToken(raw?.clientAppValue, ASYNC_DEFAULT_IDENTITY.clientAppValue),
-		systemPromptPrefix: cleanToken(raw?.systemPromptPrefix, ASYNC_DEFAULT_IDENTITY.systemPromptPrefix),
+		userAgentProduct: cleanToken(raw?.userAgentProduct, MAI_DEFAULT_IDENTITY.userAgentProduct),
+		entrypoint: cleanToken(raw?.entrypoint, MAI_DEFAULT_IDENTITY.entrypoint),
+		appHeaderValue: cleanToken(raw?.appHeaderValue, MAI_DEFAULT_IDENTITY.appHeaderValue),
+		clientAppValue: cleanToken(raw?.clientAppValue, MAI_DEFAULT_IDENTITY.clientAppValue),
+		systemPromptPrefix: cleanToken(raw?.systemPromptPrefix, MAI_DEFAULT_IDENTITY.systemPromptPrefix),
 	};
 	const matchesAsyncDefault =
-		legacyValues.userAgentProduct === ASYNC_DEFAULT_IDENTITY.userAgentProduct &&
-		legacyValues.entrypoint === ASYNC_DEFAULT_IDENTITY.entrypoint &&
-		legacyValues.appHeaderValue === ASYNC_DEFAULT_IDENTITY.appHeaderValue &&
-		legacyValues.clientAppValue === ASYNC_DEFAULT_IDENTITY.clientAppValue &&
-		legacyValues.systemPromptPrefix === ASYNC_DEFAULT_IDENTITY.systemPromptPrefix;
+		legacyValues.userAgentProduct === MAI_DEFAULT_IDENTITY.userAgentProduct &&
+		legacyValues.entrypoint === MAI_DEFAULT_IDENTITY.entrypoint &&
+		legacyValues.appHeaderValue === MAI_DEFAULT_IDENTITY.appHeaderValue &&
+		legacyValues.clientAppValue === MAI_DEFAULT_IDENTITY.clientAppValue &&
+		legacyValues.systemPromptPrefix === MAI_DEFAULT_IDENTITY.systemPromptPrefix;
 	if (matchesAsyncDefault) {
-		return 'async-default';
+		return 'mai-default';
 	}
 	const matchesClaudeCode =
 		legacyValues.userAgentProduct === CLAUDE_CODE_IDENTITY.userAgentProduct &&
@@ -193,16 +200,19 @@ export function resolveProviderIdentitySettings(
 		return {
 			preset,
 			userAgentMode: 'generic',
-			userAgentProduct: cleanToken(raw?.userAgentProduct, ASYNC_DEFAULT_IDENTITY.userAgentProduct),
-			entrypoint: cleanToken(raw?.entrypoint, ASYNC_DEFAULT_IDENTITY.entrypoint),
-			appHeaderValue: cleanToken(raw?.appHeaderValue, ASYNC_DEFAULT_IDENTITY.appHeaderValue),
-			clientAppValue: cleanToken(raw?.clientAppValue, ASYNC_DEFAULT_IDENTITY.clientAppValue),
-			sessionHeaderName: ASYNC_DEFAULT_IDENTITY.sessionHeaderName,
-			systemPromptPrefix: cleanToken(raw?.systemPromptPrefix, ASYNC_DEFAULT_IDENTITY.systemPromptPrefix),
-			anthropicMetadataMode: 'async',
+			userAgentProduct: cleanToken(raw?.userAgentProduct, MAI_DEFAULT_IDENTITY.userAgentProduct),
+			entrypoint: cleanToken(raw?.entrypoint, MAI_DEFAULT_IDENTITY.entrypoint),
+			appHeaderValue: cleanToken(raw?.appHeaderValue, MAI_DEFAULT_IDENTITY.appHeaderValue),
+			clientAppValue: cleanToken(raw?.clientAppValue, MAI_DEFAULT_IDENTITY.clientAppValue),
+			sessionHeaderName: MAI_DEFAULT_IDENTITY.sessionHeaderName,
+			systemPromptPrefix: cleanToken(raw?.systemPromptPrefix, MAI_DEFAULT_IDENTITY.systemPromptPrefix),
+			anthropicMetadataMode: 'mai',
 		};
 	}
-	return { ...ASYNC_DEFAULT_IDENTITY };
+	if (preset === 'async-default') {
+		return { ...MAI_DEFAULT_IDENTITY, preset: 'mai-default' as ProviderIdentityPreset };
+	}
+	return { ...MAI_DEFAULT_IDENTITY };
 }
 
 /**
@@ -227,7 +237,7 @@ export function providerIdentityPresetOptions(): Array<{
 	label: string;
 }> {
 	return [
-		{ id: 'async-default', userAgentMode: 'generic', label: 'mAI Coder' },
+		{ id: 'mai-default', userAgentMode: 'generic', label: 'mAI Coder' },
 		{ id: 'claude-code', userAgentMode: 'claude-code', label: 'Claude Code' },
 		{ id: 'codex', userAgentMode: 'codex', label: 'Codex CLI' },
 		{ id: 'antigravity', userAgentMode: 'antigravity', label: 'Antigravity' },

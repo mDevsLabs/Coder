@@ -288,8 +288,8 @@ type PluginMcpServerOverride = {
 };
 
 export type ShellSettings = {
-	/** 界面语言：fr Français（默认）、zh-CN 简体中文、en 英文 */
-	language?: 'fr' | 'zh-CN' | 'en';
+	/** Langue de l'interface : Français uniquement */
+	language?: 'fr';
 	/** Compte utilisateur mAI (authentification & quotas) */
 	maiAccount?: MaiAccountState;
 	/** @deprecated 已由每条模型的 paradigm 取代，保留仅兼容旧 settings.json */
@@ -701,9 +701,33 @@ function migrateMaiDefaults(settings: ShellSettings): { next: ShellSettings; did
 		didMutate = true;
 	}
 
-	let language = settings.language;
-	if (!language) {
-		language = 'fr';
+	let language: 'fr' = 'fr';
+	if (settings.language !== 'fr') {
+		didMutate = true;
+	}
+
+	// Migration thème : 'async' -> 'mai'
+	let uiMigrated = false;
+	let nextUi: ShellSettings['ui'] = settings.ui;
+	if ((settings.ui as Record<string, unknown> | undefined)?.['themePresetId'] === 'async') {
+		nextUi = { ...(settings.ui ?? {}), themePresetId: 'mai' } as ShellSettings['ui'];
+		uiMigrated = true;
+		didMutate = true;
+	}
+	// Migration dans appearanceSettings si présent sous ui
+	const appearanceTheme = (settings.ui as Record<string, unknown> | undefined)?.['themePresetId'];
+	if (appearanceTheme === 'async') {
+		nextUi = { ...(nextUi ?? {}), themePresetId: 'mai' } as ShellSettings['ui'];
+		uiMigrated = true;
+		didMutate = true;
+	}
+
+	// Migration providerIdentity preset : 'async-default' -> 'mai-default'
+	let providerIdentityMigrated = false;
+	let nextProviderIdentity = settings.providerIdentity;
+	if ((settings.providerIdentity as Record<string, unknown> | undefined)?.['preset'] === 'async-default') {
+		nextProviderIdentity = { ...(settings.providerIdentity ?? {}), preset: 'mai-default' } as ShellSettings['providerIdentity'];
+		providerIdentityMigrated = true;
 		didMutate = true;
 	}
 
@@ -722,6 +746,8 @@ function migrateMaiDefaults(settings: ShellSettings): { next: ShellSettings; did
 				entries: nextEntries,
 				enabledIds: nextEnabledIds,
 			},
+			...(uiMigrated ? { ui: nextUi } : {}),
+			...(providerIdentityMigrated ? { providerIdentity: nextProviderIdentity } : {}),
 		},
 		didMutate: true,
 	};

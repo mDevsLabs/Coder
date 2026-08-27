@@ -466,6 +466,130 @@ export function IconImageOutline({ className }: { className?: string }) {
 	);
 }
 
+export function IconUser({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<circle cx="12" cy="8" r="4.5" />
+			<path d="M4 20a8 8 0 0 1 16 0" />
+		</svg>
+	);
+}
+
+export function IconMail({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<rect x="3" y="5" width="18" height="14" rx="2" />
+			<path d="M3 7l9 6 9-6" />
+		</svg>
+	);
+}
+
+export function IconLock({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<rect x="5" y="11" width="14" height="10" rx="2" />
+			<path d="M8 11V8a4 4 0 0 1 8 0v3" />
+			<circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none" />
+		</svg>
+	);
+}
+
+export function IconEyeOff({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<path d="M2.5 12s3.5-6 9.5-6c2.4 0 4.5 0.9 6.2 2.2M22 12s-1.2 2.1-3.4 3.8M9.4 9.4a3 3 0 0 0 4.2 4.2" />
+			<path d="M14.5 9.5l-5 5M2 2l20 20" />
+		</svg>
+	);
+}
+
+export function IconCalendar({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<rect x="3" y="4" width="18" height="16" rx="2" />
+			<path d="M16 2v4M8 2v4M3 10h18" />
+		</svg>
+	);
+}
+
+export function IconAlertTriangle({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<path d="M12 3L2.5 20h19L12 3Z" />
+			<path d="M12 10v6M12 18h.01" strokeWidth="2.2" />
+		</svg>
+	);
+}
+
+export function IconCheck({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<path d="M5 12l5 5L20 7" />
+		</svg>
+	);
+}
+
+export function IconX({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+			<path d="M6 6l12 12M18 6L6 18" />
+		</svg>
+	);
+}
+
+export function IconLogOut({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+			<path d="M10 17l5-5-5-5" />
+			<path d="M15 12H3" />
+		</svg>
+	);
+}
+
+export function IconBarChart({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" aria-hidden>
+			<path d="M18 20V10M12 20V4M6 20v-6" />
+		</svg>
+	);
+}
+
+export function IconMessageCircle({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<path d="M21 11.5a8.5 8.5 0 0 1-11.9 7.8L3 21l1.7-6.1A8.5 8.5 0 0 1 21 11.5Z" />
+		</svg>
+	);
+}
+
+export function IconWrench({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<path d="M14.7 6.3a5 5 0 0 0-3.4 8.6l-5 5a1 1 0 0 1-1.4-1.4l5-5a5 5 0 0 0 4.8-7.2" />
+			<path d="M13.5 4.5l2 2M8.5 14.5l2 2" opacity="0.6" />
+		</svg>
+	);
+}
+
+export function IconBookOpen({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<path d="M3 6a2 2 0 0 1 2-2h6v16H5a2 2 0 0 0-2 2V6Z" />
+			<path d="M21 6a2 2 0 0 0-2-2h-6v16h6a2 2 0 0 1 2 2V6Z" />
+		</svg>
+	);
+}
+
+export function IconClock({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+			<circle cx="12" cy="12" r="9" />
+			<path d="M12 7v5l3 2" />
+		</svg>
+	);
+}
+
 /* ── Team Role Avatars (filled style, 14×14) ────────────────────────── */
 
 /** Crown — Team Lead */

@@ -31,9 +31,9 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
 	});
 }
 
-/** 与 OpenAI SDK 默认「最多 3 次尝试」同量级；可用 ASYNC_LLM_TRANSPORT_MAX_ATTEMPTS 覆盖 */
+/** Avec le SDK OpenAI par défaut « max 3 tentatives » ; surcharge possible via MAI_CODER_LLM_TRANSPORT_MAX_ATTEMPTS */
 export function parseTransportMaxAttempts(): number {
-	const n = parseInt(process.env.ASYNC_LLM_TRANSPORT_MAX_ATTEMPTS || '', 10);
+	const n = parseInt((process.env.MAI_CODER_LLM_TRANSPORT_MAX_ATTEMPTS ?? process.env.ASYNC_LLM_TRANSPORT_MAX_ATTEMPTS ?? '') || '', 10);
 	if (Number.isFinite(n) && n >= 1) {
 		return Math.min(8, n);
 	}

@@ -22,7 +22,7 @@ import { getAutoCompactThresholdForSend, type ModelContextResolveOpts } from '..
  * `ASYNC_COMPRESS_MIN_EST_TOKENS` 可强制覆盖（调试用，整数 >1000）。
  */
 function compressTriggerEstThreshold(options: UnifiedChatOptions): number {
-	const raw = process.env.ASYNC_COMPRESS_MIN_EST_TOKENS?.trim();
+	const raw = (process.env.MAI_CODER_COMPRESS_MIN_EST_TOKENS ?? process.env.ASYNC_COMPRESS_MIN_EST_TOKENS)?.trim();
 	if (raw) {
 		const n = parseInt(raw, 10);
 		if (!Number.isNaN(n) && n > 1000) {
