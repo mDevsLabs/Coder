@@ -2,9 +2,11 @@ import type { Hono } from "npm:hono@4";
 import {
   extractToken,
   getDb,
+  getTierMaiTokenLimit,
   getTierSpeechLimit,
+  getUserQuotaBoost,
   getWeekData,
-  TIER_LIMITS,
+  isPaidTier,
   verifyToken,
 } from "./config.ts";
 import { maiModelsList } from "./maiModels.ts";
@@ -17,11 +19,13 @@ function getOpenRouterApiKey(userCustomKey?: string | null): string {
 }
 
 export function registerModelRoutes(app: Hono) {
-  // GET /usage
-  app.get("/usage", async (c) => {
+  // ─────────────────────────────────────────────
+  // GET /v1/usage & /usage
+  // ─────────────────────────────────────────────
+  const handleGetUsage = async (c: any) => {
     try {
-      const token = extractToken(c.req.raw);
-      let userId = c.get("userId");
+      const token = extractToken(c.req.raw) || (c as any).get?.("apiKey");
+      let userId = (c as any).get?.("userId");
 
       if (token) {
         try {
@@ -54,36 +58,35 @@ export function registerModelRoutes(app: Hono) {
 
       const { weekStartStr, nextResetIso } = getWeekData();
 
-      const [usageResult, userResult, speechResult] = await Promise.all([
+      const userResult = await sql`SELECT id, tier, email, username, phone, avatar_url FROM users WHERE id::text = ${userId}::text OR username = ${userId}::text OR email = ${userId}::text LIMIT 1`;
+      const user = userResult[0];
+      const resolvedUserId = user ? user.id : userId;
+
+      const [usageResult, speechResult] = await Promise.all([
         sql`
           SELECT COALESCE(SUM(tokens_used::numeric), 0) as tokens_used 
           FROM weekly_usage 
-          WHERE (
-            user_id = ${userId}::text 
-            OR user_id IN (SELECT id::text FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
-            OR user_id IN (SELECT email FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
-            OR user_id IN (SELECT username FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
-          ) AND week_start = ${weekStartStr}
-        `.catch(() => []),
-        sql`SELECT tier, email, username, phone, avatar_url FROM users WHERE id::text = ${userId}::text OR username = ${userId}::text OR email = ${userId}::text LIMIT 1`,
+          WHERE user_id = ${resolvedUserId}::integer AND week_start = ${weekStartStr}::date
+        `.catch((e) => {
+          console.error("[usageResult] Error:", e);
+          return [];
+        }),
         sql`
           SELECT COALESCE(SUM(tokens_used::numeric), 0) as tokens_used 
           FROM weekly_speech_usage 
-          WHERE (
-            user_id = ${userId}::text 
-            OR user_id IN (SELECT id::text FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
-            OR user_id IN (SELECT email FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
-            OR user_id IN (SELECT username FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
-          ) AND week_start = ${weekStartStr}::date
-        `.catch(() => []),
+          WHERE user_id = ${resolvedUserId}::text AND week_start = ${weekStartStr}::date
+        `.catch((e) => {
+          console.error("[speechResult] Error:", e);
+          return [];
+        }),
       ]);
-
-      const user = userResult[0];
       const tokensUsed = usageResult[0]?.tokens_used || 0;
       const speechTokensUsed = Number(speechResult?.[0]?.tokens_used || 0);
       const userTier = user?.tier || "Free";
-      const limit = TIER_LIMITS[userTier] || TIER_LIMITS["Free"];
-      const speechLimit = getTierSpeechLimit(userTier);
+      const maiBoost = await getUserQuotaBoost(sql, resolvedUserId, "mai");
+      const audioBoost = await getUserQuotaBoost(sql, resolvedUserId, "audio");
+      const limit = getTierMaiTokenLimit(userTier) + maiBoost;
+      const speechLimit = getTierSpeechLimit(userTier) + audioBoost;
 
       return c.json({
         avatarUrl: user?.avatar_url,
@@ -102,13 +105,20 @@ export function registerModelRoutes(app: Hono) {
     } catch {
       return c.json({ error: "Erreur serveur." }, 500);
     }
-  });
+  };
 
-  // POST /log-usage
-  app.post("/log-usage", async (c) => {
+  app.get("/usage", handleGetUsage);
+  app.get("/v1/usage", handleGetUsage);
+  app.get("/usage/", handleGetUsage);
+  app.get("/v1/usage/", handleGetUsage);
+
+  // ─────────────────────────────────────────────
+  // POST /v1/log-usage & /log-usage
+  // ─────────────────────────────────────────────
+  const handleLogUsage = async (c: any) => {
     try {
-      const token = extractToken(c.req.raw);
-      let userId = c.get("userId");
+      const token = extractToken(c.req.raw) || (c as any).get?.("apiKey");
+      let userId = (c as any).get?.("userId");
 
       if (token) {
         try {
@@ -133,20 +143,22 @@ export function registerModelRoutes(app: Hono) {
 
       const sql = getDb();
       const userRes =
-        await sql`SELECT tier FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text LIMIT 1`;
+        await sql`SELECT id, tier FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text LIMIT 1`;
       const tier = userRes.length > 0 ? userRes[0].tier : "Free";
-      const limit = TIER_LIMITS[tier] || TIER_LIMITS["Free"];
+      const resolvedUserId = userRes.length > 0 ? userRes[0].id : userId;
+      const maiBoost = await getUserQuotaBoost(sql, resolvedUserId, "mai");
+      const limit = getTierMaiTokenLimit(tier) + maiBoost;
 
       const usageResult = await sql`
         SELECT tokens_used FROM weekly_usage
-        WHERE user_id = ${userId}::text AND week_start = ${weekStartStr}::date
+        WHERE user_id = ${resolvedUserId}::integer AND week_start = ${weekStartStr}::date
         LIMIT 1
       `;
       const currentUsage = usageResult[0]?.tokens_used || 0;
 
       await sql`
         INSERT INTO weekly_usage (user_id, week_start, tokens_used)
-        VALUES (${userId}::text, ${weekStartStr}::date, ${tokensUsed})
+        VALUES (${resolvedUserId}::integer, ${weekStartStr}::date, ${tokensUsed})
         ON CONFLICT (user_id, week_start)
         DO UPDATE SET tokens_used = weekly_usage.tokens_used + ${tokensUsed}
       `;
@@ -159,21 +171,23 @@ export function registerModelRoutes(app: Hono) {
         tokensUsed,
         weeklyUsed: currentUsage + tokensUsed,
       });
-    } catch {
-      return c.json({ error: "Erreur serveur." }, 500);
+    } catch (err: any) {
+      console.error("[log-usage] Error:", err);
+      return c.json({ error: "Erreur serveur.", details: err?.message }, 500);
     }
-  });
+  };
+
+  app.post("/log-usage", handleLogUsage);
+  app.post("/v1/log-usage", handleLogUsage);
+  app.post("/log-usage/", handleLogUsage);
+  app.post("/v1/log-usage/", handleLogUsage);
 
   // ─────────────────────────────────────────────
   // GET /v1/models, /models & /v1beta/models
   // ─────────────────────────────────────────────
   const handleGetModels = async (c: any) => {
     const userPlan = c.get("userPlan");
-    const planStr = String(userPlan || "Free")
-      .toLowerCase()
-      .trim();
-    const isPaidPlan = ["plus", "pro", "max"].includes(planStr);
-    const shouldFilterFreeOnly = !isPaidPlan;
+    const shouldFilterFreeOnly = !isPaidTier(userPlan);
 
     try {
       const res = await fetch("https://openrouter.ai/api/v1/models");
@@ -392,9 +406,38 @@ export function registerModelRoutes(app: Hono) {
   const handleChatCompletions = async (c: any) => {
     try {
       const userPlan = c.get("userPlan") || "Free";
-      const body = await c.req.json().catch(() => ({}));
+
+      let body: Record<string, any>;
+      try {
+        body = await c.req.json();
+      } catch {
+        return c.json(
+          {
+            error: {
+              code: "invalid_request_body",
+              message: "Le corps de la requête doit être un JSON valide.",
+              type: "invalid_request_error",
+            },
+          },
+          400
+        );
+      }
+
       const modelRequested = body.model;
-      const modelStr = String(modelRequested || "").toLowerCase().trim();
+      if (!modelRequested) {
+        return c.json(
+          {
+            error: {
+              code: "missing_model",
+              message: "Le paramètre 'model' est obligatoire.",
+              param: "model",
+              type: "invalid_request_error",
+            },
+          },
+          400
+        );
+      }
+      const modelStr = String(modelRequested).toLowerCase().trim();
 
       // Vérifier si c'est un modèle mAI (local uniquement)
       const isMaiLocal =
@@ -418,11 +461,7 @@ export function registerModelRoutes(app: Hono) {
         );
       }
 
-      const planStr = String(userPlan || "Free")
-        .toLowerCase()
-        .trim();
-      const isPaidPlan = ["plus", "pro", "max"].includes(planStr);
-      const isFreePlan = !isPaidPlan;
+      const isFreePlan = !isPaidTier(userPlan);
       const isFreeModel = modelStr.includes(":free");
 
       // Bloquer avec 403 les requêtes pour les modèles payants avec une clé ou JWT free
@@ -459,12 +498,12 @@ export function registerModelRoutes(app: Hono) {
       const { weekStartStr } = getWeekData();
       const usageResult = await sql`
         SELECT tokens_used FROM weekly_usage
-        WHERE user_id = ${userId}::text AND week_start = ${weekStartStr}
+        WHERE user_id = ${userId}::integer AND week_start = ${weekStartStr}::date
         LIMIT 1
       `;
       const currentUsage = usageResult[0]?.tokens_used || 0;
-      const limit =
-        TIER_LIMITS[String(userPlan || "Free")] || TIER_LIMITS["Free"];
+      const maiBoost = await getUserQuotaBoost(sql, userId, "mai");
+      const limit = getTierMaiTokenLimit(userPlan) + maiBoost;
 
       if (currentUsage >= limit) {
         return c.json(
@@ -474,7 +513,7 @@ export function registerModelRoutes(app: Hono) {
       }
 
       const keyRows = await sql`
-        SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text LIMIT 1
+        SELECT api_key FROM mprojects_api_keys WHERE user_id::text = ${userId}::text LIMIT 1
       `;
       const apiKey = getOpenRouterApiKey(
         keyRows.length > 0 ? keyRows[0].api_key : null
@@ -484,19 +523,15 @@ export function registerModelRoutes(app: Hono) {
         return c.json({ error: "Clé fournisseur OpenRouter manquante." }, 500);
       }
 
-      try {
-        await sql`
-          INSERT INTO weekly_usage (user_id, week_start, tokens_used)
-          VALUES (${userId}::text, ${weekStartStr}, 1)
-          ON CONFLICT (user_id, week_start)
-          DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
-        `;
-      } catch (_e) {}
+      // Nettoyer le body : retirer tout champ `api_key` ou `Authorization` injecté par le client
+      // pour empêcher tout contournement de la clé serveur.
+      const { api_key: _ck, authorization: _ca, Authorization: _cA, ...safeBody } =
+        body as Record<string, any>;
 
       const openRouterRes = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
         {
-          body: JSON.stringify(body),
+          body: JSON.stringify(safeBody),
           headers: {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
@@ -507,6 +542,17 @@ export function registerModelRoutes(app: Hono) {
         }
       );
 
+      if (openRouterRes.status === 200) {
+        try {
+          await sql`
+            INSERT INTO weekly_usage (user_id, week_start, tokens_used)
+            VALUES (${userId}::integer, ${weekStartStr}::date, 1)
+            ON CONFLICT (user_id, week_start)
+            DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
+          `;
+        } catch (_e) {}
+      }
+
       return new Response(openRouterRes.body, {
         headers: {
           "Access-Control-Allow-Origin": "*",
@@ -515,8 +561,15 @@ export function registerModelRoutes(app: Hono) {
         },
         status: openRouterRes.status,
       });
-    } catch {
-      return c.json({ error: "Failed to process chat completion." }, 500);
+    } catch (err: any) {
+      console.error("[ChatCompletions] Erreur inattendue:", err);
+      return c.json(
+        {
+          details: err?.message || "Erreur interne.",
+          error: "Failed to process chat completion.",
+        },
+        500
+      );
     }
   };
 
@@ -529,15 +582,27 @@ export function registerModelRoutes(app: Hono) {
   const handleMessages = async (c: any) => {
     try {
       const userPlan = c.get("userPlan") || "Free";
-      const body = await c.req.json().catch(() => ({}));
+
+      let body: Record<string, any>;
+      try {
+        body = await c.req.json();
+      } catch {
+        return c.json(
+          {
+            error: {
+              code: "invalid_request_body",
+              message: "Le corps de la requête doit être un JSON valide.",
+              type: "invalid_request_error",
+            },
+          },
+          400
+        );
+      }
+
       const modelRequested = body.model;
       const modelStr = String(modelRequested || "").toLowerCase().trim();
 
-      const planStr = String(userPlan || "Free")
-        .toLowerCase()
-        .trim();
-      const isPaidPlan = ["plus", "pro", "max"].includes(planStr);
-      const isFreePlan = !isPaidPlan;
+      const isFreePlan = !isPaidTier(userPlan);
       const isFreeModel = modelStr.includes(":free");
 
       // Bloquer avec 403 les requêtes pour les modèles payants avec une clé ou JWT free
@@ -574,12 +639,12 @@ export function registerModelRoutes(app: Hono) {
       const { weekStartStr } = getWeekData();
       const usageResult = await sql`
         SELECT tokens_used FROM weekly_usage
-        WHERE user_id = ${userId}::text AND week_start = ${weekStartStr}
+        WHERE user_id = ${userId}::integer AND week_start = ${weekStartStr}::date
         LIMIT 1
       `;
       const currentUsage = usageResult[0]?.tokens_used || 0;
-      const limit =
-        TIER_LIMITS[String(userPlan || "Free")] || TIER_LIMITS["Free"];
+      const maiBoost = await getUserQuotaBoost(sql, userId, "mai");
+      const limit = getTierMaiTokenLimit(userPlan) + maiBoost;
 
       if (currentUsage >= limit) {
         return c.json(
@@ -589,7 +654,7 @@ export function registerModelRoutes(app: Hono) {
       }
 
       const keyRows = await sql`
-        SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text LIMIT 1
+        SELECT api_key FROM mprojects_api_keys WHERE user_id::text = ${userId}::text LIMIT 1
       `;
       const apiKey = getOpenRouterApiKey(
         keyRows.length > 0 ? keyRows[0].api_key : null
@@ -599,19 +664,14 @@ export function registerModelRoutes(app: Hono) {
         return c.json({ error: "Clé fournisseur OpenRouter manquante." }, 500);
       }
 
-      try {
-        await sql`
-          INSERT INTO weekly_usage (user_id, week_start, tokens_used)
-          VALUES (${userId}::text, ${weekStartStr}, 1)
-          ON CONFLICT (user_id, week_start)
-          DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
-        `;
-      } catch (_e) {}
+      // Nettoyer le body : retirer tout champ `api_key` ou `Authorization` injecté par le client
+      const { api_key: _ck, authorization: _ca, Authorization: _cA, ...safeBody } =
+        body as Record<string, any>;
 
       const openRouterRes = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
         {
-          body: JSON.stringify(body),
+          body: JSON.stringify(safeBody),
           headers: {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
@@ -622,6 +682,17 @@ export function registerModelRoutes(app: Hono) {
         }
       );
 
+      if (openRouterRes.status === 200) {
+        try {
+          await sql`
+            INSERT INTO weekly_usage (user_id, week_start, tokens_used)
+            VALUES (${userId}::integer, ${weekStartStr}::date, 1)
+            ON CONFLICT (user_id, week_start)
+            DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
+          `;
+        } catch (_e) {}
+      }
+
       return new Response(openRouterRes.body, {
         headers: {
           "Access-Control-Allow-Origin": "*",
@@ -630,8 +701,15 @@ export function registerModelRoutes(app: Hono) {
         },
         status: openRouterRes.status,
       });
-    } catch {
-      return c.json({ error: "Failed to process Anthropic request." }, 500);
+    } catch (err: any) {
+      console.error("[Messages] Erreur inattendue:", err);
+      return c.json(
+        {
+          details: err?.message || "Erreur interne.",
+          error: "Failed to process Anthropic request.",
+        },
+        500
+      );
     }
   };
 
@@ -644,7 +722,14 @@ export function registerModelRoutes(app: Hono) {
   const handleGeminiGenerate = async (c: any) => {
     try {
       const userPlan = c.get("userPlan") || "Free";
-      const body = await c.req.json().catch(() => ({}));
+
+      // Pour Gemini, le body JSON peut être optionnel (le modèle est dans l'URL)
+      let body: Record<string, any> = {};
+      try {
+        body = await c.req.json();
+      } catch {
+        // body vide acceptable pour Gemini (modèle dans le path)
+      }
 
       const fullPath = c.req.path;
       // Extraire le modèle depuis l'URL (ex: /v1beta/models/google/gemini-2.5-flash:free:generateContent -> google/gemini-2.5-flash:free)
@@ -656,11 +741,7 @@ export function registerModelRoutes(app: Hono) {
       const modelRequested = body.model || paramModel || pathModel;
       const modelStr = String(modelRequested || "").toLowerCase().trim();
 
-      const planStr = String(userPlan || "Free")
-        .toLowerCase()
-        .trim();
-      const isPaidPlan = ["plus", "pro", "max"].includes(planStr);
-      const isFreePlan = !isPaidPlan;
+      const isFreePlan = !isPaidTier(userPlan);
       const isFreeModel = modelStr.includes(":free");
 
       // Bloquer avec 403 les requêtes pour les modèles payants avec une clé ou JWT free
@@ -696,12 +777,12 @@ export function registerModelRoutes(app: Hono) {
       const { weekStartStr } = getWeekData();
       const usageResult = await sql`
         SELECT tokens_used FROM weekly_usage
-        WHERE user_id = ${userId}::text AND week_start = ${weekStartStr}
+        WHERE user_id = ${userId}::integer AND week_start = ${weekStartStr}::date
         LIMIT 1
       `;
       const currentUsage = usageResult[0]?.tokens_used || 0;
-      const limit =
-        TIER_LIMITS[String(userPlan || "Free")] || TIER_LIMITS["Free"];
+      const maiBoost = await getUserQuotaBoost(sql, userId, "mai");
+      const limit = getTierMaiTokenLimit(userPlan) + maiBoost;
 
       if (currentUsage >= limit) {
         return c.json(
@@ -711,7 +792,7 @@ export function registerModelRoutes(app: Hono) {
       }
 
       const keyRows = await sql`
-        SELECT api_key FROM mprojects_api_keys WHERE user_id = ${userId}::text LIMIT 1
+        SELECT api_key FROM mprojects_api_keys WHERE user_id::text = ${userId}::text LIMIT 1
       `;
       const apiKey = getOpenRouterApiKey(
         keyRows.length > 0 ? keyRows[0].api_key : null
@@ -721,17 +802,12 @@ export function registerModelRoutes(app: Hono) {
         return c.json({ error: "Clé fournisseur OpenRouter manquante." }, 500);
       }
 
-      try {
-        await sql`
-          INSERT INTO weekly_usage (user_id, week_start, tokens_used)
-          VALUES (${userId}::text, ${weekStartStr}, 1)
-          ON CONFLICT (user_id, week_start)
-          DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
-        `;
-      } catch (_e) {}
+      // Nettoyer le body : retirer tout champ `api_key` ou `Authorization` injecté par le client
+      const { api_key: _ck, authorization: _ca, Authorization: _cA, ...safeBody } =
+        body as Record<string, any>;
 
       const openRouterPayload = {
-        ...body,
+        ...safeBody,
         model: body.model || modelRequested,
       };
 
@@ -749,6 +825,17 @@ export function registerModelRoutes(app: Hono) {
         }
       );
 
+      if (openRouterRes.status === 200) {
+        try {
+          await sql`
+            INSERT INTO weekly_usage (user_id, week_start, tokens_used)
+            VALUES (${userId}::integer, ${weekStartStr}::date, 1)
+            ON CONFLICT (user_id, week_start)
+            DO UPDATE SET tokens_used = weekly_usage.tokens_used + 1
+          `;
+        } catch (_e) {}
+      }
+
       return new Response(openRouterRes.body, {
         headers: {
           "Access-Control-Allow-Origin": "*",
@@ -757,8 +844,15 @@ export function registerModelRoutes(app: Hono) {
         },
         status: openRouterRes.status,
       });
-    } catch {
-      return c.json({ error: "Failed to process Google Gemini request." }, 500);
+    } catch (err: any) {
+      console.error("[GeminiGenerate] Erreur inattendue:", err);
+      return c.json(
+        {
+          details: err?.message || "Erreur interne.",
+          error: "Failed to process Google Gemini request.",
+        },
+        500
+      );
     }
   };
 

@@ -105,7 +105,7 @@ export function registerAuthRoutes(app: Hono) {
 
       const sql = getDb();
       const users =
-        await sql`SELECT id, email, password_hash, tier FROM users WHERE email = ${loginId} OR username = ${loginId} OR phone = ${loginId} LIMIT 1`;
+        await sql`SELECT id, email, password_hash, tier, is_blocked FROM users WHERE email = ${loginId} OR username = ${loginId} OR phone = ${loginId} LIMIT 1`;
       if (users.length === 0) {
         return c.json({ error: "Identifiants invalides." }, 401);
       }
@@ -114,6 +114,14 @@ export function registerAuthRoutes(app: Hono) {
       const match = await bcrypt.compare(password, user.password_hash);
       if (!match) {
         return c.json({ error: "Identifiants invalides." }, 401);
+      }
+
+      // Compte bloqué par un administrateur : refus explicite (403)
+      if (user.is_blocked) {
+        return c.json(
+          { error: "Votre compte a été bloqué par un administrateur. Contactez le support pour demander sa réactivation.", blocked: true },
+          403
+        );
       }
 
       const code = await generateVerificationCode(user.email, "login");
@@ -145,12 +153,21 @@ export function registerAuthRoutes(app: Hono) {
 
       const sql = getDb();
       const users =
-        await sql`SELECT id, tier FROM users WHERE email = ${email} LIMIT 1`;
+        await sql`SELECT id, tier, is_blocked FROM users WHERE email = ${email} LIMIT 1`;
       if (users.length === 0) {
         return c.json({ error: "Utilisateur introuvable." }, 404);
       }
 
       const user = users[0];
+
+      // Compte bloqué par un administrateur : refus explicite (403)
+      if (user.is_blocked) {
+        return c.json(
+          { error: "Votre compte a été bloqué par un administrateur. Contactez le support pour demander sa réactivation.", blocked: true },
+          403
+        );
+      }
+
       const token = await signToken({ sub: user.id, tier: user.tier });
 
       const userAgent = c.req.header("user-agent") || "";
@@ -753,16 +770,44 @@ export function registerAuthRoutes(app: Hono) {
         return c.json({ error: "Non authentifié." }, 401);
       }
 
-      const keys = await sql`
-        SELECT api_key, plan, request_count, created_at, last_used_at 
-        FROM mprojects_api_keys 
-        WHERE (
-          user_id = ${userId}::text 
-          OR user_id IN (SELECT id::text FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
-          OR user_id IN (SELECT email FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
-          OR user_id IN (SELECT username FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
-        )
-      `.catch(() => []);
+      const [uRows, keyRows] = await Promise.all([
+        sql`SELECT tier FROM users WHERE id::text = ${userId}::text OR username = ${userId}::text OR email = ${userId}::text LIMIT 1`,
+        sql`
+          SELECT k.*, u.tier as user_tier
+          FROM mprojects_api_keys k
+          LEFT JOIN users u ON k.user_id = u.id::text OR k.user_id = u.username OR k.user_id = u.email
+          WHERE (
+            k.user_id = ${userId}::text 
+            OR k.user_id IN (SELECT id::text FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
+            OR k.user_id IN (SELECT email FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
+            OR k.user_id IN (SELECT username FROM users WHERE id::text = ${userId}::text OR email = ${userId}::text OR username = ${userId}::text)
+          )
+          ORDER BY k.created_at DESC
+        `.catch(() => []),
+      ]);
+
+      const userTier = uRows[0]?.tier || "Free";
+      const validTiers = ["free", "plus", "pro", "max"];
+
+      const keys = keyRows.map((k: any) => {
+        const rawPlan = String(k.plan || "").trim();
+        const planLower = rawPlan.toLowerCase();
+        const isPlanTier = validTiers.includes(planLower);
+
+        // Nom personnalisé de la clé
+        const keyName = k.name || (isPlanTier ? `Clé ${rawPlan}` : rawPlan) || "Clé API Principale";
+        // Le forfait est strictement le forfait d'abonnement du compte (free, plus, pro, max)
+        const effectivePlan = k.user_tier || userTier || (isPlanTier ? rawPlan : "Plus");
+
+        return {
+          api_key: k.api_key,
+          name: keyName,
+          plan: effectivePlan,
+          request_count: Number(k.request_count || 0),
+          created_at: k.created_at,
+          last_used_at: k.last_used_at,
+        };
+      });
 
       return c.json({ keys, success: true });
     } catch (err: any) {

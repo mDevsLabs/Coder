@@ -207,40 +207,6 @@ export async function maiFetchUsage(jwtToken: string): Promise<MaiUsageResponse>
 }
 
 /**
- * 7. Récupérer les clés API liées au user_id dans mprojects_api_keys via /api-keys (Q1 : tirage au hasard)
- */
-export async function maiFetchAllApiKeys(jwtToken: string): Promise<string[]> {
-	try {
-		const res = await fetch(`${MAI_API_BASE}/api-keys`, {
-			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${jwtToken.trim()}`,
-				'Content-Type': 'application/json',
-			},
-		});
-		const json = await res.json().catch(() => ({}));
-		if (res.ok && json.success && Array.isArray(json.keys) && json.keys.length > 0) {
-			return json.keys
-				.map((k: any) => (typeof k.api_key === 'string' ? k.api_key.trim() : ""))
-				.filter((s: string) => s.length > 0);
-		}
-		return [];
-	} catch {
-		return [];
-	}
-}
-
-export async function maiFetchApiKey(jwtToken: string): Promise<string | null> {
-	const keys = await maiFetchAllApiKeys(jwtToken);
-	if (keys.length === 0) return null;
-	// Q1 : clé au hasard, réutilisable jusqu'à déconnexion (mise en cache via chosenApiKey)
-	const current = getSettings().maiAccount?.chosenApiKey?.trim();
-	if (current && keys.includes(current)) return current;
-	const idx = Math.floor(Math.random() * keys.length);
-	return keys[idx] ?? null;
-}
-
-/**
  * 8. Enregistrer les tokens consommés via POST /log-usage
  */
 export async function maiLogUsage(jwtToken: string, tokensUsed: number): Promise<{ ok: boolean; weeklyUsed?: number; limit?: number }> {
@@ -401,13 +367,9 @@ export async function checkMaiQuotaAvailable(
  * Synchronise entièrement le compte mAI à partir du token JWT
  */
 export async function syncMaiAccountWithToken(jwtToken: string): Promise<MaiAccountState> {
-	const [usageRes, userApiKey] = await Promise.all([
-		maiFetchUsage(jwtToken),
-		maiFetchApiKey(jwtToken),
-	]);
-
-	const chosenApiKey = userApiKey ? userApiKey.trim() : undefined;
-	const effectiveApiKey = (chosenApiKey || jwtToken).trim();
+	// Le jwtToken est directement utilisé comme clé API effective — plus de fetch BDD mprojects_api_keys
+	const usageRes = await maiFetchUsage(jwtToken);
+	const effectiveApiKey = jwtToken.trim();
 	const userProfile: MaiAccountProfile | undefined = usageRes.ok
 		? {
 				id: usageRes.email || 'mai-user',
@@ -432,12 +394,11 @@ export async function syncMaiAccountWithToken(jwtToken: string): Promise<MaiAcco
 		jwtToken,
 		user: userProfile,
 		apiKey: effectiveApiKey,
-		chosenApiKey,
 		usage,
 		lastSyncedAt: Date.now(),
 	};
 
-	// Mettre à jour le provider mAI dans settings.models.providers avec la clé effective (clé API mprojects_api_keys ou token JWT)
+	// Mettre à jour le provider mAI dans settings.models.providers avec le jwtToken comme clé effective
 	const curSettings = getSettings();
 	const curProviders = curSettings.models?.providers ?? [];
 	const hasMai = curProviders.some((p) => p.id === 'mai');
