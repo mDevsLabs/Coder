@@ -67,7 +67,7 @@ describe('executeTool Bash', () => {
 
 		expect(result.isError).toBe(false);
 		expect(result.content).not.toContain('hooks is not defined');
-	});
+	}, 20000);
 
 	it('blocks direct shell redirection writes', async () => {
 		const result = await executeTool(

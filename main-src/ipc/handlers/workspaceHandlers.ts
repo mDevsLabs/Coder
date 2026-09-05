@@ -76,6 +76,7 @@ function windowsEditorExecutableFallbacks(tool: Extract<ExternalWorkspaceTool, '
 			].filter((candidate): candidate is string => Boolean(candidate));
 		case 'antigravity':
 			return [
+				localAppData ? path.join(localAppData, 'Programs', 'antigravity', 'Antigravity.exe') : null,
 				localAppData ? path.join(localAppData, 'Programs', 'Antigravity', 'Antigravity.exe') : null,
 				programFiles ? path.join(programFiles, 'Antigravity', 'Antigravity.exe') : null,
 				programFilesX86 ? path.join(programFilesX86, 'Antigravity', 'Antigravity.exe') : null,
